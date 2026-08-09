@@ -2,28 +2,20 @@
 
 > Lecteur coranique web / PWA pour écouter le Coran en streaming, gratuitement et sans publicité.
 
-## Site
-- URL canonique : https://sawra.app/
-- Langue : français (fr-FR)
-- Confidentialité : https://sawra.app/privacy/
+Sawra permet d’écouter le Coran en ligne avec de grands récitateurs (sources audio mp3quran.net). L’app propose le streaming, le hors-ligne, les favoris, la reprise de lecture, la sync multi-appareils et la lecture des versets synchronisée à l’audio.
+
+## Pages principales
+
+- [Accueil Sawra](https://sawra.app/): Lecteur Coran en ligne, gratuit et sans publicité
+- [Politique de confidentialité](https://sawra.app/privacy/): Données, cookies et synchronisation de compte
+- [llms.txt](https://sawra.app/llms.txt): Fichier d’orientation pour agents et LLM
 
 ## Produit
-Sawra permet d’écouter le Coran en ligne avec de grands récitateurs (sources audio mp3quran.net).
-Fonctionnalités principales :
-- Streaming Coran audio
-- Téléchargement hors-ligne de sourates
-- Favoris et reprise de lecture
-- Synchronisation multi-appareils (compte GoMuslimLife)
-- Comparaison de récitateurs
-- Lecture des versets synchronisée à l’audio
-- Installation PWA (Android / iOS)
 
-## Positionnement
-- 100 % gratuit
-- Sans publicité
-- Pas d’hébergement des fichiers MP3 (flux externes documentés)
+- [Sawra — écouter le Coran](https://sawra.app/): Streaming audio, téléchargements hors-ligne, favoris et PWA
+- [GoMuslimLife](https://gomuslimlife.com/): Compte pour synchroniser favoris et reprise entre appareils
 
-## Contact / marque
-- Nom : Sawra
-- Domaine : sawra.app
-- Application Android (package) : app.sawra
+## Optional
+
+- [Sitemap](https://sawra.app/sitemap.xml): Plan du site pour indexation
+- [Manifeste PWA](https://sawra.app/site.webmanifest): Métadonnées d’installation de l’application

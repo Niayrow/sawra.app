@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'quranify-pwa-v111-20260801';
+const CACHE_VERSION = 'quranify-pwa-v112-20260809';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const OFFLINE_URL = '/offline.html';
@@ -8,7 +8,7 @@ const APP_SHELL_ASSETS = [
   '/index.html',
   OFFLINE_URL,
   '/site.webmanifest',
-  '/icons/favicon.ico',
+  '/favicon.ico',
   '/icons/favicon-16x16.png',
   '/icons/favicon-32x32.png',
   '/icons/apple-touch-icon.png',
@@ -43,6 +43,25 @@ const putRuntimeCache = async (request, response) => {
   await cache.put(request, response.clone());
 };
 
+const precacheShellAssets = async (urls) => {
+  const cache = await caches.open(APP_SHELL_CACHE);
+  await Promise.all(
+    (urls || []).map(async (url) => {
+      try {
+        const request = new Request(url, { credentials: 'same-origin' });
+        const existing = await cache.match(request);
+        if (existing) return;
+        const response = await fetch(request);
+        if (response.ok) {
+          await cache.put(request, response.clone());
+        }
+      } catch {
+        // Best-effort install: one missing asset must not fail the whole shell
+      }
+    })
+  );
+};
+
 const precacheUrlList = async (urls) => {
   const cache = await caches.open(RUNTIME_CACHE);
   await Promise.all(
@@ -64,9 +83,7 @@ const precacheUrlList = async (urls) => {
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(APP_SHELL_CACHE)
-      .then((cache) => cache.addAll(APP_SHELL_ASSETS))
-      .then(() => self.skipWaiting())
+    precacheShellAssets(APP_SHELL_ASSETS).then(() => self.skipWaiting())
   );
 });
 

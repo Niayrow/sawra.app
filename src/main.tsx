@@ -37,9 +37,11 @@ if (import.meta.env.PROD) {
 // Register PWA Service Worker for offline launch capability
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
+    navigator.serviceWorker
+      .register('/sw.js', { updateViaCache: 'none' })
       .then((registration) => {
-        registration.update();
+        // A failed update (stale/broken worker) must not surface as an uncaught rejection
+        void registration.update().catch(() => undefined);
         precacheAppShellInBackground();
       })
       .catch(() => {

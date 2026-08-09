@@ -1024,7 +1024,7 @@ const AppContent: React.FC = () => {
     const byId = new Map(reciters.map((r) => [r.id, r]));
     return recentReciterIds
       .map((id) => byId.get(id))
-      .filter((r): r is Reciter => Boolean(r) && allowed.has(r.id));
+      .filter((r): r is Reciter => r != null && allowed.has(r.id));
   }, [reciters, recentReciterIds, deferredReciterSearch, filteredReciters]);
 
   const catalogReciters = useMemo(() => {

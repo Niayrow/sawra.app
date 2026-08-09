@@ -1,0 +1,29 @@
+# Sawra
+
+> Lecteur coranique web / PWA pour écouter le Coran en streaming, gratuitement et sans publicité.
+
+## Site
+- URL canonique : https://sawra.app/
+- Langue : français (fr-FR)
+- Confidentialité : https://sawra.app/privacy/
+
+## Produit
+Sawra permet d’écouter le Coran en ligne avec de grands récitateurs (sources audio mp3quran.net).
+Fonctionnalités principales :
+- Streaming Coran audio
+- Téléchargement hors-ligne de sourates
+- Favoris et reprise de lecture
+- Synchronisation multi-appareils (compte GoMuslimLife)
+- Comparaison de récitateurs
+- Lecture des versets synchronisée à l’audio
+- Installation PWA (Android / iOS)
+
+## Positionnement
+- 100 % gratuit
+- Sans publicité
+- Pas d’hébergement des fichiers MP3 (flux externes documentés)
+
+## Contact / marque
+- Nom : Sawra
+- Domaine : sawra.app
+- Application Android (package) : app.sawra

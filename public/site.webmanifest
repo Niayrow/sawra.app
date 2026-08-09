@@ -1,7 +1,7 @@
 {
-  "name": "Sawra - Lecteur Coranique Premium",
+  "name": "Sawra — Lecteur coranique gratuit",
   "short_name": "Sawra",
-  "description": "Écoutez le Coran en streaming (sources mp3quran.net). Gratuit, sans pub. Hors-ligne via téléchargements locaux. Sync multi-appareils avec un compte.",
+  "description": "Écoutez le Coran en streaming avec les grands récitateurs. Gratuit, sans publicité. Hors-ligne via téléchargements locaux. Sync multi-appareils avec un compte.",
   "id": "/",
   "start_url": "/?source=pwa",
   "scope": "/",
@@ -10,9 +10,9 @@
   "orientation": "portrait",
   "dir": "ltr",
   "lang": "fr",
-  "background_color": "#080808",
-  "theme_color": "#080808",
-  "categories": ["music", "education", "lifestyle"],
+  "background_color": "#07111d",
+  "theme_color": "#07111d",
+  "categories": ["music", "education", "lifestyle", "entertainment"],
   "icons": [
     { "src": "/icons/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icons/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
@@ -21,17 +21,17 @@
   ],
   "shortcuts": [
     {
-      "name": "Récitateurs",
-      "short_name": "Récitateurs",
+      "name": "Écouter le Coran",
+      "short_name": "Écouter",
       "description": "Ouvrir la recherche de récitateurs",
-      "url": "/?tab=reciters",
+      "url": "/?tab=listen",
       "icons": [{ "src": "/icons/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Comparer A/B",
       "short_name": "Comparer",
       "description": "Comparer deux récitateurs sur la même sourate",
-      "url": "/?tab=compare",
+      "url": "/?tab=more&panel=compare",
       "icons": [{ "src": "/icons/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
@@ -62,7 +62,7 @@
       "sizes": "1200x630",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Sawra, lecteur coranique premium"
+      "label": "Sawra, lecteur coranique gratuit et sans publicité"
     }
   ]
 }

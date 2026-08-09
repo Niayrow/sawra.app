@@ -30,6 +30,7 @@ import {
   saveNavDesktopStyle,
   type NavDesktopStyle,
 } from './utils/navDesktopStyle';
+import { applyDocumentSeo, resolveSeoForView } from './utils/seo';
 
 const SurahList = lazy(() => import('./components/SurahList').then((module) => ({ default: module.SurahList })));
 const GlobalPlayerV2 = lazy(() => import('./components/GlobalPlayerV2').then((module) => ({ default: module.GlobalPlayerV2 })));
@@ -420,7 +421,7 @@ const LoadingHome: React.FC<{ progress: number; reciterCount: number }> = ({ pro
           <div>
             <h1 className="text-3xl font-black tracking-tight text-[#f6f8fb] m-0">SAWRA</h1>
             <p className="text-[11px] tracking-[0.22em] text-[#b4c0ce] font-bold uppercase mt-1">
-              Lecteur Coranique Premium
+              Lecteur coranique gratuit
             </p>
           </div>
         </div>
@@ -867,6 +868,10 @@ const AppContent: React.FC = () => {
   }, [activeTab, morePanel, legalSub]);
 
   useEffect(() => {
+    applyDocumentSeo(resolveSeoForView(activeTab, morePanel));
+  }, [activeTab, morePanel]);
+
+  useEffect(() => {
     if (!isLoadingReciters) {
       const completeTimer = window.setTimeout(() => setLoadingProgress(100), 0);
       const doneTimer = window.setTimeout(() => setShowLoadingHome(false), 550);
@@ -1178,7 +1183,7 @@ const AppContent: React.FC = () => {
         onConnect={openAuthFromPrompt}
       />
       {/* Brand lives in the floating Navbar; keep an accessible page title */}
-      <h1 className="sr-only">Sawra — Écouter le Coran en ligne, gratuit et sans publicité</h1>
+      <h1 className="sr-only">Sawra — Écouter le Coran en ligne gratuitement, sans publicité</h1>
 
       {/* 2. Main Tab Views */}
       <main

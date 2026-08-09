@@ -149,7 +149,7 @@ export const AboutPanel: React.FC<AboutPanelProps> = ({ onOpenLegal }) => {
             <span className="brand-chip inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider">
               v{APP_VERSION}
             </span>
-            <span className="text-[11px] text-[#95a7ba]">Dernière maj · 27 juil. 2026</span>
+            <span className="text-[11px] text-[#95a7ba]">Dernière maj · 9 août 2026</span>
           </div>
           <a
             href="https://gomuslimlife.com"

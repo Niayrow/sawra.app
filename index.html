@@ -3,49 +3,56 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#080808" />
+    <meta name="theme-color" content="#07111d" />
     <meta name="color-scheme" content="dark" />
 
-    <title>Sawra — Écouter le Coran en ligne | Gratuit, sans pub</title>
-    <meta name="description" content="Sawra : écoutez le Coran en streaming (sources mp3quran.net). Gratuit, sans pub. Hors-ligne via téléchargement local. Sync multi-appareils avec un compte." />
-    <meta name="keywords" content="Sawra, Coran audio, écouter le Coran, Quran streaming, récitateurs, Mishary Al Afasy, Soudais, Maher Al Muaiqly, Minshawi, lecteur coranique, gratuit sans pub" />
+    <title>Sawra — Écouter le Coran en ligne gratuitement | Sans publicité</title>
+    <meta name="description" content="Écoutez le Coran en streaming avec les grands récitateurs (Al-Afasy, Soudais, Minshawi…). Lecteur gratuit, sans pub, téléchargement hors-ligne et sync multi-appareils. Essayez Sawra." />
+    <meta name="keywords" content="écouter le Coran, Coran audio gratuit, lecteur coranique, streaming Coran, récitateurs Coran, Mishary Al Afasy, Abderrahmane Al-Soudais, Maher Al Muaiqly, Minshawi, Coran hors ligne, Sawra" />
     <meta name="author" content="Sawra" />
+    <meta name="creator" content="Sawra" />
+    <meta name="publisher" content="Sawra" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-    <meta name="googlebot" content="index, follow" />
+    <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="bingbot" content="index, follow" />
+    <meta name="rating" content="general" />
+    <meta name="format-detection" content="telephone=no" />
     <link rel="canonical" href="https://sawra.app/" />
+    <link rel="alternate" hreflang="fr" href="https://sawra.app/" />
+    <link rel="alternate" hreflang="x-default" href="https://sawra.app/" />
 
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
-    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#7a919f" />
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#cea687" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Sawra" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="application-name" content="Sawra" />
-    <meta name="msapplication-TileColor" content="#080808" />
+    <meta name="msapplication-TileColor" content="#07111d" />
     <meta name="msapplication-config" content="/browserconfig.xml" />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Sawra" />
-    <meta property="og:title" content="Sawra — Écouter le Coran en ligne | Gratuit, sans pub" />
-    <meta property="og:description" content="Écoutez le Coran avec les grands récitateurs (mp3quran.net). Gratuit, sans pub. Téléchargements locaux et sync avec compte." />
+    <meta property="og:title" content="Sawra — Écouter le Coran en ligne gratuitement | Sans publicité" />
+    <meta property="og:description" content="Lecteur coranique gratuit : streaming des grands récitateurs, téléchargements hors-ligne, sync multi-appareils. 100 % sans publicité." />
     <meta property="og:url" content="https://sawra.app/" />
     <meta property="og:image" content="https://sawra.app/og-image.png" />
     <meta property="og:image:secure_url" content="https://sawra.app/og-image.png" />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Sawra — lecteur coranique gratuit et sans publicité" />
+    <meta property="og:image:alt" content="Sawra — écouter le Coran en ligne, gratuit et sans publicité" />
     <meta property="og:locale" content="fr_FR" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Sawra — Écouter le Coran en ligne | Gratuit, sans pub" />
-    <meta name="twitter:description" content="Écoutez le Coran avec les grands récitateurs (mp3quran.net). Gratuit, sans pub. Téléchargements locaux et sync avec compte." />
+    <meta name="twitter:title" content="Sawra — Écouter le Coran en ligne gratuitement | Sans publicité" />
+    <meta name="twitter:description" content="Lecteur coranique gratuit : streaming des grands récitateurs, hors-ligne et sync. 100 % sans publicité." />
     <meta name="twitter:image" content="https://sawra.app/og-image.png" />
-    <meta name="twitter:image:alt" content="Sawra — lecteur coranique gratuit et sans publicité" />
+    <meta name="twitter:image:alt" content="Sawra — écouter le Coran en ligne, gratuit et sans publicité" />
 
     <link rel="preconnect" href="https://mp3quran.net" crossorigin />
     <link rel="dns-prefetch" href="https://mp3quran.net" />
@@ -62,50 +69,116 @@
             "@id": "https://sawra.app/#organization",
             "name": "Sawra",
             "url": "https://sawra.app/",
+            "description": "Sawra est un lecteur coranique web et PWA, gratuit et sans publicité.",
             "logo": {
               "@type": "ImageObject",
-              "url": "https://sawra.app/icon.png"
-            }
+              "url": "https://sawra.app/icon.png",
+              "width": 512,
+              "height": 512
+            },
+            "image": "https://sawra.app/og-image.png"
           },
           {
             "@type": "WebSite",
             "@id": "https://sawra.app/#website",
             "url": "https://sawra.app/",
             "name": "Sawra",
-            "description": "Lecteur coranique gratuit et sans publicité pour écouter les grands récitateurs en streaming.",
+            "alternateName": ["Sawra Coran", "Lecteur Coranique Sawra"],
+            "description": "Écoutez le Coran en ligne gratuitement avec les grands récitateurs. Sans publicité, hors-ligne et synchronisation multi-appareils.",
             "inLanguage": "fr-FR",
-            "publisher": {
-              "@id": "https://sawra.app/#organization"
-            }
+            "publisher": { "@id": "https://sawra.app/#organization" }
           },
           {
-            "@type": "WebApplication",
+            "@type": ["WebApplication", "SoftwareApplication"],
             "@id": "https://sawra.app/#app",
             "name": "Sawra",
             "url": "https://sawra.app/",
             "applicationCategory": "MultimediaApplication",
+            "applicationSubCategory": "Quran audio player",
             "operatingSystem": "Web, Android, iOS",
-            "browserRequirements": "Requires JavaScript",
+            "browserRequirements": "Requires JavaScript. Modern browser recommended.",
             "inLanguage": "fr-FR",
             "isAccessibleForFree": true,
-            "description": "Sawra est un lecteur coranique pour écouter les grands récitateurs en streaming (mp3quran.net), télécharger des sourates en local et synchroniser favoris et reprise avec un compte. 100% gratuit et sans publicité.",
+            "description": "Sawra permet d’écouter le Coran en streaming (sources mp3quran.net), de télécharger des sourates pour le hors-ligne, de comparer des récitateurs et de synchroniser favoris et reprise avec un compte. Gratuit et sans publicité.",
             "image": "https://sawra.app/og-image.png",
+            "screenshot": "https://sawra.app/og-image.png",
+            "featureList": [
+              "Streaming Coran audio (mp3quran.net)",
+              "Grands récitateurs (Al-Afasy, Soudais, Minshawi…)",
+              "Téléchargement hors-ligne",
+              "Sync multi-appareils avec compte",
+              "Comparaison de récitateurs",
+              "Lecture des versets synchronisée",
+              "Installation PWA",
+              "100 % gratuit, sans publicité"
+            ],
             "offers": {
               "@type": "Offer",
               "price": "0",
               "priceCurrency": "EUR",
               "availability": "https://schema.org/InStock"
             },
-            "publisher": {
-              "@id": "https://sawra.app/#organization"
-            }
+            "publisher": { "@id": "https://sawra.app/#organization" }
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://sawra.app/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Sawra est-il gratuit ?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Oui. Sawra est 100 % gratuit et sans publicité. Vous pouvez écouter le Coran en streaming sans créer de compte."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "D’où viennent les audios du Coran ?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Les flux audio proviennent de mp3quran.net. Sawra ne revend pas d’écoute et n’héberge pas les fichiers MP3."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Puis-je écouter le Coran hors ligne ?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Oui. Vous pouvez télécharger des sourates sur votre appareil pour les réécouter sans connexion."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Sawra fonctionne-t-il sur mobile ?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Oui. Sawra est une application web progressive (PWA) installable sur Android et iOS, avec une expérience optimisée mobile."
+                }
+              }
+            ]
           }
         ]
       }
     </script>
   </head>
   <body class="bg-slate-950">
-    <noscript>Sawra nécessite JavaScript pour charger le lecteur coranique.</noscript>
+    <noscript>
+      <main style="max-width:42rem;margin:2rem auto;padding:0 1.25rem;font-family:system-ui,sans-serif;color:#e6edf5;background:#07111d;line-height:1.6">
+        <h1>Sawra — Écouter le Coran en ligne gratuitement</h1>
+        <p>Sawra est un lecteur coranique gratuit et sans publicité pour écouter le Coran en streaming avec les grands récitateurs (Al-Afasy, Soudais, Minshawi, Al-Mouaiqly…).</p>
+        <h2>Fonctionnalités</h2>
+        <ul>
+          <li>Streaming Coran audio (sources mp3quran.net)</li>
+          <li>Téléchargement de sourates pour l’écoute hors-ligne</li>
+          <li>Favoris et reprise de lecture</li>
+          <li>Synchronisation multi-appareils avec un compte</li>
+          <li>Comparaison de récitateurs et lecture des versets</li>
+          <li>Installation en PWA sur mobile</li>
+        </ul>
+        <p>Activez JavaScript pour ouvrir le lecteur, ou consultez la <a href="/privacy/" style="color:#cea687">politique de confidentialité</a>.</p>
+      </main>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

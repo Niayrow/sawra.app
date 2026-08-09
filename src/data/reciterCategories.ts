@@ -105,7 +105,7 @@ export const RECITER_CATEGORIES: ReciterCategory[] = [
     title: 'Choix Sawra',
     subtitle: 'Sélection éditoriale',
     arabicLabel: 'مختار',
-    image: '/img/choix.webp',
+    image: '/img/sawra.webp',
     icon: Sparkles,
     accent: {
       border: 'border-rose-400/30',

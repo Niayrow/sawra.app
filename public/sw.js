@@ -23,7 +23,7 @@ const APP_SHELL_ASSETS = [
   '/img/mecca.webp',
   '/img/medine.webp',
   '/img/riyad.webp',
-  '/img/choix.webp',
+  '/img/sawra.webp',
 ];
 
 const isMp3QuranRequest = (url) => (

@@ -34,7 +34,7 @@ export const ReciterCategoryGrid: React.FC<ReciterCategoryGridProps> = ({
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="grid grid-cols-2 gap-3">
         {RECITER_CATEGORIES.map((category) => {
           const count = counts[category.id] ?? 0;
           const isActive = activeCategoryId === category.id;
@@ -45,7 +45,7 @@ export const ReciterCategoryGrid: React.FC<ReciterCategoryGridProps> = ({
               type="button"
               disabled={count === 0}
               onClick={() => onOpenCategory(category.id)}
-              className={`group relative h-[120px] overflow-hidden rounded-2xl border bg-[#0c1522] text-left transition-all duration-300 tap-feedback disabled:opacity-40 disabled:pointer-events-none ${category.accent.border} ${
+              className={`group relative aspect-square overflow-hidden rounded-2xl border bg-[#0c1522] text-left transition-all duration-300 tap-feedback disabled:opacity-40 disabled:pointer-events-none ${category.accent.border} ${
                 isActive ? category.accent.glow : 'hover:brightness-110'
               }`}
             >
@@ -53,19 +53,19 @@ export const ReciterCategoryGrid: React.FC<ReciterCategoryGridProps> = ({
                 src={category.image}
                 alt=""
                 aria-hidden="true"
-                width="320"
-                height="176"
-                sizes="(max-width: 768px) 45vw, 220px"
+                width="480"
+                height="480"
+                sizes="(max-width: 768px) 48vw, 280px"
                 className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.03]"
                 loading="lazy"
                 decoding="async"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#07111d]/92 via-[#07111d]/58 to-[#07111d]/28" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#07111d]/92 via-[#07111d]/35 to-[#07111d]/10" />
 
-              <div className="relative z-10 flex h-full items-end justify-between gap-2 p-3">
+              <div className="relative z-10 flex h-full items-end justify-between gap-2 p-3.5">
                 <div className="min-w-0">
-                  <p className="text-sm font-black text-white drop-shadow-md truncate">{category.title}</p>
-                  <p className="mt-0.5 text-[10px] text-[#d7e4ef]/75 truncate">{category.subtitle}</p>
+                  <p className="text-[15px] font-black text-white drop-shadow-md truncate">{category.title}</p>
+                  <p className="mt-0.5 text-[11px] text-[#d7e4ef]/80 truncate">{category.subtitle}</p>
                 </div>
                 <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider backdrop-blur-md ${category.accent.badge}`}>
                   {count}

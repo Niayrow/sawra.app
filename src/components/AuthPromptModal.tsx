@@ -42,7 +42,7 @@ export const AuthPromptModal: React.FC<AuthPromptModalProps> = ({
                 <Cloud className="h-5 w-5" />
               </span>
               <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-widest text-[#f0d1bc]">
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#e4ccb4]">
                   Compte Sawra
                 </p>
                 <h2 id="auth-prompt-title" className="text-lg font-black text-[#f6f8fb] leading-tight">

@@ -380,13 +380,13 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
           <div className="quran-reader-header__wash" aria-hidden />
           <div className="relative z-10 px-3 pt-1.5 pb-2 md:px-4">
             <div className="mb-1.5 flex justify-center">
-              <span className="h-0.5 w-8 rounded-full bg-[#cea687]/40" aria-hidden />
+              <span className="h-0.5 w-8 rounded-full bg-[#c9a06a]/40" aria-hidden />
               <span className="sr-only">Glisser vers le bas pour redimensionner ou fermer</span>
             </div>
 
             <div className="flex items-center gap-2.5">
               <span
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#cea687]/28 bg-[#07111d]/55 text-[#cea687]"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#c9a06a]/28 bg-[#07111d]/55 text-[#c9a06a]"
                 aria-hidden
               >
                 <BookOpen className="h-3.5 w-3.5" />
@@ -400,7 +400,7 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
                     {surah.name}
                   </h3>
                   <p
-                    className="quran-uthmani shrink-0 text-[1.05rem] leading-none text-[#f0d1bc]"
+                    className="quran-uthmani shrink-0 text-[1.05rem] leading-none text-[#e4ccb4]"
                     dir="rtl"
                     lang="ar"
                   >
@@ -428,8 +428,8 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
                   disabled={closing}
                   className={`flex h-8 w-8 items-center justify-center rounded-full border bg-[#0a1420]/80 disabled:opacity-50 ${
                     showOptions
-                      ? 'border-[#cea687]/45 text-[#f0d1bc]'
-                      : 'border-[#46607b]/45 text-[#aab7c5] hover:border-[#cea687]/35 hover:text-[#f6f8fb]'
+                      ? 'border-[#c9a06a]/45 text-[#e4ccb4]'
+                      : 'border-[#46607b]/45 text-[#aab7c5] hover:border-[#c9a06a]/35 hover:text-[#f6f8fb]'
                   }`}
                   aria-label="Options de lecture"
                   aria-expanded={showOptions}
@@ -445,7 +445,7 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
                   }}
                   onPointerDown={(e) => e.stopPropagation()}
                   disabled={closing}
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-[#46607b]/45 bg-[#0a1420]/80 text-[#aab7c5] hover:border-[#cea687]/35 hover:text-[#f6f8fb] disabled:opacity-50"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-[#46607b]/45 bg-[#0a1420]/80 text-[#aab7c5] hover:border-[#c9a06a]/35 hover:text-[#f6f8fb] disabled:opacity-50"
                   aria-label="Fermer la lecture"
                 >
                   <X className="h-3.5 w-3.5" />
@@ -460,10 +460,10 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
           >
             <div className="quran-reader-options-clip">
               <div
-                className="quran-reader-options relative z-20 border-t border-[#cea687]/12 px-3 pb-3 pt-2.5 md:px-4"
+                className="quran-reader-options relative z-20 border-t border-[#c9a06a]/12 px-3 pb-3 pt-2.5 md:px-4"
                 onPointerDown={(e) => e.stopPropagation()}
               >
-                <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#cea687]/90">
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#c9a06a]/90">
                   Options de lecture
                 </p>
 
@@ -477,7 +477,7 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
                         onClick={() => setPrefs({ fontScale: scale as ReaderFontScale })}
                         className={`flex h-8 flex-1 items-center justify-center rounded-xl border text-sm font-bold tap-feedback ${
                           prefs.fontScale === scale
-                            ? 'border-[#cea687]/45 bg-[#cea687]/15 text-[#f0d1bc]'
+                            ? 'border-[#c9a06a]/45 bg-[#c9a06a]/15 text-[#e4ccb4]'
                             : 'border-[#30455c] bg-[#07111d]/55 text-[#aab7c5]'
                         }`}
                         aria-pressed={prefs.fontScale === scale}
@@ -504,7 +504,7 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
                       onClick={() => setPrefs({ [row.key]: !prefs[row.key] })}
                       className={`flex w-full items-center justify-center rounded-xl border px-3 py-2.5 text-center text-[12px] font-semibold tap-feedback ${
                         prefs[row.key]
-                          ? 'border-[#cea687]/45 bg-[#cea687]/15 text-[#f0d1bc]'
+                          ? 'border-[#c9a06a]/45 bg-[#c9a06a]/15 text-[#e4ccb4]'
                           : 'border-[#30455c] bg-[#07111d]/55 text-[#aab7c5]'
                       }`}
                       aria-pressed={prefs[row.key]}
@@ -520,7 +520,7 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
                   onClick={() => setPrefs({ autoOpenOnPlay: !prefs.autoOpenOnPlay })}
                   className={`mb-1.5 flex w-full items-center justify-center rounded-xl border px-3 py-2.5 text-center text-[12px] font-semibold leading-snug tap-feedback ${
                     prefs.autoOpenOnPlay
-                      ? 'border-[#cea687]/45 bg-[#cea687]/15 text-[#f0d1bc]'
+                      ? 'border-[#c9a06a]/45 bg-[#c9a06a]/15 text-[#e4ccb4]'
                       : 'border-[#30455c] bg-[#07111d]/55 text-[#aab7c5]'
                   }`}
                   aria-pressed={prefs.autoOpenOnPlay}
@@ -534,7 +534,7 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
                   onClick={() => setPrefs({ syncHighlight: !prefs.syncHighlight })}
                   className={`flex w-full items-center justify-center rounded-xl border px-3 py-2.5 text-center text-[12px] font-semibold leading-snug tap-feedback ${
                     prefs.syncHighlight
-                      ? 'border-[#cea687]/45 bg-[#cea687]/15 text-[#f0d1bc]'
+                      ? 'border-[#c9a06a]/45 bg-[#c9a06a]/15 text-[#e4ccb4]'
                       : 'border-[#30455c] bg-[#07111d]/55 text-[#aab7c5]'
                   }`}
                   aria-pressed={prefs.syncHighlight}
@@ -554,7 +554,7 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
         >
           {loading && (
             <div className="flex flex-col items-center justify-center gap-3 py-14 text-[#aab7c5]">
-              <RefreshCw className="h-6 w-6 animate-spin text-[#cea687]" />
+              <RefreshCw className="h-6 w-6 animate-spin text-[#c9a06a]" />
               <p className="text-sm">Chargement du texte…</p>
             </div>
           )}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Headphones } from '../icons/motion';
 import { ConnectedBadge, type ExploreNavFusionProps, type ReciterNavFusionProps } from './Navbar';
-import { getGeneratedReciterAvatar, getReciterImage } from '../utils/images';
+import { ReciterPortrait } from './ReciterPortrait';
 import type { NavTabIcon } from '../hooks/useNavMotionIcons';
 
 type NavTabId = 'home' | 'listen' | 'moments' | 'favorites' | 'account' | 'more';
@@ -83,14 +83,14 @@ export const NavbarDesktopClassic: React.FC<NavbarDesktopClassicProps> = ({
               : {})}
             className={`nav-tab__glyph shrink-0 transition-colors duration-300 ${
               isActive
-                ? 'text-[#f0d1bc]'
-                : 'text-[#8fa3b0] group-hover:text-[#f1d4c1]'
+                ? 'text-[#e4ccb4]'
+                : 'text-[#8fa3b0] group-hover:text-[#e8d4bc]'
             }`}
           />
           <span
             className={`text-[12px] leading-none tracking-wide transition-colors duration-300 ${
               isActive
-                ? 'font-bold text-[#f1d4c1]'
+                ? 'font-bold text-[#e8d4bc]'
                 : 'font-medium text-[#9fb1c3] group-hover:text-[#e8eef5]'
             }`}
           >
@@ -110,7 +110,7 @@ export const NavbarDesktopClassic: React.FC<NavbarDesktopClassicProps> = ({
       style={fusionStyle}
     >
       <nav
-        className="nav-desktop-classic glass-panel-opaque backdrop-blur-2xl border-b border-[#cea687]/18"
+        className="nav-desktop-classic glass-panel-opaque backdrop-blur-2xl border-b border-[#c9a06a]/18"
         aria-label="Navigation principale"
       >
         <div className="nav-desktop-classic-inner mx-auto grid h-[4.15rem] max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-6 lg:px-8">
@@ -124,12 +124,14 @@ export const NavbarDesktopClassic: React.FC<NavbarDesktopClassicProps> = ({
               <img
                 src={LOGO_SRC}
                 alt=""
-                className="h-9 w-9 shrink-0 object-contain drop-shadow-[0_2px_16px_rgba(206,166,135,0.42)] transition-transform duration-300 group-hover/nav-brand:scale-105"
+                className="h-9 w-9 shrink-0 object-contain drop-shadow-[0_2px_16px_rgba(201,160,106,0.42)] transition-transform duration-300 group-hover/nav-brand:scale-105"
                 draggable={false}
               />
               <span className="flex flex-col items-start justify-center leading-none">
-                <span className="text-[1.02rem] font-black tracking-[-0.03em] text-[#f6f8fb]">Sawra</span>
-                <span className="mt-1 text-[9px] font-bold uppercase tracking-[0.22em] text-[#cea687]/80">
+                <span className="reciter-name-gradient is-selected text-[1.02rem] font-black tracking-[-0.03em]">
+                  Sawra
+                </span>
+                <span className="mt-1 text-[9px] font-bold uppercase tracking-[0.22em] text-[#c9a06a]/80">
                   Coran
                 </span>
               </span>
@@ -161,21 +163,14 @@ export const NavbarDesktopClassic: React.FC<NavbarDesktopClassicProps> = ({
         >
           <div className="mx-auto flex w-full max-w-6xl items-center gap-3">
             <div className="nav-reciter-fusion-avatar w-9 h-9 rounded-lg overflow-hidden border border-[#46607b]/55 bg-[#111d2d] shrink-0">
-              <img
-                src={getReciterImage(reciterFusion.reciter)}
-                alt={reciterFusion.reciter.name}
-                width="36"
-                height="36"
-                className="h-full w-full object-cover"
-                onError={(e) => {
-                  const img = e.currentTarget;
-                  const fallback = getGeneratedReciterAvatar(reciterFusion.reciter);
-                  if (img.src !== fallback) img.src = fallback;
-                }}
+              <ReciterPortrait
+                reciter={reciterFusion.reciter}
+                width={36}
+                height={36}
               />
             </div>
             <div className="nav-reciter-fusion-meta min-w-0 flex-1">
-              <p className="text-[10px] uppercase font-bold tracking-wider text-[#f0d1bc]/90">
+              <p className="text-[10px] uppercase font-bold tracking-wider text-[#e4ccb4]/90">
                 Récitateur
               </p>
               <p className="truncate text-sm font-semibold text-[#f6f8fb]">{reciterFusion.reciter.name}</p>
@@ -202,11 +197,11 @@ export const NavbarDesktopClassic: React.FC<NavbarDesktopClassicProps> = ({
           style={{ pointerEvents: fusionProgress >= 0.85 ? 'auto' : 'none' }}
         >
           <div className="mx-auto flex w-full max-w-6xl items-center gap-3">
-            <div className="nav-reciter-fusion-avatar flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#cea687]/35 bg-[#f0d1bc]/12 text-[#f0d1bc]">
+            <div className="nav-reciter-fusion-avatar flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#c9a06a]/35 bg-[#e4ccb4]/12 text-[#e4ccb4]">
               <Headphones className="h-4 w-4" />
             </div>
             <div className="nav-reciter-fusion-meta min-w-0 flex-1">
-              <p className="text-[10px] uppercase font-bold tracking-wider text-[#f0d1bc]/90">
+              <p className="text-[10px] uppercase font-bold tracking-wider text-[#e4ccb4]/90">
                 Explorer
               </p>
               <p className="truncate text-sm font-semibold text-[#f6f8fb]">Les voix</p>

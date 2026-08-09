@@ -1,15 +1,17 @@
 ﻿import type { Reciter } from '../types';
 
+/** Brand plate behind every cutout portrait (layered in ReciterPortrait). */
+export const RECITER_BACKGROUND = '/reciters/background.webp';
+
 /**
- * Local portraits in /public/reciters (preferred).
+ * Local cutout portraits in /public/reciters (WebP + alpha).
  * IDs without a local file fall back to getGeneratedReciterAvatar.
  */
 export const RECITER_IMAGES: Record<number, string> = {
-  // Curated — local assets (WebP, max ~384px)
   123: '/reciters/alafasy.webp', // Mishary Rachid Al-Afasy
   54: '/reciters/sudais.webp', // Abderrahmane Al-Soudais
   102: '/reciters/maher.webp', // Maher Al-Mouaiqly
-  92: '/reciters/dosari.webp', // Yasser Al-Dossary
+  92: '/reciters/dossary.webp', // Yasser Al-Dossary
   30: '/reciters/sghamdi.webp', // Saad El-Ghamidi
   31: '/reciters/shuraim.webp', // Saoud Al-Shuraim
   51: '/reciters/basit.webp', // Abdel Bassit Abdel Samad
@@ -21,7 +23,7 @@ export const RECITER_IMAGES: Record<number, string> = {
   86: '/reciters/qatami.webp', // Nasser Al-Qatami
   12: '/reciters/abkar.webp', // Idris Abkar
   81: '/reciters/abbad.webp', // Fares Abbad
-  60: '/reciters/basferr.webp', // Abdullah Basfar
+  60: '/reciters/basfer.webp', // Abdullah Basfar
   225: '/reciters/ossi.webp', // Abdulrahman Aloosi
   111: '/reciters/jibreel.webp', // Mohamed Jibreel
   221: '/reciters/kurdi.webp', // Raad Al-Kurdi
@@ -30,17 +32,32 @@ export const RECITER_IMAGES: Record<number, string> = {
   245: '/reciters/salimi.webp', // Mansour Al-Salemi
   254: '/reciters/turki.webp', // Badr Al-Turki
   20: '/reciters/jalil.webp', // Khaled Al-Jalil
-
-  // Extra local assets (kept if they appear elsewhere)
   1: '/reciters/akhdar.webp', // Ibrahim Al-Akhdar
   62: '/reciters/juhany.webp', // Abdullah Al-Johani
+  253: '/reciters/islam_sobhi.webp', // Islam Sobhi
+  137: '/reciters/humaid.webp', // Ahmad Talib bin Humaid
+  152: '/reciters/salama.webp', // Yasser Salamah
+  84: '/reciters/alkabi.webp', // Fawaz Alkabi
+  217: '/reciters/bandar.webp', // Bandar Balilah
+  76: '/reciters/jaber.webp', // Ali Jaber
+  43: '/reciters/budair.webp', // Salah Al-Boudeir
+  74: '/reciters/houdaifi.webp', // Ali Al-Houdhayfi
+  109: '/reciters/ayyoub.webp', // Mohamed Ayyoub
+  125: '/reciters/ismail.webp', // Mustafa Ismail
+  21: '/reciters/qahtani.webp', // Khalid Al-Qahtani
+  121: '/reciters/albanna.webp', // Mahmoud Ali Albanna
+  160: '/reciters/kalbani.webp', // Adel Al-Kalbani
+  16: '/reciters/kouchi.webp', // Laayoun El Kouchi
 };
 
+export const hasLocalReciterImage = (reciterId: number) =>
+  Object.prototype.hasOwnProperty.call(RECITER_IMAGES, reciterId);
+
 const AVATAR_PALETTES = [
-  ['#07111d', '#162538', '#f0d1bc', '#7990a1'],
-  ['#0d1725', '#1b2d43', '#cea687', '#8fa3b0'],
-  ['#111d2d', '#22364f', '#ddbca3', '#b8c7d2'],
-  ['#09131f', '#203249', '#f1d4c1', '#95a7ba'],
+  ['#07111d', '#162538', '#e4ccb4', '#7990a1'],
+  ['#0d1725', '#1b2d43', '#c9a06a', '#8fa3b0'],
+  ['#111d2d', '#22364f', '#d4b07a', '#b8c7d2'],
+  ['#09131f', '#203249', '#e8d4bc', '#95a7ba'],
   ['#0b1622', '#16293e', '#d7b299', '#7f97ab'],
   ['#07111d', '#1a2b3f', '#e6c8b3', '#aab7c5'],
 ];

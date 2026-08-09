@@ -172,7 +172,7 @@ export const AudioEffectsPanel: React.FC<Props> = ({ effects, supported, theme, 
           className={`rounded-xl border-2 px-1.5 py-2.5 text-center transition-[opacity,filter,border-color,background-color,box-shadow] duration-200 tap-feedback outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#07111d] ${
             customActive
               ? `${theme.accentBgLight} ${theme.accentBorderActive}`
-              : 'border-dashed border-[#cea687]/35 bg-[#f0d1bc]/[0.04] opacity-[0.48] hover:opacity-75'
+              : 'border-dashed border-[#c9a06a]/35 bg-[#e4ccb4]/[0.04] opacity-[0.48] hover:opacity-75'
           }`}
           style={
             customActive

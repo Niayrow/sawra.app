@@ -14,7 +14,7 @@ import {
 } from './player/playerV2Prefs';
 import { AudioEffectsPanel } from './player/AudioEffectsPanel';
 import { AUDIO_EFFECT_PRESETS, effectsNeedProcessing } from '../audio/effectsTypes';
-import { getGeneratedReciterAvatar, getReciterImage } from '../utils/images';
+import { ReciterPortrait } from './ReciterPortrait';
 import { SURAHS } from '../data/surahs';
 import { SurahReaderSheet, usePlayerBarAnchor } from './SurahReaderSheet';
 import { useReaderPrefs } from './reader/readerPrefs';
@@ -219,8 +219,7 @@ export const GlobalPlayerV2: React.FC<{
     topRadius: readerTopRadius,
     deps: [docked, density.barClass, remoteSession, isExpanded, prefs.density, isReaderClosing],
   });
-  const coverUrl = currentTrack ? getReciterImage(currentTrack.reciter) : '';
-  const coverFallback = currentTrack ? getGeneratedReciterAvatar(currentTrack.reciter) : '';
+  const hasCover = Boolean(currentTrack);
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const speedOptions = [0.75, 0.9, 1, 1.25, 1.5, 1.75, 2];
 
@@ -497,8 +496,8 @@ export const GlobalPlayerV2: React.FC<{
           max-md:bottom-[calc(4.35rem+env(safe-area-inset-bottom,0px))]
           md:z-[51] rounded-none
           mobile-dock-chrome mobile-dock-player glass-panel-opaque
-          border-0 max-md:border-t max-md:border-[#cea687]/18
-          md:border md:border-[#cea687]/25
+          border-0 max-md:border-t max-md:border-[#c9a06a]/18
+          md:border md:border-[#c9a06a]/25
           overflow-hidden md:overflow-hidden
           ${remoteSession && !isExpanded ? 'md:min-h-0' : density.barClass}
           ${prefs.showGlow ? `bg-gradient-to-r ${theme.accentGlow} via-transparent to-transparent` : ''}
@@ -512,23 +511,23 @@ export const GlobalPlayerV2: React.FC<{
           maxWidth: docked ? '100%' : '72rem',
           marginInline: 'auto',
           borderRadius: docked ? 0 : '1.75rem',
-          boxShadow: docked ? 'none' : '0 24px 60px rgba(0,0,0,0.45), 0 0 40px rgba(206,166,135,0.08)',
+          boxShadow: docked ? 'none' : '0 24px 60px rgba(0,0,0,0.45), 0 0 40px rgba(201,160,106,0.08)',
         } : undefined}
         onTouchStart={onMiniBarTouchStart}
         onTouchEnd={onMiniBarTouchEnd}
       >
         {/* Integrated remote strip — part of the player (mobile + desktop) */}
         {remoteSession && !isExpanded && (
-          <div className="flex items-center gap-2 px-3 md:px-5 pt-2.5 md:pt-2.5 pb-1.5 md:pb-2 border-b border-[#cea687]/25 bg-[#f0d1bc]/[0.08]">
+          <div className="flex items-center gap-2 px-3 md:px-5 pt-2.5 md:pt-2.5 pb-1.5 md:pb-2 border-b border-[#c9a06a]/25 bg-[#e4ccb4]/[0.08]">
             <span className="relative flex h-2 w-2 shrink-0">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#cea687]/45" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#f0d1bc]" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#c9a06a]/45" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#e4ccb4]" />
             </span>
-            <MonitorSmartphone className="w-3.5 h-3.5 md:w-4 md:h-4 text-[#f0d1bc] shrink-0" />
+            <MonitorSmartphone className="w-3.5 h-3.5 md:w-4 md:h-4 text-[#e4ccb4] shrink-0" />
             <div className="min-w-0 flex-1 leading-tight">
               <p className="text-[11px] md:text-xs font-semibold text-[#f6f8fb] truncate">
                 {remoteTrackLabel || 'Autre appareil'}
-                <span className="font-mono text-[#f1d4c1] tabular-nums font-medium">
+                <span className="font-mono text-[#e8d4bc] tabular-nums font-medium">
                   {' · '}{formatTime(liveRemotePos)}
                 </span>
               </p>
@@ -566,30 +565,22 @@ export const GlobalPlayerV2: React.FC<{
             aria-label="Agrandir le lecteur en plein écran"
           >
             <span
-              className="pointer-events-none absolute -inset-0.5 rounded-[0.85rem] bg-[#f0d1bc]/0 ring-1 ring-[#f0d1bc]/0 transition-all duration-300 md:hidden group-hover/disc:bg-[#f0d1bc]/[0.07] group-hover/disc:ring-[#f0d1bc]/25 group-active/disc:scale-95"
+              className="pointer-events-none absolute -inset-0.5 rounded-[0.85rem] bg-[#e4ccb4]/0 ring-1 ring-[#e4ccb4]/0 transition-all duration-300 md:hidden group-hover/disc:bg-[#e4ccb4]/[0.07] group-hover/disc:ring-[#e4ccb4]/25 group-active/disc:scale-95"
               aria-hidden
             />
             <span
-              className="player-disc-hint pointer-events-none absolute -inset-[3px] rounded-[0.9rem] ring-1 ring-[#f0d1bc]/25 md:hidden"
+              className="player-disc-hint pointer-events-none absolute -inset-[3px] rounded-[0.9rem] ring-1 ring-[#e4ccb4]/25 md:hidden"
               aria-hidden
             />
-            <div className="relative w-11 h-11 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-[#07111d] border border-[#46607b]/50 md:border-[#cea687]/30 overflow-hidden flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-transform duration-150 group-active/disc:scale-95 md:group-active/disc:scale-100 md:shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
-              {coverUrl ? (
-                <img
-                  src={coverUrl}
-                  alt=""
-                  className="h-full w-full object-cover"
-                  onError={(e) => {
-                    const img = e.currentTarget;
-                    if (coverFallback && img.src !== coverFallback) img.src = coverFallback;
-                  }}
-                />
+            <div className="relative w-11 h-11 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-[#07111d] border border-[#46607b]/50 md:border-[#c9a06a]/30 overflow-hidden flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-transform duration-150 group-active/disc:scale-95 md:group-active/disc:scale-100 md:shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
+              {hasCover && currentTrack ? (
+                <ReciterPortrait reciter={currentTrack.reciter} alt="" />
               ) : (
                 <Disc className={`w-5 h-5 md:w-7 md:h-7 ${theme.glowDisc} ${playbackStatus === 'playing' ? 'animate-[spin_10s_linear_infinite]' : ''}`} />
               )}
             </div>
             <span
-              className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-[#cea687]/35 bg-[#111d2d] text-[#f1d4c1]/90 shadow-md md:hidden"
+              className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-[#c9a06a]/35 bg-[#111d2d] text-[#e8d4bc]/90 shadow-md md:hidden"
               aria-hidden
             >
               <Maximize2 className="w-2.5 h-2.5" strokeWidth={2.5} />
@@ -599,30 +590,26 @@ export const GlobalPlayerV2: React.FC<{
           <button
             type="button"
             onClick={openPlaylist}
-            className="min-w-0 flex-1 text-left rounded-xl px-0.5 py-1 md:hidden"
+            className="min-w-0 flex-1 overflow-hidden text-left rounded-xl px-0.5 py-1 md:hidden"
             title="Liste des sourates"
             aria-label="Ouvrir la liste des sourates"
           >
-            <MarqueeText
-              text={currentTrack.surah.name}
-              className="block text-sm font-semibold text-[#f6f8fb] leading-tight"
-            />
-            <p className="mt-0.5 flex items-center gap-1.5 min-w-0 text-[11px] leading-tight">
-              <MarqueeText text={currentTrack.reciter.name} className="min-w-0 text-[#aab7c5]" />
+            <div className="flex min-w-0 items-center gap-1.5">
+              <MarqueeText
+                text={currentTrack.surah.name}
+                className="min-w-0 flex-1 text-sm font-semibold text-[#f6f8fb] leading-tight"
+              />
               <AyahSyncBadge moshaf={currentTrack.moshaf} compact className="shrink-0" />
+            </div>
+            <p className="mt-0.5 flex min-w-0 items-center gap-1.5 overflow-hidden text-[11px] leading-tight">
+              <MarqueeText
+                text={currentTrack.reciter.name}
+                className="min-w-0 flex-1 text-[#aab7c5]"
+              />
               {!remoteSession && (
-                <>
-                  <span className="shrink-0 text-[#5f7388]" aria-hidden>
-                    ·
-                  </span>
-                  <span className="shrink-0 tabular-nums text-[#f1d4c1] font-medium" aria-live="polite">
-                    {formatTime(currentTime)}
-                    <span className="text-[#8295aa] font-normal">
-                      {' / '}
-                      {formatDuration(duration)}
-                    </span>
-                  </span>
-                </>
+                <span className="shrink-0 tabular-nums text-[#e8d4bc] font-medium" aria-live="polite">
+                  {formatTime(currentTime)}
+                </span>
               )}
             </p>
           </button>
@@ -630,7 +617,7 @@ export const GlobalPlayerV2: React.FC<{
           <button
             type="button"
             onClick={openPlaylist}
-            className="hidden md:block min-w-0 flex-1 text-left rounded-2xl px-1.5 py-1 tap-feedback hover:bg-[#111d2d]/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cea687]"
+            className="hidden md:block min-w-0 flex-1 text-left rounded-2xl px-1.5 py-1 tap-feedback hover:bg-[#111d2d]/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a]"
             title="Liste des sourates"
             aria-label="Ouvrir la liste des sourates"
           >
@@ -650,7 +637,7 @@ export const GlobalPlayerV2: React.FC<{
 
           {/* Mobile primary controls — read / effects / prev / play / next */}
           <div
-            className="flex items-center gap-1 shrink-0 md:hidden"
+            className="relative z-[1] flex shrink-0 items-center gap-0.5 md:hidden"
             data-player-transport
           >
             <button
@@ -659,7 +646,7 @@ export const GlobalPlayerV2: React.FC<{
                 e.stopPropagation();
                 toggleReader();
               }}
-              className={`w-10 h-10 rounded-full border flex items-center justify-center tap-feedback ${
+              className={`h-9 w-9 rounded-full border flex items-center justify-center tap-feedback ${
                 isReaderOpen && !isReaderClosing
                   ? `${theme.accentBgLight} ${theme.accentBorderActive} ${theme.accentText}`
                   : 'bg-[#111d2d] border-[#30455c] text-[#e6edf5]'
@@ -668,7 +655,7 @@ export const GlobalPlayerV2: React.FC<{
               title={isReaderOpen ? 'Fermer la lecture' : 'Lire le Coran'}
               aria-pressed={isReaderOpen && !isReaderClosing}
             >
-              <BookOpen className="w-4 h-4" />
+              <BookOpen className="w-3.5 h-3.5" />
             </button>
             <button
               type="button"
@@ -676,7 +663,7 @@ export const GlobalPlayerV2: React.FC<{
                 e.stopPropagation();
                 openEffects();
               }}
-              className={`w-10 h-10 rounded-full border flex items-center justify-center tap-feedback ${
+              className={`h-9 w-9 rounded-full border flex items-center justify-center tap-feedback ${
                 showEffects
                   ? `${theme.accentBgLight} ${theme.accentBorderActive} ${theme.accentText}`
                   : 'bg-[#111d2d] border-[#30455c]'
@@ -685,7 +672,7 @@ export const GlobalPlayerV2: React.FC<{
               title="Effets audio"
             >
               <SlidersVertical
-                className={`w-4 h-4 ${
+                className={`w-3.5 h-3.5 ${
                   showEffects
                     ? ''
                     : effectsActive
@@ -760,7 +747,7 @@ export const GlobalPlayerV2: React.FC<{
                 if (remoteSession) return;
                 jumpBy(-prefs.seekStep);
               }}
-              className="hidden lg:flex min-h-11 min-w-11 text-[#95a7ba] hover:text-[#f6f8fb] p-2 rounded-xl hover:bg-[#111d2d]/60 disabled:pointer-events-none items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cea687]"
+              className="hidden lg:flex min-h-11 min-w-11 text-[#95a7ba] hover:text-[#f6f8fb] p-2 rounded-xl hover:bg-[#111d2d]/60 disabled:pointer-events-none items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a]"
               title={`−${prefs.seekStep}s`}
               aria-label={`Reculer de ${prefs.seekStep} secondes`}
             >
@@ -773,7 +760,7 @@ export const GlobalPlayerV2: React.FC<{
                 if (remoteSession) return;
                 playPrevTrack();
               }}
-              className="min-h-11 min-w-11 text-[#c8d1db] hover:text-[#f6f8fb] p-2 rounded-xl hover:bg-[#111d2d]/60 disabled:pointer-events-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cea687]"
+              className="min-h-11 min-w-11 text-[#c8d1db] hover:text-[#f6f8fb] p-2 rounded-xl hover:bg-[#111d2d]/60 disabled:pointer-events-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a]"
               aria-label="Précédent"
             >
               <SkipBack className="w-5 h-5 fill-current" />
@@ -785,7 +772,7 @@ export const GlobalPlayerV2: React.FC<{
                 if (remoteSession) return;
                 togglePlay();
               }}
-              className={`w-12 h-12 rounded-full flex items-center justify-center tap-feedback disabled:pointer-events-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cea687] ${
+              className={`w-12 h-12 rounded-full flex items-center justify-center tap-feedback disabled:pointer-events-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a] ${
                 remoteSession
                   ? 'bg-[#30455c] text-[#95a7ba] shadow-none'
                   : `${theme.accent} text-[#111d2d] shadow-lg ${theme.accentShadow}`
@@ -805,7 +792,7 @@ export const GlobalPlayerV2: React.FC<{
                 if (remoteSession) return;
                 playNextTrack();
               }}
-              className="min-h-11 min-w-11 text-[#c8d1db] hover:text-[#f6f8fb] p-2 rounded-xl hover:bg-[#111d2d]/60 disabled:pointer-events-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cea687]"
+              className="min-h-11 min-w-11 text-[#c8d1db] hover:text-[#f6f8fb] p-2 rounded-xl hover:bg-[#111d2d]/60 disabled:pointer-events-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a]"
               aria-label="Suivant"
             >
               <SkipForward className="w-5 h-5 fill-current" />
@@ -817,7 +804,7 @@ export const GlobalPlayerV2: React.FC<{
                 if (remoteSession) return;
                 jumpBy(prefs.seekStep);
               }}
-              className="hidden lg:flex min-h-11 min-w-11 text-[#95a7ba] hover:text-[#f6f8fb] p-2 rounded-xl hover:bg-[#111d2d]/60 disabled:pointer-events-none items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cea687]"
+              className="hidden lg:flex min-h-11 min-w-11 text-[#95a7ba] hover:text-[#f6f8fb] p-2 rounded-xl hover:bg-[#111d2d]/60 disabled:pointer-events-none items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a]"
               title={`+${prefs.seekStep}s`}
               aria-label={`Avancer de ${prefs.seekStep} secondes`}
             >
@@ -826,7 +813,7 @@ export const GlobalPlayerV2: React.FC<{
           </div>
           {!remoteSession && (
             <div className="flex items-center gap-3.5 w-full max-w-xl text-[11px] font-mono font-semibold text-[#95a7ba]">
-              <span className="w-11 text-right tabular-nums text-[#f1d4c1]">{formatTime(currentTime)}</span>
+              <span className="w-11 text-right tabular-nums text-[#e8d4bc]">{formatTime(currentTime)}</span>
               <input
                 type="range"
                 min={0}
@@ -891,7 +878,7 @@ export const GlobalPlayerV2: React.FC<{
             <button
               type="button"
               onClick={toggleMute}
-              className={`h-9 w-9 rounded-xl flex items-center justify-center text-[#aab7c5] hover:text-[#f6f8fb] hover:bg-[#111d2d]/70 shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cea687] ${
+              className={`h-9 w-9 rounded-xl flex items-center justify-center text-[#aab7c5] hover:text-[#f6f8fb] hover:bg-[#111d2d]/70 shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a] ${
                 isMuted || volume === 0 ? theme.accentText : ''
               }`}
               title="Volume"
@@ -921,7 +908,7 @@ export const GlobalPlayerV2: React.FC<{
             <button
               type="button"
               onClick={toggleReader}
-              className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cea687] ${
+              className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a] ${
                 isReaderOpen && !isReaderClosing
                   ? `${theme.accentText} ${theme.accentBgLight}`
                   : 'text-[#aab7c5] hover:text-[#f6f8fb] hover:bg-[#111d2d]/70'
@@ -935,7 +922,7 @@ export const GlobalPlayerV2: React.FC<{
             <button
               type="button"
               onClick={openEffects}
-              className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cea687] ${
+              className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a] ${
                 showEffects
                   ? `${theme.accentText} ${theme.accentBgLight}`
                   : 'text-[#aab7c5] hover:text-[#f6f8fb] hover:bg-[#111d2d]/70'
@@ -952,7 +939,7 @@ export const GlobalPlayerV2: React.FC<{
             <button
               type="button"
               onClick={openPlaylist}
-              className={`h-9 w-9 rounded-xl flex items-center justify-center text-[#aab7c5] hover:text-[#f6f8fb] hover:bg-[#111d2d]/70 shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cea687] ${theme.accentTextHover}`}
+              className={`h-9 w-9 rounded-xl flex items-center justify-center text-[#aab7c5] hover:text-[#f6f8fb] hover:bg-[#111d2d]/70 shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a] ${theme.accentTextHover}`}
               title="Sourates"
               aria-label="Ouvrir la liste des sourates"
             >
@@ -1015,16 +1002,16 @@ export const GlobalPlayerV2: React.FC<{
           </div>
 
           {remoteSession && (
-            <div className="relative z-10 flex items-center gap-2.5 px-4 py-2.5 border-b border-[#cea687]/25 bg-[#f0d1bc]/[0.08]">
+            <div className="relative z-10 flex items-center gap-2.5 px-4 py-2.5 border-b border-[#c9a06a]/25 bg-[#e4ccb4]/[0.08]">
               <span className="relative flex h-2 w-2 shrink-0">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#cea687]/50" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#f0d1bc]" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#c9a06a]/50" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#e4ccb4]" />
               </span>
-              <MonitorSmartphone className="w-4 h-4 text-[#f0d1bc] shrink-0" />
+              <MonitorSmartphone className="w-4 h-4 text-[#e4ccb4] shrink-0" />
               <div className="min-w-0 flex-1 leading-tight">
                 <p className="text-xs font-semibold text-[#f6f8fb] truncate">
                   {remoteTrackLabel || 'Autre appareil'}
-                  <span className="font-mono text-[#f1d4c1] tabular-nums font-medium">
+                  <span className="font-mono text-[#e8d4bc] tabular-nums font-medium">
                     {' · '}{formatTime(liveRemotePos)}
                   </span>
                 </p>
@@ -1068,17 +1055,9 @@ export const GlobalPlayerV2: React.FC<{
               </p>
             </button>
 
-            <div className="mx-auto mb-7 w-28 h-28 rounded-full border border-[#cea687]/35 bg-[#111d2d]/60 overflow-hidden shadow-[0_0_28px_rgba(206,166,135,0.12)]">
-              {coverUrl ? (
-                <img
-                  src={coverUrl}
-                  alt=""
-                  className="h-full w-full object-cover"
-                  onError={(e) => {
-                    const img = e.currentTarget;
-                    if (coverFallback && img.src !== coverFallback) img.src = coverFallback;
-                  }}
-                />
+            <div className="mx-auto mb-7 w-28 h-28 rounded-full border border-[#c9a06a]/35 bg-[#111d2d]/60 overflow-hidden shadow-[0_0_28px_rgba(201,160,106,0.12)]">
+              {hasCover && currentTrack ? (
+                <ReciterPortrait reciter={currentTrack.reciter} alt="" />
               ) : (
                 <div className="flex h-full w-full items-center justify-center">
                   <Disc className={`w-12 h-12 ${theme.glowDisc} ${playbackStatus === 'playing' ? 'animate-[spin_12s_linear_infinite]' : ''}`} />
@@ -1161,7 +1140,7 @@ export const GlobalPlayerV2: React.FC<{
               className={`mb-3 w-full h-12 rounded-2xl border text-sm font-bold flex items-center justify-center gap-2 tap-feedback ${
                 isReaderOpen && !isReaderClosing
                   ? `${theme.accentBgLight} ${theme.accentBorderActive} ${theme.accentText}`
-                  : 'border-[#cea687]/40 bg-[#cea687]/10 text-[#f0d1bc]'
+                  : 'border-[#c9a06a]/40 bg-[#c9a06a]/10 text-[#e4ccb4]'
               }`}
             >
               <BookOpen className="w-5 h-5" />
@@ -1560,22 +1539,18 @@ export const GlobalPlayerV2: React.FC<{
                 className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(240,209,188,0.16),transparent_52%),linear-gradient(180deg,rgba(22,37,56,0.55)_0%,rgba(10,20,32,0.98)_100%)]"
                 aria-hidden
               />
-              {coverUrl ? (
-                <img
-                  src={coverUrl}
-                  alt=""
+              {hasCover && currentTrack ? (
+                <span
                   aria-hidden
-                  className="pointer-events-none absolute -right-6 -top-8 h-40 w-40 rounded-full object-cover opacity-[0.22] blur-[1px] saturate-[0.85] md:h-48 md:w-48"
-                  onError={(e) => {
-                    const img = e.currentTarget;
-                    if (coverFallback && img.src !== coverFallback) img.src = coverFallback;
-                  }}
-                />
+                  className="pointer-events-none absolute -right-6 -top-8 h-40 w-40 overflow-hidden rounded-full opacity-[0.22] blur-[1px] saturate-[0.85] md:h-48 md:w-48"
+                >
+                  <ReciterPortrait reciter={currentTrack.reciter} alt="" />
+                </span>
               ) : null}
 
               <div className="relative z-10 px-5 pt-3 pb-4">
                 <div className="mb-3 flex justify-center md:hidden">
-                  <span className="h-1 w-10 rounded-full bg-[#cea687]/35" />
+                  <span className="h-1 w-10 rounded-full bg-[#c9a06a]/35" />
                 </div>
 
                 <div className="flex items-start justify-between gap-3">
@@ -1599,7 +1574,7 @@ export const GlobalPlayerV2: React.FC<{
                   <button
                     type="button"
                     onClick={closePlaylist}
-                    className="h-10 w-10 shrink-0 rounded-full border border-[#46607b]/55 bg-[#111d2d]/65 flex items-center justify-center text-[#aab7c5] hover:text-[#f6f8fb] hover:border-[#cea687]/35"
+                    className="h-10 w-10 shrink-0 rounded-full border border-[#46607b]/55 bg-[#111d2d]/65 flex items-center justify-center text-[#aab7c5] hover:text-[#f6f8fb] hover:border-[#c9a06a]/35"
                     aria-label="Fermer la liste"
                   >
                     <X className="w-4 h-4" />
@@ -1610,27 +1585,19 @@ export const GlobalPlayerV2: React.FC<{
                 <button
                   type="button"
                   onClick={() => togglePlay()}
-                  className="mt-4 flex w-full items-center gap-3 rounded-2xl border border-[#cea687]/22 bg-[#07111d]/55 px-3 py-2.5 text-left tap-feedback hover:bg-[#07111d]/75"
+                  className="mt-4 flex w-full items-center gap-3 rounded-2xl border border-[#c9a06a]/22 bg-[#07111d]/55 px-3 py-2.5 text-left tap-feedback hover:bg-[#07111d]/75"
                 >
-                  <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl border border-[#cea687]/28 bg-[#111d2d]">
-                    {coverUrl ? (
-                      <img
-                        src={coverUrl}
-                        alt=""
-                        className="h-full w-full object-cover"
-                        onError={(e) => {
-                          const img = e.currentTarget;
-                          if (coverFallback && img.src !== coverFallback) img.src = coverFallback;
-                        }}
-                      />
+                  <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl border border-[#c9a06a]/28 bg-[#111d2d]">
+                    {hasCover && currentTrack ? (
+                      <ReciterPortrait reciter={currentTrack.reciter} alt="" />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center">
-                        <Disc className="h-4 w-4 text-[#cea687]" />
+                        <Disc className="h-4 w-4 text-[#c9a06a]" />
                       </div>
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#cea687]/90">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#c9a06a]/90">
                       En cours
                     </p>
                     <p className="mt-0.5 truncate text-sm font-bold text-[#f6f8fb]">
@@ -1659,14 +1626,14 @@ export const GlobalPlayerV2: React.FC<{
                     onChange={(e) => setDrawerSearch(e.target.value)}
                     placeholder="Nom, numéro ou arabe…"
                     aria-label="Rechercher une sourate dans la liste"
-                    className="w-full min-h-11 pl-10 pr-10 py-2.5 bg-[#111d2d]/88 border border-[#30455c]/65 rounded-2xl text-sm text-[#e6edf5] placeholder:text-[#8295aa] focus:outline-none focus:border-[#cea687]/40 focus-visible:ring-2 focus-visible:ring-[#cea687]/55"
+                    className="w-full min-h-11 pl-10 pr-10 py-2.5 bg-[#111d2d]/88 border border-[#30455c]/65 rounded-2xl text-sm text-[#e6edf5] placeholder:text-[#8295aa] focus:outline-none focus:border-[#c9a06a]/40 focus-visible:ring-2 focus-visible:ring-[#c9a06a]/55"
                   />
                   {drawerSearch && (
                     <button
                       type="button"
                       onClick={() => setDrawerSearch('')}
                       aria-label="Effacer la recherche"
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-[#162538] flex items-center justify-center text-[#aab7c5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cea687]"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-[#162538] flex items-center justify-center text-[#aab7c5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a]"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -1676,7 +1643,7 @@ export const GlobalPlayerV2: React.FC<{
                   <button
                     type="button"
                     onClick={() => setSelectedSurahIds(new Set())}
-                    className="shrink-0 rounded-2xl border border-[#cea687]/28 bg-[#f0d1bc]/10 px-3 py-2.5 text-[11px] font-bold text-[#f1d4c1]"
+                    className="shrink-0 rounded-2xl border border-[#c9a06a]/28 bg-[#e4ccb4]/10 px-3 py-2.5 text-[11px] font-bold text-[#e8d4bc]"
                   >
                     Boucle {selectedSurahIds.size}
                   </button>
@@ -1696,9 +1663,9 @@ export const GlobalPlayerV2: React.FC<{
                       <div
                         className={`group flex items-center gap-1 rounded-2xl border px-2 py-1.5 transition-all ${
                           isCurrent
-                            ? 'border-[#cea687]/30 bg-[#f0d1bc]/[0.08]'
+                            ? 'border-[#c9a06a]/30 bg-[#e4ccb4]/[0.08]'
                             : inLoop
-                              ? 'border-[#cea687]/18 bg-[#f0d1bc]/[0.04]'
+                              ? 'border-[#c9a06a]/18 bg-[#e4ccb4]/[0.04]'
                               : 'border-transparent hover:border-[#30455c]/50 hover:bg-[#111d2d]/80'
                         }`}
                       >
@@ -1718,19 +1685,19 @@ export const GlobalPlayerV2: React.FC<{
                             <span
                               className={`absolute inset-0 rotate-45 rounded-[0.65rem] border ${
                                 isCurrent
-                                  ? 'border-[#cea687]/45 bg-[#07111d]/90'
+                                  ? 'border-[#c9a06a]/45 bg-[#07111d]/90'
                                   : 'border-[#46607b]/70 bg-[#07111d] group-hover:border-[#95a7ba]'
                               }`}
                               aria-hidden
                             />
                             <span
                               className={`relative z-10 text-[11px] font-bold tabular-nums ${
-                                isCurrent ? 'text-[#f1d4c1]' : 'text-[#aab7c5]'
+                                isCurrent ? 'text-[#e8d4bc]' : 'text-[#aab7c5]'
                               }`}
                             >
                               {isPlaying ? (
                                 <span className="flex gap-0.5 items-end justify-center h-3.5 w-3.5">
-                                  <span className="w-0.5 bg-[#f0d1bc] animate-[shimmer_0.6s_infinite_alternate] h-full rounded-full" />
+                                  <span className="w-0.5 bg-[#e4ccb4] animate-[shimmer_0.6s_infinite_alternate] h-full rounded-full" />
                                   <span className="w-0.5 bg-white/80 animate-[shimmer_0.6s_infinite_alternate] h-2/3 rounded-full" style={{ animationDelay: '0.2s' }} />
                                   <span className="w-0.5 bg-[#7990a1] animate-[shimmer_0.6s_infinite_alternate] h-full rounded-full" style={{ animationDelay: '0.4s' }} />
                                 </span>
@@ -1752,7 +1719,7 @@ export const GlobalPlayerV2: React.FC<{
                           {prefs.showArabic && (
                             <span
                               className={`font-serif text-xl tracking-wide arabic-text shrink-0 hidden min-[400px]:inline ${
-                                isCurrent ? 'text-[#f1d4c1]' : 'text-[#c8d4e0]'
+                                isCurrent ? 'text-[#e8d4bc]' : 'text-[#c8d4e0]'
                               }`}
                             >
                               {surah.arabicName}

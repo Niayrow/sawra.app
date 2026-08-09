@@ -5,12 +5,12 @@ import {
 
 /** Mot important — accent cuivre */
 const Em: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <span className="text-[#f0d1bc]">{children}</span>
+  <span className="text-[#e4ccb4]">{children}</span>
 );
 
 /** Mot super important — cuivre gras */
 const Strong: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <strong className="font-bold text-[#f1d4c1]">{children}</strong>
+  <strong className="font-bold text-[#e8d4bc]">{children}</strong>
 );
 
 const Section: React.FC<{
@@ -20,12 +20,12 @@ const Section: React.FC<{
 }> = ({ icon: Icon, title, children }) => (
   <section className="flex flex-col gap-3">
     <div className="flex items-center gap-2.5">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f0d1bc]/10 text-[#f0d1bc]">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#e4ccb4]/10 text-[#e4ccb4]">
         <Icon className="h-3.5 w-3.5" aria-hidden />
       </span>
       <h3 className="text-base font-bold tracking-tight text-[#f6f8fb]">{title}</h3>
     </div>
-    <div className="flex flex-col gap-3 border-l border-[#cea687]/25 pl-4 ml-3.5 text-sm leading-[1.7] text-[#b4c0ce]">
+    <div className="flex flex-col gap-3 border-l border-[#c9a06a]/25 pl-4 ml-3.5 text-sm leading-[1.7] text-[#b4c0ce]">
       {children}
     </div>
   </section>
@@ -33,7 +33,7 @@ const Section: React.FC<{
 
 const PanelHeader: React.FC<{ title: string; subtitle: string }> = ({ title, subtitle }) => (
   <header className="pb-5 border-b border-[#30455c]/55">
-    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#cea687]">Informations</p>
+    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#c9a06a]">Informations</p>
     <h2 className="mt-2 text-[1.35rem] font-black tracking-tight text-[#f6f8fb]">{title}</h2>
     <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-[#aab7c5]">{subtitle}</p>
     <p className="mt-3 text-xs text-[#8295aa]">Dernière mise à jour · 30 juil. 2026</p>
@@ -45,7 +45,7 @@ const LinkOut: React.FC<{ href: string; children: React.ReactNode }> = ({ href, 
     href={href}
     target="_blank"
     rel="noopener noreferrer"
-    className="inline-flex items-center gap-1 font-bold text-[#f1d4c1] underline-offset-2 hover:underline"
+    className="inline-flex items-center gap-1 font-bold text-[#e8d4bc] underline-offset-2 hover:underline"
   >
     {children}
     <ExternalLink className="h-3 w-3 opacity-70" aria-hidden />
@@ -67,7 +67,7 @@ export const SourcesPanel: React.FC = () => (
       </p>
       <p>
         Sawra <Strong>n’héberge pas</Strong> les fichiers MP3 : le lecteur charge l’URL fournie par le catalogue
-        (ex. <code className="rounded bg-[#132031]/80 px-1.5 py-0.5 font-mono text-[12px] font-bold text-[#f1d4c1]">serverN.mp3quran.net</code>).
+        (ex. <code className="rounded bg-[#132031]/80 px-1.5 py-0.5 font-mono text-[12px] font-bold text-[#e8d4bc]">serverN.mp3quran.net</code>).
       </p>
     </Section>
 
@@ -176,7 +176,7 @@ export const TermsPanel: React.FC = () => (
     </Section>
 
     <Section icon={BookOpen} title="Usage attendu">
-      <ul className="m-0 flex list-disc flex-col gap-2 pl-4 marker:text-[#cea687]">
+      <ul className="m-0 flex list-disc flex-col gap-2 pl-4 marker:text-[#c9a06a]">
         <li>Écoute <Strong>personnelle et familiale</Strong> du Coran.</li>
         <li>Pas de contournement des sources audio ni d’<Em>extraction massive</Em> des fichiers.</li>
         <li>Pas d’<Strong>usage commercial</Strong> des enregistrements sans accord des ayants droit.</li>

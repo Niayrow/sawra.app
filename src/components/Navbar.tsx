@@ -2,7 +2,7 @@
 import { Headphones } from '../icons/motion';
 import type { Reciter, Moshaf } from '../types';
 import { useAuth } from '../context/AuthContext';
-import { getGeneratedReciterAvatar, getReciterImage } from '../utils/images';
+import { ReciterPortrait } from './ReciterPortrait';
 import type { NavDesktopStyle } from '../utils/navDesktopStyle';
 import { useNavMotionIcons, type NavTabIcon } from '../hooks/useNavMotionIcons';
 import { NavbarDesktopClassic } from './NavbarDesktopClassic';
@@ -47,8 +47,8 @@ export const ConnectedBadge: React.FC<{
     onClick={onClick}
     className={`nav-connected-badge inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 tap-feedback transition-colors ${
       active
-        ? 'border-[#cea687]/45 bg-[#cea687]/18 text-[#f0d1bc]'
-        : 'border-[#cea687]/28 bg-[#cea687]/10 text-[#f0d1bc] hover:border-[#cea687]/45 hover:bg-[#cea687]/16'
+        ? 'border-[#c9a06a]/45 bg-[#c9a06a]/18 text-[#e4ccb4]'
+        : 'border-[#c9a06a]/28 bg-[#c9a06a]/10 text-[#e4ccb4] hover:border-[#c9a06a]/45 hover:bg-[#c9a06a]/16'
     }`}
     aria-label="Compte connecté"
     aria-current={active ? 'page' : undefined}
@@ -137,7 +137,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <span className="nav-tab__inner relative z-10 flex flex-col items-center gap-0.5 transition-transform duration-100 ease-out group-active:scale-95 md:gap-1">
           <span
             className={`nav-tab__icon flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-300 md:h-auto md:w-auto md:rounded-none md:bg-transparent ${
-              isActive ? 'bg-[#f0d1bc]/14 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] md:bg-transparent md:shadow-none' : ''
+              isActive ? 'bg-[#e4ccb4]/14 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] md:bg-transparent md:shadow-none' : ''
             }`}
           >
             <Icon
@@ -148,15 +148,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : {})}
               className={`nav-tab__glyph transition-colors duration-300 md:h-[17px] md:w-[17px] ${
                 isActive
-                  ? 'text-[#f0d1bc] drop-shadow-[0_0_10px_rgba(240,209,188,0.35)] md:drop-shadow-none'
-                  : 'text-[#7f93a8] group-hover:text-[#e8eef5] md:group-hover:text-[#f1d4c1]'
+                  ? 'text-[#e4ccb4] drop-shadow-[0_0_10px_rgba(240,209,188,0.35)] md:drop-shadow-none'
+                  : 'text-[#7f93a8] group-hover:text-[#e8eef5] md:group-hover:text-[#e8d4bc]'
               }`}
             />
           </span>
           <span
             className={`nav-tab__label text-[10px] font-semibold tracking-wide transition-colors duration-300 md:text-[12px] md:leading-none ${
               isActive
-                ? 'text-[#f1d4c1] md:font-bold'
+                ? 'text-[#e8d4bc] md:font-bold'
                 : 'text-[#7a8fa3] group-hover:text-[#e8eef5] md:font-medium md:text-[#9fb1c3]'
             }`}
           >
@@ -238,14 +238,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                     width="44"
                     height="44"
                     decoding="async"
-                    className="h-10 w-10 shrink-0 object-contain drop-shadow-[0_2px_16px_rgba(206,166,135,0.42)] transition-transform duration-300 group-hover/nav-brand:scale-105"
+                    className="h-10 w-10 shrink-0 object-contain drop-shadow-[0_2px_16px_rgba(201,160,106,0.42)] transition-transform duration-300 group-hover/nav-brand:scale-105"
                     draggable={false}
                   />
                   <span className="flex flex-col items-start justify-center leading-none">
-                    <span className="text-[1.05rem] font-black tracking-[-0.03em] text-[#f6f8fb]">
+                    <span className="reciter-name-gradient is-selected text-[1.05rem] font-black tracking-[-0.03em]">
                       Sawra
                     </span>
-                    <span className="mt-1 text-[9px] font-bold uppercase tracking-[0.22em] text-[#cea687]/80">
+                    <span className="mt-1 text-[9px] font-bold uppercase tracking-[0.22em] text-[#c9a06a]/80">
                       Coran
                     </span>
                   </span>
@@ -278,21 +278,14 @@ export const Navbar: React.FC<NavbarProps> = ({
               style={{ pointerEvents: fusionProgress >= 0.85 ? 'auto' : 'none' }}
             >
               <div className="nav-reciter-fusion-avatar w-9 h-9 rounded-lg overflow-hidden border border-[#46607b]/55 bg-[#111d2d] shrink-0">
-                <img
-                  src={getReciterImage(reciterFusion.reciter)}
-                  alt={reciterFusion.reciter.name}
-                  width="36"
-                  height="36"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const img = e.currentTarget;
-                    const fallback = getGeneratedReciterAvatar(reciterFusion.reciter);
-                    if (img.src !== fallback) img.src = fallback;
-                  }}
+                <ReciterPortrait
+                  reciter={reciterFusion.reciter}
+                  width={36}
+                  height={36}
                 />
               </div>
               <div className="nav-reciter-fusion-meta min-w-0 flex-1">
-                <p className="text-[10px] uppercase font-bold tracking-wider text-[#f0d1bc]/90">
+                <p className="text-[10px] uppercase font-bold tracking-wider text-[#e4ccb4]/90">
                   Récitateur
                 </p>
                 <p className="text-sm font-semibold text-[#f6f8fb] truncate">{reciterFusion.reciter.name}</p>
@@ -317,11 +310,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               aria-hidden={fusionProgress < 0.05}
               style={{ pointerEvents: fusionProgress >= 0.85 ? 'auto' : 'none' }}
             >
-              <div className="nav-reciter-fusion-avatar flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#cea687]/35 bg-[#f0d1bc]/12 text-[#f0d1bc]">
+              <div className="nav-reciter-fusion-avatar flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#c9a06a]/35 bg-[#e4ccb4]/12 text-[#e4ccb4]">
                 <Headphones className="h-4 w-4" />
               </div>
               <div className="nav-reciter-fusion-meta min-w-0 flex-1">
-                <p className="text-[10px] uppercase font-bold tracking-wider text-[#f0d1bc]/90">
+                <p className="text-[10px] uppercase font-bold tracking-wider text-[#e4ccb4]/90">
                   Explorer
                 </p>
                 <p className="text-sm font-semibold text-[#f6f8fb] truncate">Les voix</p>

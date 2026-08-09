@@ -10,7 +10,8 @@ import {
 } from './icons/motion';
 import type { AppIcon } from './icons/motion';
 import type { Reciter } from './types';
-import { getGeneratedReciterAvatar, getReciterImage } from './utils/images';
+import { ReciterPortrait } from './components/ReciterPortrait';
+import { hasLocalReciterImage } from './utils/images';
 import { getReciterCategory, type ReciterCategoryId } from './data/reciterCategories';
 import { ReciterCategoryGrid, ReciterCategoryModal } from './components/ReciterCategoryModal';
 import { ListenReciterHeader } from './components/ListenReciterHeader';
@@ -433,7 +434,7 @@ const LoadingHome: React.FC<{ progress: number; reciterCount: number }> = ({ pro
           </div>
           <div className="h-3 w-full rounded-full bg-[#111d2d] border border-[#30455c] overflow-hidden shadow-inner">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-[#7990a1] via-[#b9c7d3] to-[#f0d1bc] transition-[width] duration-500 ease-out"
+              className="h-full rounded-full bg-gradient-to-r from-[#7990a1] via-[#b9c7d3] to-[#e4ccb4] transition-[width] duration-500 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -454,7 +455,7 @@ const LoadingHome: React.FC<{ progress: number; reciterCount: number }> = ({ pro
         </div>
 
         <div className="flex items-center gap-2 text-xs text-[#b4c0ce]">
-          <span className="w-2 h-2 rounded-full bg-[#f0d1bc] animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-[#e4ccb4] animate-pulse" />
           Connexion à l’API coranique
         </div>
       </main>
@@ -497,41 +498,33 @@ const HomeFeaturedReciter: React.FC<HomeFeaturedReciterProps> = ({
   onSelect,
   priority = false,
 }) => {
-  const imageUrl = getReciterImage(reciter);
-  const fallbackImage = getGeneratedReciterAvatar(reciter);
-
   return (
     <button
       type="button"
       onClick={onSelect}
-      className={`shrink-0 w-[6.5rem] flex flex-col items-center gap-2.5 rounded-2xl p-2.5 text-center transition-all tap-feedback ${
+      className={`shrink-0 w-[7.25rem] flex flex-col items-center gap-2.5 rounded-2xl p-2 text-center transition-all tap-feedback ${
         isSelected
-          ? 'bg-[#f0d1bc]/10 ring-1 ring-[#f0d1bc]/35'
+          ? 'bg-[#e4ccb4]/10 ring-1 ring-[#e4ccb4]/35'
           : 'hover:bg-[#162538]/70'
       }`}
     >
-      <span className={`relative h-16 w-16 overflow-hidden rounded-full border-2 bg-[#111d2d] ${
-        isSelected ? 'border-[#f0d1bc] shadow-[0_0_18px_rgba(206,166,135,0.32)]' : 'border-[#46607b]'
+      <span className={`relative h-[4.75rem] w-[4.75rem] overflow-hidden rounded-[1.35rem] border-2 bg-[#111d2d] shadow-[0_10px_24px_rgba(0,0,0,0.35)] ${
+        isSelected ? 'border-[#e4ccb4] shadow-[0_0_22px_rgba(201,160,106,0.38)]' : 'border-[#46607b]/70'
       }`}>
-        <img
-          src={imageUrl}
+        <ReciterPortrait
+          reciter={reciter}
           alt=""
-          width="64"
-          height="64"
+          width={76}
+          height={76}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
           fetchPriority={priority ? 'high' : 'low'}
-          className="h-full w-full object-cover"
-          onError={(e) => {
-            const img = e.currentTarget;
-            if (img.src !== fallbackImage) img.src = fallbackImage;
-          }}
         />
       </span>
-      <span className={`flex w-full flex-col items-center gap-1 text-[11px] font-semibold leading-tight ${
-        isSelected ? 'text-[#f1d4c1]' : 'text-[#d0d9e3]'
-      }`}>
-        <span className="line-clamp-2 w-full">{reciter.name}</span>
+      <span className="flex w-full flex-col items-center gap-1 text-[11px] font-semibold leading-tight">
+        <span className={`line-clamp-2 w-full reciter-name-gradient${isSelected ? ' is-selected' : ''}`}>
+          {reciter.name}
+        </span>
         <AyahSyncBadge reciter={reciter} compact />
       </span>
     </button>
@@ -565,7 +558,7 @@ const MakkahMomentCard: React.FC<((typeof MAKKAH_MOMENTS)[number] & { featured?:
               <h3 className={`mt-1 font-black text-[#f6f8fb] ${featured ? 'text-lg sm:text-[1.35rem]' : 'text-base'}`}>
                 {title}
               </h3>
-              <p className={`mt-1 font-semibold text-[#f1d4c1] ${featured ? 'text-sm' : 'text-xs'}`}>{reciter}</p>
+              <p className={`mt-1 font-semibold text-[#e8d4bc] ${featured ? 'text-sm' : 'text-xs'}`}>{reciter}</p>
               {featured && (
                 <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#b4c0ce]">
                   Une récitation mise en avant pour ouvrir la sélection.
@@ -573,12 +566,12 @@ const MakkahMomentCard: React.FC<((typeof MAKKAH_MOMENTS)[number] & { featured?:
               )}
             </div>
             <span className="flex flex-col items-center gap-2 shrink-0">
-              <span className={`flex items-center justify-center rounded-2xl bg-[#20334a] text-[#f0d1bc] ${featured ? 'h-12 w-12' : 'h-11 w-11'}`}>
+              <span className={`flex items-center justify-center rounded-2xl bg-[#20334a] text-[#e4ccb4] ${featured ? 'h-12 w-12' : 'h-11 w-11'}`}>
                 <Play className={`ml-0.5 fill-current ${featured ? 'h-5 w-5' : 'h-4.5 w-4.5'}`} />
               </span>
               <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#d0d9e3]">
                 {expanded ? 'Réduire' : 'Ouvrir'}
-                <ChevronDown className={`h-3.5 w-3.5 text-[#f0d1bc] transition-transform ${expanded ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-3.5 w-3.5 text-[#e4ccb4] transition-transform ${expanded ? 'rotate-180' : ''}`} />
               </span>
             </span>
           </div>
@@ -603,7 +596,7 @@ const MakkahMomentCard: React.FC<((typeof MAKKAH_MOMENTS)[number] & { featured?:
           <div className="mt-3 rounded-[1.2rem] border border-[#30455c]/45 bg-[#0f1928]/80 p-3.5 sm:p-4">
             <div className="flex flex-col gap-2">
               <h4 className="text-sm font-black text-[#f6f8fb]">{title}</h4>
-              <p className="text-xs font-semibold text-[#f1d4c1]">{reciter}</p>
+              <p className="text-xs font-semibold text-[#e8d4bc]">{reciter}</p>
             </div>
 
             <div className="mt-3 flex flex-wrap gap-2">
@@ -631,12 +624,115 @@ const MakkahMomentCard: React.FC<((typeof MAKKAH_MOMENTS)[number] & { featured?:
   );
 };
 
+/** One-line memo that scrolls when it overflows (mobile). */
+const MemoMarquee: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const trackRef = useRef<HTMLParagraphElement | null>(null);
+  const [overflowing, setOverflowing] = useState(false);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const track = trackRef.current;
+    if (!container || !track) return;
+
+    const measure = () => {
+      // Desktop wraps normally — no marquee needed.
+      if (window.matchMedia('(min-width: 640px)').matches) {
+        container.style.removeProperty('--memo-marquee-distance');
+        setOverflowing(false);
+        return;
+      }
+      const distance = Math.max(0, track.scrollWidth - container.clientWidth);
+      container.style.setProperty('--memo-marquee-distance', `${distance}px`);
+      setOverflowing(distance > 4);
+    };
+
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(container);
+    window.addEventListener('resize', measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, []);
+
+  return (
+    <div ref={containerRef} className="memo-marquee min-w-0 flex-1 overflow-hidden sm:overflow-visible">
+      <p
+        ref={trackRef}
+        className={`memo-marquee__track text-[11px] leading-none text-[#b4c0ce] sm:text-[12px] sm:leading-snug ${
+          overflowing ? 'is-overflowing' : ''
+        }`}
+      >
+        {children}
+      </p>
+    </div>
+  );
+};
+
+const EXPLORE_CLOUD_COUNT = 3;
+const EXPLORE_CLOUD_ROTATE_MS = 4000;
+
+/** Anchors where each bubble escapes from the button: x = % of button width. */
+const EXPLORE_BUBBLE_ANCHORS = [
+  { x: 16, rise: 92, drift: -10, delay: 0 },
+  { x: 50, rise: 122, drift: 6, delay: 0.14 },
+  { x: 82, rise: 86, drift: 14, delay: 0.28 },
+];
+
+/** Tiny bubbles trailing behind, sized/placed to feel like they pop off the surface. */
+const EXPLORE_BUBBLE_SPECKS = [
+  { x: 24, size: 7, rise: 44, delay: 0.1 },
+  { x: 38, size: 4, rise: 60, delay: 0.5 },
+  { x: 62, size: 6, rise: 52, delay: 0.28 },
+  { x: 74, size: 4, rise: 66, delay: 0.62 },
+  { x: 90, size: 5, rise: 40, delay: 0.42 },
+];
+
+function pickExploreCloudReciters(pool: Reciter[], count: number, avoidIds: number[] = []): Reciter[] {
+  if (pool.length === 0) return [];
+  const avoid = new Set(avoidIds);
+  const preferred = pool.filter((r) => !avoid.has(r.id));
+  const source = preferred.length >= count ? preferred : pool;
+  const shuffled = [...source];
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, Math.min(count, shuffled.length));
+}
+
 const HomeExploreFusionButton: React.FC<{
   enabled: boolean;
+  reciters: Reciter[];
   onExplore: () => void;
   onFusionProgressChange: (progress: number) => void;
-}> = ({ enabled, onExplore, onFusionProgressChange }) => {
+}> = ({ enabled, reciters, onExplore, onFusionProgressChange }) => {
   const { progress, setHeaderRef, setSentinelRef } = useReciterNavFusion(enabled);
+  const [cloudOpen, setCloudOpen] = useState(false);
+  const [cloudReciters, setCloudReciters] = useState<Reciter[]>([]);
+  const cloudKeyRef = useRef(0);
+  const [cloudKey, setCloudKey] = useState(0);
+
+  const portraitPool = useMemo(() => {
+    if (!reciters.length) return [];
+    const withLocal = reciters.filter((r) => hasLocalReciterImage(r.id));
+    return withLocal.length >= EXPLORE_CLOUD_COUNT ? withLocal : reciters;
+  }, [reciters]);
+
+  const refreshCloud = useCallback(() => {
+    setCloudReciters((prev) => {
+      const next = pickExploreCloudReciters(
+        portraitPool,
+        EXPLORE_CLOUD_COUNT,
+        prev.map((r) => r.id),
+      );
+      return next;
+    });
+    cloudKeyRef.current += 1;
+    setCloudKey(cloudKeyRef.current);
+  }, [portraitPool]);
 
   React.useEffect(() => {
     onFusionProgressChange(progress);
@@ -646,9 +742,17 @@ const HomeExploreFusionButton: React.FC<{
     if (!enabled) onFusionProgressChange(0);
   }, [enabled, onFusionProgressChange]);
 
+  React.useEffect(() => {
+    if (!cloudOpen || portraitPool.length === 0) return;
+    const id = window.setInterval(refreshCloud, EXPLORE_CLOUD_ROTATE_MS);
+    return () => window.clearInterval(id);
+  }, [cloudOpen, portraitPool.length, refreshCloud]);
+
   const mergeStyle = {
     ['--fusion-p' as string]: String(progress),
   } as React.CSSProperties;
+
+  const showCloud = cloudOpen && cloudReciters.length > 0 && progress < 0.35;
 
   return (
     <div className="min-w-0">
@@ -659,7 +763,80 @@ const HomeExploreFusionButton: React.FC<{
           enabled && progress > 0.01 ? 'is-fusing' : ''
         }`}
         style={enabled ? mergeStyle : undefined}
+        onMouseEnter={() => {
+          if (window.matchMedia('(hover: hover)').matches) {
+            setCloudOpen(true);
+            refreshCloud();
+          }
+        }}
+        onMouseLeave={() => setCloudOpen(false)}
+        onFocusCapture={() => {
+          if (window.matchMedia('(hover: hover)').matches) {
+            setCloudOpen(true);
+            if (cloudReciters.length === 0) refreshCloud();
+          }
+        }}
+        onBlurCapture={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+            setCloudOpen(false);
+          }
+        }}
       >
+        <div
+          className={`explore-bubbles ${showCloud ? 'is-visible' : ''}`}
+          aria-hidden={!showCloud}
+        >
+          {showCloud && (
+            <div key={cloudKey} className="explore-bubbles__stage">
+              {EXPLORE_BUBBLE_SPECKS.map((speck) => (
+                <span
+                  key={`speck-${speck.x}-${speck.size}`}
+                  className="explore-bubbles__speck"
+                  style={
+                    {
+                      '--bubble-x': `${speck.x}%`,
+                      '--bubble-size': `${speck.size}px`,
+                      '--bubble-rise': `${speck.rise}px`,
+                      '--bubble-delay': `${speck.delay}s`,
+                    } as React.CSSProperties
+                  }
+                />
+              ))}
+
+              {cloudReciters.map((reciter, index) => {
+                const anchor = EXPLORE_BUBBLE_ANCHORS[index % EXPLORE_BUBBLE_ANCHORS.length];
+                return (
+                  <span
+                    key={reciter.id}
+                    className="explore-bubbles__bubble"
+                    style={
+                      {
+                        '--bubble-x': `${anchor.x}%`,
+                        '--bubble-rise': `${anchor.rise}px`,
+                        '--bubble-drift': `${anchor.drift}px`,
+                        '--bubble-delay': `${anchor.delay}s`,
+                      } as React.CSSProperties
+                    }
+                  >
+                    <span className="explore-bubbles__avatar">
+                      <ReciterPortrait
+                        reciter={reciter}
+                        alt=""
+                        width={44}
+                        height={44}
+                        loading="lazy"
+                        className="h-full w-full"
+                      />
+                    </span>
+                    <span className="explore-bubbles__name">{reciter.name}</span>
+                    <span className="explore-bubbles__shine" aria-hidden />
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
         <button
           type="button"
           onClick={onExplore}
@@ -674,7 +851,7 @@ const HomeExploreFusionButton: React.FC<{
           <span className="hero-explore-btn__body">
             <span className="hero-explore-btn__title">Explorer les voix</span>
             <span className="hero-explore-btn__meta">
-              Récitateurs, sourates et découverte en quelques gestes.
+              Récitateurs, sourates et découverte.
             </span>
           </span>
           <span className="hero-explore-btn__chevron" aria-hidden>
@@ -1230,78 +1407,62 @@ const AppContent: React.FC = () => {
                 <ArrowRight className="h-4 w-4 shrink-0 text-amber-300/80" />
               </button>
             )}
-            <section className="relative isolate rounded-[1.75rem] md:rounded-[2.4rem] ring-1 ring-[#30455c]/90 brand-card">
-              <div
-                className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]"
-                aria-hidden="true"
-              >
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(240,209,188,0.24),transparent_42%),radial-gradient(circle_at_85%_18%,rgba(121,144,161,0.24),transparent_28%),linear-gradient(160deg,#162538_0%,#0f1a29_46%,#08111c_100%)]" />
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#f0d1bc]/45 to-transparent" />
-                <div className="hero-glow-pulse absolute -right-10 top-10 h-36 w-36 rounded-full bg-[radial-gradient(circle,rgba(240,209,188,0.22),transparent_70%)] blur-3xl" />
+            <section className="home-hero">
+              <div className="home-hero__atmosphere" aria-hidden="true">
+                <div className="home-hero__wash" />
+                <div className="home-hero__mesh" />
+                <div className="home-hero__orb home-hero__orb--gold" />
+                <div className="home-hero__orb home-hero__orb--warm" />
+                <div className="home-hero__orb home-hero__orb--steel" />
+                <div className="home-hero__rail" />
+                <div className="home-hero__spark home-hero__spark--a" />
+                <div className="home-hero__spark home-hero__spark--b" />
               </div>
 
-              <div className="relative z-10 px-4 py-4 md:px-10 md:py-9">
-                {/* Mobile: vertical, centered, fast scan */}
-                <div className="flex flex-col items-center gap-3 text-center md:hidden">
-                  <h2 className="text-[1.85rem] font-black tracking-tight text-white leading-[1.05]">
-                    <span className="hero-title-line">Le Coran,</span>
-                    <span className="hero-title-line">
-                      <span className="hero-title-accent">simplement.</span>
+              <div className="home-hero__content">
+                <header className="home-hero__copy">
+                  <p className="home-hero__brand home-hero__enter home-hero__enter--1">
+                    <span className="reciter-name-gradient is-selected home-hero__brand-glow">Sawra</span>
+                  </p>
+                  <h2 className="home-hero__title home-hero__enter home-hero__enter--2">
+                    Le Coran,
+                    <span className="home-hero__title-line">
+                      <span className="home-hero__accent">simplement.</span>
                     </span>
                   </h2>
-                  <p className="max-w-[18rem] text-[13px] leading-snug text-[#d0d9e3]/78">
-                    Reprenez votre lecture, trouvez une belle voix et restez concentré sur l'essentiel.
+                  <p className="home-hero__lede home-hero__enter home-hero__enter--3">
+                    Reprenez votre lecture, trouvez une belle voix.
                   </p>
-                  <p className="inline-flex items-center rounded-full border border-[#f0d1bc]/18 bg-[#111d2d]/70 px-3 py-1 text-[11px] font-bold text-[#f1d4c1] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-                    100% gratuit. Sans pub.
-                  </p>
-                </div>
+                </header>
 
-                {/* Desktop: side-by-side brand */}
-                <div className="mb-5 hidden md:block">
-                  <div className="min-w-0">
-                    <h2 className="text-[3.2rem] font-black tracking-tight text-white leading-[1.05]">
-                      <span className="hero-title-line">Le Coran,</span>
-                      <span className="hero-title-line">
-                        <span className="hero-title-accent">simplement.</span>
-                      </span>
-                    </h2>
-                    <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-[#d0d9e3]/78">
-                      Reprenez votre lecture, trouvez une belle voix et restez concentré sur l'essentiel.
-                    </p>
-                    <p className="mt-3 inline-flex items-center rounded-full border border-[#f0d1bc]/18 bg-[#111d2d]/70 px-3 py-1.5 text-[11px] font-bold text-[#f1d4c1] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-                      100% gratuit. Sans pub.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-3 flex flex-col gap-2 md:mt-0 md:grid md:grid-cols-2 md:gap-2.5">
+                <div className="home-hero__actions home-hero__enter home-hero__enter--4">
                   <button
                     type="button"
                     onClick={currentTrack ? handleResumeListening : () => handleNavigate('listen')}
-                    className="hero-resume-btn tap-feedback"
+                    className="home-hero__cta tap-feedback"
                     aria-label={
                       currentTrack
                         ? `Continuer la lecture : ${currentTrack.surah.name} avec ${currentTrack.reciter.name}`
                         : 'Continuer la lecture'
                     }
                   >
-                    <span className="hero-resume-btn__sheen" aria-hidden />
-                    <span className="hero-resume-btn__body">
-                      <span className="hero-resume-btn__title">Continuer la lecture</span>
-                      <span className="hero-resume-btn__meta">
+                    <span className="home-hero__cta-sheen" aria-hidden />
+                    <span className="home-hero__cta-text">
+                      <span className="home-hero__cta-title">Continuer la lecture</span>
+                      <span className="home-hero__cta-meta">
                         {currentTrack
                           ? `${currentTrack.surah.name} · ${currentTrack.reciter.name}`
                           : 'Choisissez une voix et lancez l’écoute'}
                       </span>
                     </span>
-                    <span className="hero-resume-btn__play" aria-hidden>
+                    <span className="home-hero__cta-play" aria-hidden>
                       <Play className="ml-0.5 h-4 w-4 fill-current" />
                     </span>
                   </button>
 
                   <HomeExploreFusionButton
                     enabled={exploreFusionEnabled}
+                    reciters={reciters ?? []}
                     onExplore={handleExploreVoices}
                     onFusionProgressChange={handleExploreFusionProgress}
                   />
@@ -1358,7 +1519,7 @@ const AppContent: React.FC = () => {
                       onClick={action.onClick}
                       className="group rounded-[1.35rem] border border-[#30455c]/60 bg-[#132031]/70 px-3.5 py-3.5 text-left transition-colors hover:bg-[#162538]/88 tap-feedback"
                     >
-                      <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#20334a] text-[#f1d4c1]">
+                      <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#20334a] text-[#e8d4bc]">
                         <Icon className="h-4.5 w-4.5" />
                       </span>
                       <span className="mt-3 block text-[13px] font-black text-[#f6f8fb]">{action.label}</span>
@@ -1392,7 +1553,7 @@ const AppContent: React.FC = () => {
                       setActiveTab('listen');
                       setListenStep('reciters');
                     }}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#d0d9e3] hover:text-[#f1d4c1]"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#d0d9e3] hover:text-[#e8d4bc]"
                   >
                     Tous
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -1423,7 +1584,7 @@ const AppContent: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleNavigate('favorites')}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#d0d9e3] hover:text-[#f1d4c1]"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#d0d9e3] hover:text-[#e8d4bc]"
                   >
                     Voir
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -1487,7 +1648,7 @@ const AppContent: React.FC = () => {
                         : 'Sur Android/Chrome : menu ⋮ → « Installer l’application » ou « Ajouter à l’écran d’accueil ».'
                     );
                   }}
-                  className="inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-full border border-[#cea687]/30 bg-[#f0d1bc]/12 px-4 py-2.5 text-[12px] font-bold text-[#f1d4c1] transition-colors hover:bg-[#f0d1bc]/18 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cea687] tap-feedback"
+                  className="inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-full border border-[#c9a06a]/30 bg-[#e4ccb4]/12 px-4 py-2.5 text-[12px] font-bold text-[#e8d4bc] transition-colors hover:bg-[#e4ccb4]/18 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a] tap-feedback"
                 >
                   <Share className="h-3.5 w-3.5" aria-hidden />
                   Ajouter à l’écran d’accueil
@@ -1511,7 +1672,7 @@ const AppContent: React.FC = () => {
                       <button
                         type="button"
                         onClick={item.onClick}
-                        className="min-h-9 px-1 text-[#aab7c5] transition-colors hover:text-[#f1d4c1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cea687]"
+                        className="min-h-9 px-1 text-[#aab7c5] transition-colors hover:text-[#e8d4bc] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a]"
                       >
                         {item.label}
                       </button>
@@ -1524,7 +1685,7 @@ const AppContent: React.FC = () => {
                     href={GOMUSLIMLIFE_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex min-h-9 items-center gap-1 px-1 text-[#aab7c5] transition-colors hover:text-[#f1d4c1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cea687]"
+                    className="inline-flex min-h-9 items-center gap-1 px-1 text-[#aab7c5] transition-colors hover:text-[#e8d4bc] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a]"
                   >
                     GoMuslimLife
                     <ExternalLink className="h-3 w-3 opacity-50" aria-hidden />
@@ -1540,14 +1701,14 @@ const AppContent: React.FC = () => {
                   href="https://sofianeweb.fr"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group inline-flex items-center gap-1.5 rounded-full border border-[#30455c]/45 bg-[#0c1522]/70 px-3 py-1.5 text-[11px] text-[#95a7ba] transition-all duration-300 hover:border-[#cea687]/35 hover:bg-[#162538]/80 hover:text-[#e6edf5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cea687]"
+                  className="group inline-flex items-center gap-1.5 rounded-full border border-[#30455c]/45 bg-[#0c1522]/70 px-3 py-1.5 text-[11px] text-[#95a7ba] transition-all duration-300 hover:border-[#c9a06a]/35 hover:bg-[#162538]/80 hover:text-[#e6edf5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a]"
                 >
                   <span>Imaginé &amp; façonné par</span>
-                  <span className="font-bold text-[#f1d4c1] transition-colors group-hover:text-[#f0d1bc]">
+                  <span className="font-bold text-[#e8d4bc] transition-colors group-hover:text-[#e4ccb4]">
                     sofianeweb.fr
                   </span>
                   <span
-                    className="inline-block text-[#cea687] transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                    className="inline-block text-[#c9a06a] transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                     aria-hidden
                   >
                     ↗
@@ -1612,35 +1773,35 @@ const AppContent: React.FC = () => {
                       type="button"
                       onClick={() => setReciterSearch('')}
                       aria-label="Effacer la recherche"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 min-h-9 min-w-9 text-xs text-[#b4c0ce] hover:text-[#f6f8fb] px-2 py-1 bg-[#1b2d43] rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cea687]"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 min-h-9 min-w-9 text-xs text-[#b4c0ce] hover:text-[#f6f8fb] px-2 py-1 bg-[#1b2d43] rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a]"
                     >
                       Effacer
                     </button>
                   )}
                 </div>
 
-                <div className="flex flex-row items-center gap-2.5">
-                  <aside className="flex min-w-0 flex-1 items-start gap-2.5 rounded-2xl border border-[#cea687]/20 bg-[#111d2d]/70 px-3 py-2.5 sm:gap-3 sm:px-3.5 sm:py-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2.5">
+                  <aside className="flex min-w-0 w-full flex-1 items-center gap-2 rounded-2xl border border-[#c9a06a]/20 bg-[#111d2d]/70 px-3 py-2 sm:gap-3 sm:px-3.5 sm:py-3">
                     <span
-                      className="ayah-sync-badge mt-0.5 inline-flex shrink-0 items-center rounded-md border border-[#cea687]/40 bg-[#cea687]/12 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] leading-none text-[#f0d1bc]"
+                      className="ayah-sync-badge inline-flex shrink-0 items-center rounded-md border border-[#c9a06a]/40 bg-[#c9a06a]/12 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] leading-none text-[#e4ccb4]"
                       aria-hidden
                     >
                       Versets
                     </span>
-                    <p className="min-w-0 text-[11px] leading-snug text-[#b4c0ce] sm:text-[12px]">
+                    <MemoMarquee>
                       <span className="font-semibold text-[#e6edf5]">Verset par verset :</span>{' '}
                       le verset lu s’illumine avec l’audio. Ouvre le texte via{' '}
                       <BookOpen
-                        className="mx-0.5 inline-block h-[1.125rem] w-[1.125rem] translate-y-[-2px] align-middle text-[#aab7c5]"
+                        className="mx-0.5 inline-block h-[1.125rem] w-[1.125rem] translate-y-[-1px] align-middle text-[#aab7c5]"
                         strokeWidth={2}
                         aria-label="bouton livre du lecteur"
                       />{' '}
                       dans le lecteur.
-                    </p>
+                    </MemoMarquee>
                   </aside>
 
                   <div
-                    className="flex shrink-0 items-center gap-0.5 rounded-2xl border border-[#30455c] bg-[#111d2d]/78 p-1 sm:gap-1"
+                    className="flex w-full shrink-0 items-center gap-0.5 rounded-2xl border border-[#30455c] bg-[#111d2d]/78 p-1 sm:w-auto sm:gap-1"
                     role="group"
                     aria-label="Filtrer par verset par verset"
                   >
@@ -1656,9 +1817,9 @@ const AppContent: React.FC = () => {
                         type="button"
                         onClick={() => setAyahSyncFilter(opt.id)}
                         aria-pressed={ayahSyncFilter === opt.id}
-                        className={`min-h-9 rounded-xl px-2 text-[10px] font-bold tap-feedback sm:min-h-10 sm:px-3 sm:text-[11px] ${
+                        className={`min-h-9 flex-1 rounded-xl px-2 text-[10px] font-bold tap-feedback sm:min-h-10 sm:flex-none sm:px-3 sm:text-[11px] ${
                           ayahSyncFilter === opt.id
-                            ? 'bg-[#cea687]/18 text-[#f0d1bc] border border-[#cea687]/35'
+                            ? 'bg-[#c9a06a]/18 text-[#e4ccb4] border border-[#c9a06a]/35'
                             : 'text-[#95a7ba] border border-transparent hover:text-[#e6edf5]'
                         }`}
                       >
@@ -1699,7 +1860,7 @@ const AppContent: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setAyahSyncFilter('all')}
-                        className="mt-2 text-xs font-semibold text-[#f0d1bc] underline-offset-2 hover:underline"
+                        className="mt-2 text-xs font-semibold text-[#e4ccb4] underline-offset-2 hover:underline"
                       >
                         Réafficher tous
                       </button>
@@ -1710,10 +1871,10 @@ const AppContent: React.FC = () => {
                     {recentReciters.length > 0 && (
                       <section className="flex flex-col gap-3">
                         <h3 className="text-sm font-bold text-[#d7e4ef] flex items-center gap-2">
-                          <History className="w-4 h-4 text-[#f0d1bc]" />
+                          <History className="w-4 h-4 text-[#e4ccb4]" />
                           Vos derniers récitateurs écoutés
                         </h3>
-                        <div className="grid grid-cols-1 gap-3">
+                        <div className="grid grid-cols-1 gap-3.5">
                           {recentReciters.map((reciter) => (
                             <ReciterCard
                               key={`recent-${reciter.id}`}
@@ -1740,7 +1901,7 @@ const AppContent: React.FC = () => {
                           <Heart className="w-4 h-4 text-red-400 fill-current" />
                           Favoris
                         </h3>
-                        <div className="grid grid-cols-1 gap-3">
+                        <div className="grid grid-cols-1 gap-3.5">
                           {favoritedOnly.map((reciter) => (
                             <ReciterCard
                               key={reciter.id}
@@ -1765,7 +1926,7 @@ const AppContent: React.FC = () => {
                             : 'Récitateurs'}
                         </h3>
                       )}
-                      <div className="grid grid-cols-1 gap-3">
+                      <div className="grid grid-cols-1 gap-3.5">
                         {catalogReciters.map((reciter) => (
                           <ReciterCard
                             key={reciter.id}
@@ -1845,7 +2006,7 @@ const AppContent: React.FC = () => {
                 onClick={() => handleNavigate('favorites')}
                 className={`min-h-10 flex-1 rounded-xl px-2 py-2 text-[11px] font-bold transition-all tap-feedback ${
                   activeTab === 'favorites'
-                    ? 'bg-[#f0d1bc]/14 text-[#f1d4c1]'
+                    ? 'bg-[#e4ccb4]/14 text-[#e8d4bc]'
                     : 'text-[#95a7ba] hover:text-[#e6edf5]'
                 }`}
               >
@@ -1859,7 +2020,7 @@ const AppContent: React.FC = () => {
                   onClick={() => handleNavigate('moments')}
                   className={`min-h-10 flex-1 rounded-xl px-2 py-2 text-[11px] font-bold transition-all tap-feedback ${
                     activeTab === 'moments'
-                      ? 'bg-[#f0d1bc]/14 text-[#f1d4c1]'
+                      ? 'bg-[#e4ccb4]/14 text-[#e8d4bc]'
                       : 'text-[#95a7ba] hover:text-[#e6edf5]'
                   }`}
                 >
@@ -1994,9 +2155,9 @@ const AppContent: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleNavigate('account')}
-                className="mt-5 flex w-full items-center gap-3 rounded-2xl border border-[#cea687]/30 bg-[#f0d1bc]/[0.08] px-4 py-3.5 text-left transition-colors hover:bg-[#f0d1bc]/[0.14] tap-feedback md:hidden"
+                className="mt-5 flex w-full items-center gap-3 rounded-2xl border border-[#c9a06a]/30 bg-[#e4ccb4]/[0.08] px-4 py-3.5 text-left transition-colors hover:bg-[#e4ccb4]/[0.14] tap-feedback md:hidden"
               >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#20334a] text-[#f1d4c1]">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#20334a] text-[#e8d4bc]">
                   <User className="h-5 w-5" />
                 </span>
                 <span className="min-w-0 flex-1">
@@ -2005,7 +2166,7 @@ const AppContent: React.FC = () => {
                     {user ? 'Compte synchronisé — favoris & reprise' : 'Synchroniser favoris et reprise de lecture'}
                   </span>
                 </span>
-                <ArrowRight className="h-4 w-4 shrink-0 text-[#cea687]/80" />
+                <ArrowRight className="h-4 w-4 shrink-0 text-[#c9a06a]/80" />
               </button>
 
               <NavDesktopStyleToggle
@@ -2026,9 +2187,9 @@ const AppContent: React.FC = () => {
                     type="button"
                     onClick={() => setMorePanel(item.id)}
                     aria-pressed={morePanel === item.id}
-                    className={`min-h-11 rounded-2xl border px-3 py-3 text-xs font-bold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cea687] ${
+                    className={`min-h-11 rounded-2xl border px-3 py-3 text-xs font-bold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a] ${
                       morePanel === item.id
-                        ? 'border-[#cea687]/35 bg-[#f0d1bc]/12 text-[#f1d4c1]'
+                        ? 'border-[#c9a06a]/35 bg-[#e4ccb4]/12 text-[#e8d4bc]'
                         : 'border-[#30455c] bg-[#111d2d]/72 text-[#b4c0ce] hover:text-[#f6f8fb]'
                     }`}
                   >
@@ -2063,9 +2224,9 @@ const AppContent: React.FC = () => {
                       role="tab"
                       aria-selected={legalSub === item.id}
                       onClick={() => setLegalSub(item.id)}
-                      className={`min-h-10 flex-1 rounded-xl px-2 py-2 text-[11px] sm:text-xs font-bold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cea687] ${
+                      className={`min-h-10 flex-1 rounded-xl px-2 py-2 text-[11px] sm:text-xs font-bold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a] ${
                         legalSub === item.id
-                          ? 'bg-[#f0d1bc]/14 text-[#f1d4c1]'
+                          ? 'bg-[#e4ccb4]/14 text-[#e8d4bc]'
                           : 'text-[#95a7ba] hover:text-[#e6edf5]'
                       }`}
                     >

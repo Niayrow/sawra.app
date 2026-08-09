@@ -1,4 +1,4 @@
-import { RECITER_IMAGES } from './images';
+import { RECITER_BACKGROUND, RECITER_IMAGES } from './images';
 import { RECITER_CATEGORIES } from '../data/reciterCategories';
 
 const PRECACHE_META_KEY = 'sawra.app-shell-precache';
@@ -20,6 +20,7 @@ const STATIC_SHELL = [
   '/icons/maskable-512x512.png',
   '/icons/artwork.png',
   '/icons/logo.png',
+  RECITER_BACKGROUND,
 ];
 
 type PrecacheMeta = {

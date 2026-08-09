@@ -221,7 +221,7 @@ export const BatchDownloadToast: React.FC = () => {
               className={`absolute inset-x-0 top-0 h-px ${
                 isDone
                   ? 'bg-gradient-to-r from-transparent via-[#4ade80]/70 to-transparent'
-                  : 'bg-gradient-to-r from-transparent via-[#f0d1bc]/50 to-transparent'
+                  : 'bg-gradient-to-r from-transparent via-[#e4ccb4]/50 to-transparent'
               }`}
               aria-hidden
             />
@@ -255,7 +255,7 @@ export const BatchDownloadToast: React.FC = () => {
                     cy={RING_SIZE / 2}
                     r={RING_RADIUS}
                     fill="none"
-                    stroke={isDone ? '#4ade80' : '#f0d1bc'}
+                    stroke={isDone ? '#4ade80' : '#e4ccb4'}
                     strokeWidth={RING_STROKE}
                     strokeLinecap="round"
                     strokeDasharray={RING_CIRCUMFERENCE}
@@ -267,7 +267,7 @@ export const BatchDownloadToast: React.FC = () => {
                   className={`absolute inset-[5px] flex items-center justify-center rounded-full ${
                     isDone
                       ? 'bg-[#4ade80]/18 text-[#86efac]'
-                      : 'bg-[#f0d1bc]/16 text-[#f7e0ce]'
+                      : 'bg-[#e4ccb4]/16 text-[#f0e2d0]'
                   }`}
                 >
                   {isDone ? (
@@ -300,7 +300,7 @@ export const BatchDownloadToast: React.FC = () => {
                   {!alreadyUpToDate ? (
                     <span
                       className={`shrink-0 pt-0.5 text-[18px] font-black tabular-nums leading-none tracking-tight ${
-                        isDone ? 'text-[#4ade80]' : 'text-[#f0d1bc]'
+                        isDone ? 'text-[#4ade80]' : 'text-[#e4ccb4]'
                       }`}
                     >
                       {percent}
@@ -319,7 +319,7 @@ export const BatchDownloadToast: React.FC = () => {
                       className={`absolute inset-y-0 left-0 overflow-hidden rounded-full ${
                         isDone
                           ? 'bg-gradient-to-r from-[#22c55e] to-[#4ade80]'
-                          : 'bg-gradient-to-r from-[#b98d6e] via-[#cea687] to-[#f0d1bc]'
+                          : 'bg-gradient-to-r from-[#9c6c3c] via-[#c9a06a] to-[#e4ccb4]'
                       }`}
                       style={{ width: `${barWidth}%` }}
                     >

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, CloudCheck, Download, Play, WifiOff } from '../icons/motion';
 import { useAudio } from '../context/AudioContext';
-import { getGeneratedReciterAvatar, getReciterImage } from '../utils/images';
+import { ReciterPortrait } from './ReciterPortrait';
 import { SURAHS } from '../data/surahs';
 import type { Reciter } from '../types';
 
@@ -106,13 +106,13 @@ export const DownloadedSurahsPage: React.FC<DownloadedSurahsPageProps> = ({
             className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${
               offlineMode
                 ? 'bg-amber-400/12 text-amber-300'
-                : 'bg-[#20334a] text-[#f0d1bc]'
+                : 'bg-[#20334a] text-[#e4ccb4]'
             }`}
           >
             {offlineMode ? <WifiOff className="h-4.5 w-4.5" /> : <Download className="h-4.5 w-4.5" />}
           </span>
         </div>
-        <p className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#cea687]/25 bg-[#f0d1bc]/10 px-3 py-1 text-[11px] font-bold text-[#f1d4c1]">
+        <p className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#c9a06a]/25 bg-[#e4ccb4]/10 px-3 py-1 text-[11px] font-bold text-[#e8d4bc]">
           <CloudCheck className="h-3.5 w-3.5" />
           {entries.length} sourate{entries.length !== 1 ? 's' : ''} hors-ligne
         </p>
@@ -131,8 +131,6 @@ export const DownloadedSurahsPage: React.FC<DownloadedSurahsPageProps> = ({
       ) : (
         <div className="flex flex-col gap-2.5">
           {groups.map((group) => {
-            const imageUrl = group.reciter ? getReciterImage(group.reciter) : '';
-            const fallback = group.reciter ? getGeneratedReciterAvatar(group.reciter) : '';
             const isOpen = openReciterId === group.reciterId;
             const panelId = `downloaded-reciter-${group.reciterId}`;
 
@@ -149,18 +147,12 @@ export const DownloadedSurahsPage: React.FC<DownloadedSurahsPageProps> = ({
                   className="flex w-full items-center gap-3 px-3.5 py-3 text-left transition-colors hover:bg-[#162538]/55 tap-feedback"
                 >
                   <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full border border-[#46607b]/50 bg-[#0c1522]">
-                    {imageUrl ? (
-                      <img
-                        src={imageUrl}
+                    {group.reciter ? (
+                      <ReciterPortrait
+                        reciter={group.reciter}
                         alt=""
-                        width="44"
-                        height="44"
-                        className="h-full w-full object-cover"
-                        onError={(e) => {
-                          if (fallback && e.currentTarget.src !== fallback) {
-                            e.currentTarget.src = fallback;
-                          }
-                        }}
+                        width={44}
+                        height={44}
                       />
                     ) : null}
                   </span>
@@ -175,7 +167,7 @@ export const DownloadedSurahsPage: React.FC<DownloadedSurahsPageProps> = ({
                   </span>
                   <ChevronDown
                     className={`h-4.5 w-4.5 shrink-0 text-[#95a7ba] transition-transform duration-250 ${
-                      isOpen ? 'rotate-180 text-[#f1d4c1]' : ''
+                      isOpen ? 'rotate-180 text-[#e8d4bc]' : ''
                     }`}
                     aria-hidden
                   />
@@ -203,19 +195,19 @@ export const DownloadedSurahsPage: React.FC<DownloadedSurahsPageProps> = ({
                               type="button"
                               onClick={() => handlePlay(entry)}
                               className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors tap-feedback ${
-                                isCurrent ? 'bg-[#f0d1bc]/08' : 'hover:bg-[#162538]/70'
+                                isCurrent ? 'bg-[#e4ccb4]/08' : 'hover:bg-[#162538]/70'
                               }`}
                             >
                               <span
                                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold tabular-nums ${
                                   isCurrent
-                                    ? 'border-[#cea687]/45 bg-[#f0d1bc]/16 text-[#f1d4c1]'
+                                    ? 'border-[#c9a06a]/45 bg-[#e4ccb4]/16 text-[#e8d4bc]'
                                     : 'border-[#46607b]/50 bg-[#0c1522] text-[#aab7c5]'
                                 }`}
                               >
                                 {isPlaying ? (
                                   <span className="flex h-3 items-end gap-0.5">
-                                    <span className="w-0.5 h-full rounded-full bg-[#f0d1bc] animate-[shimmer_0.6s_infinite_alternate]" />
+                                    <span className="w-0.5 h-full rounded-full bg-[#e4ccb4] animate-[shimmer_0.6s_infinite_alternate]" />
                                     <span className="w-0.5 h-2/3 rounded-full bg-white/80 animate-[shimmer_0.6s_infinite_alternate]" />
                                     <span className="w-0.5 h-full rounded-full bg-[#7990a1] animate-[shimmer_0.6s_infinite_alternate]" />
                                   </span>
@@ -235,7 +227,7 @@ export const DownloadedSurahsPage: React.FC<DownloadedSurahsPageProps> = ({
                               </span>
                               <Play
                                 className={`h-4 w-4 shrink-0 ${
-                                  isCurrent ? 'text-[#f1d4c1]' : 'text-[#7f93a8]'
+                                  isCurrent ? 'text-[#e8d4bc]' : 'text-[#7f93a8]'
                                 }`}
                               />
                             </button>

@@ -11,9 +11,9 @@ import type { Session, User } from '@supabase/supabase-js';
 import {
   isSupabaseConfigured,
   supabase,
-  type QuranifyPlaybackRow,
-  type QuranifyProfileRow,
-  type QuranifyUserSettingsRow,
+  type SawraPlaybackRow,
+  type SawraProfileRow,
+  type SawraUserSettingsRow,
 } from '../lib/supabase';
 
 type AuthMode = 'signin' | 'signup';
@@ -23,7 +23,7 @@ interface AuthContextValue {
   loading: boolean;
   session: Session | null;
   user: User | null;
-  profile: QuranifyProfileRow | null;
+  profile: SawraProfileRow | null;
   authError: string | null;
   signIn: (email: string, password: string) => Promise<{ ok: boolean; message?: string }>;
   signUp: (
@@ -37,7 +37,7 @@ interface AuthContextValue {
   fetchFavoriteReciterIds: () => Promise<number[]>;
   setFavoriteReciter: (reciterId: number, liked: boolean) => Promise<void>;
   syncFavoritesMerge: (localIds: number[]) => Promise<number[]>;
-  fetchPlaybackState: () => Promise<QuranifyPlaybackRow | null>;
+  fetchPlaybackState: () => Promise<SawraPlaybackRow | null>;
   upsertPlaybackState: (payload: {
     reciterId: number;
     moshafId: number;
@@ -47,7 +47,7 @@ interface AuthContextValue {
     deviceId: string;
     deviceLabel: string;
   }) => Promise<void>;
-  fetchUserSettings: () => Promise<QuranifyUserSettingsRow | null>;
+  fetchUserSettings: () => Promise<SawraUserSettingsRow | null>;
   upsertUserSettings: (payload: {
     volume: number;
     playbackSpeed: number;
@@ -63,7 +63,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [loading, setLoading] = useState(isSupabaseConfigured);
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<QuranifyProfileRow | null>(null);
+  const [profile, setProfile] = useState<SawraProfileRow | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const userIdRef = useRef<string | null>(null);
 
@@ -72,27 +72,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loadProfile = useCallback(async (userId: string) => {
     if (!supabase) return;
     const { data, error } = await supabase
-      .from('quranify_profiles')
+      .from('sawra_profiles')
       .select('*')
       .eq('id', userId)
       .maybeSingle();
     if (error) {
-      console.warn('quranify profile load failed', error.message);
+      console.warn('sawra profile load failed', error.message);
       return;
     }
     if (!data) {
       const { data: inserted } = await supabase
-        .from('quranify_profiles')
+        .from('sawra_profiles')
         .upsert({
           id: userId,
           display_name: userId.slice(0, 8),
         })
         .select('*')
         .maybeSingle();
-      setProfile((inserted as QuranifyProfileRow | null) ?? null);
+      setProfile((inserted as SawraProfileRow | null) ?? null);
       return;
     }
-    setProfile(data as QuranifyProfileRow);
+    setProfile(data as SawraProfileRow);
   }, []);
 
   useEffect(() => {
@@ -206,7 +206,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { ok: false, message: 'Le pseudo ne peut pas être vide.' };
     }
     const { data, error } = await supabase
-      .from('quranify_profiles')
+      .from('sawra_profiles')
       .upsert({
         id: userIdRef.current,
         display_name: next,
@@ -218,7 +218,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.warn('profile rename failed', error.message);
       return { ok: false, message: 'Impossible d’enregistrer le pseudo.' };
     }
-    if (data) setProfile(data as QuranifyProfileRow);
+    if (data) setProfile(data as SawraProfileRow);
     else setProfile((prev) => (prev ? { ...prev, display_name: next } : prev));
     return { ok: true };
   }, []);
@@ -226,7 +226,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchFavoriteReciterIds = useCallback(async () => {
     if (!supabase || !userIdRef.current) return [];
     const { data, error } = await supabase
-      .from('quranify_favorite_reciters')
+      .from('sawra_favorite_reciters')
       .select('reciter_id')
       .eq('user_id', userIdRef.current);
     if (error) {
@@ -239,7 +239,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const setFavoriteReciter = useCallback(async (reciterId: number, liked: boolean) => {
     if (!supabase || !userIdRef.current) return;
     if (liked) {
-      const { error } = await supabase.from('quranify_favorite_reciters').upsert({
+      const { error } = await supabase.from('sawra_favorite_reciters').upsert({
         user_id: userIdRef.current,
         reciter_id: reciterId,
       });
@@ -247,7 +247,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
     const { error } = await supabase
-      .from('quranify_favorite_reciters')
+      .from('sawra_favorite_reciters')
       .delete()
       .eq('user_id', userIdRef.current)
       .eq('reciter_id', reciterId);
@@ -260,7 +260,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const merged = Array.from(new Set([...localIds, ...remoteIds]));
     const missingOnRemote = merged.filter((id) => !remoteIds.includes(id));
     if (missingOnRemote.length > 0) {
-      const { error } = await supabase.from('quranify_favorite_reciters').upsert(
+      const { error } = await supabase.from('sawra_favorite_reciters').upsert(
         missingOnRemote.map((reciter_id) => ({
           user_id: userIdRef.current!,
           reciter_id,
@@ -274,7 +274,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchPlaybackState = useCallback(async () => {
     if (!supabase || !userIdRef.current) return null;
     const { data, error } = await supabase
-      .from('quranify_playback_state')
+      .from('sawra_playback_state')
       .select('*')
       .eq('user_id', userIdRef.current)
       .maybeSingle();
@@ -282,7 +282,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.warn('playback fetch failed', error.message);
       return null;
     }
-    return (data as QuranifyPlaybackRow | null) ?? null;
+    return (data as SawraPlaybackRow | null) ?? null;
   }, []);
 
   const upsertPlaybackState = useCallback(async (payload: {
@@ -295,7 +295,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     deviceLabel: string;
   }) => {
     if (!supabase || !userIdRef.current) return;
-    const { error } = await supabase.from('quranify_playback_state').upsert({
+    const { error } = await supabase.from('sawra_playback_state').upsert({
       user_id: userIdRef.current,
       reciter_id: payload.reciterId,
       moshaf_id: payload.moshafId,
@@ -312,7 +312,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchUserSettings = useCallback(async () => {
     if (!supabase || !userIdRef.current) return null;
     const { data, error } = await supabase
-      .from('quranify_user_settings')
+      .from('sawra_user_settings')
       .select('*')
       .eq('user_id', userIdRef.current)
       .maybeSingle();
@@ -320,7 +320,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.warn('user settings fetch failed', error.message);
       return null;
     }
-    return (data as QuranifyUserSettingsRow | null) ?? null;
+    return (data as SawraUserSettingsRow | null) ?? null;
   }, []);
 
   const upsertUserSettings = useCallback(async (payload: {
@@ -332,7 +332,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     selectedSurahIds: number[];
   }) => {
     if (!supabase || !userIdRef.current) return;
-    const { error } = await supabase.from('quranify_user_settings').upsert({
+    const { error } = await supabase.from('sawra_user_settings').upsert({
       user_id: userIdRef.current,
       volume: Math.max(0, Math.min(1, payload.volume)),
       playback_speed: Math.max(0.5, Math.min(2, payload.playbackSpeed)),

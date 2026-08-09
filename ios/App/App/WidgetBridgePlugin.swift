@@ -13,8 +13,8 @@ public struct WidgetPlaybackPayload: Codable {
 }
 
 enum WidgetSharedStore {
-    static let appGroupId = "group.com.quranify.app"
-    static let storageKey = "quranify_widget_data"
+    static let appGroupId = "group.app.sawra"
+    static let storageKey = "sawra_widget_data"
 
     static func save(_ payload: WidgetPlaybackPayload) {
         guard let defaults = UserDefaults(suiteName: appGroupId) else { return }
@@ -30,7 +30,7 @@ enum WidgetSharedStore {
             let payload = try? JSONDecoder().decode(WidgetPlaybackPayload.self, from: data)
         else {
             return WidgetPlaybackPayload(
-                reciterName: "Quranify",
+                reciterName: "Sawra",
                 surahName: "Al-Fatihah",
                 surahId: 1,
                 surahArabic: "الفَاتِحَة",
@@ -54,7 +54,7 @@ public class WidgetBridgePlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func updateWidget(_ call: CAPPluginCall) {
         let payload = WidgetPlaybackPayload(
-            reciterName: call.getString("reciterName") ?? "Quranify",
+            reciterName: call.getString("reciterName") ?? "Sawra",
             surahName: call.getString("surahName") ?? "Al-Fatihah",
             surahId: call.getInt("surahId") ?? 1,
             surahArabic: call.getString("surahArabic") ?? "الفَاتِحَة",

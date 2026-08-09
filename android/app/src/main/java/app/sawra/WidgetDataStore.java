@@ -5,7 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class WidgetDataStore {
-    public static final String PREFS_NAME = "quranify_widget_prefs";
+    public static final String PREFS_NAME = "sawra_widget_prefs";
     public static final String KEY_DATA = "widget_data";
 
     private WidgetDataStore() {}

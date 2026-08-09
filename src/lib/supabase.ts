@@ -15,7 +15,7 @@ export const supabase: SupabaseClient | null = isSupabaseConfigured
     })
   : null;
 
-export type QuranifyPlaybackRow = {
+export type SawraPlaybackRow = {
   user_id: string;
   reciter_id: number;
   moshaf_id: number;
@@ -27,20 +27,20 @@ export type QuranifyPlaybackRow = {
   device_label: string | null;
 };
 
-export type QuranifyFavoriteRow = {
+export type SawraFavoriteRow = {
   user_id: string;
   reciter_id: number;
   created_at: string;
 };
 
-export type QuranifyProfileRow = {
+export type SawraProfileRow = {
   id: string;
   display_name: string | null;
   created_at: string;
   updated_at: string;
 };
 
-export type QuranifyUserSettingsRow = {
+export type SawraUserSettingsRow = {
   user_id: string;
   volume: number;
   playback_speed: number;

@@ -979,7 +979,7 @@ const AppContent: React.FC = () => {
       if (tab) {
         setActiveTab(mapLegacyTab(tab));
       }
-      if (url.protocol === 'sawra:' || url.protocol === 'quranify:' || url.pathname.includes('/surah')) {
+      if (url.protocol === 'sawra:' || url.pathname.includes('/surah')) {
         setActiveTab('listen');
       }
     } catch {
@@ -995,8 +995,7 @@ const AppContent: React.FC = () => {
         rawUrl.includes('tab=surahs') ||
         rawUrl.includes('tab=reciters') ||
         rawUrl.includes('tab=listen') ||
-        rawUrl.includes('sawra://surah') ||
-        rawUrl.includes('quranify://surah')
+        rawUrl.includes('sawra://surah')
       ) {
         setActiveTab('listen');
       }
@@ -1133,10 +1132,7 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     if (authLoading || user || showLoadingHome || authPromptShownRef.current) return;
     try {
-      if (
-        sessionStorage.getItem('sawra_auth_prompt_dismissed') === '1' ||
-        sessionStorage.getItem('quranify_auth_prompt_dismissed') === '1'
-      ) return;
+      if (sessionStorage.getItem('sawra_auth_prompt_dismissed') === '1') return;
     } catch {
       // ignore
     }

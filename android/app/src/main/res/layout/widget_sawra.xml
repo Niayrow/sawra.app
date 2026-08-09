@@ -12,7 +12,7 @@
         android:id="@+id/widget_brand"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="QURANIFY"
+        android:text="SAWRA"
         android:textColor="#34D399"
         android:textSize="10sp"
         android:textStyle="bold"

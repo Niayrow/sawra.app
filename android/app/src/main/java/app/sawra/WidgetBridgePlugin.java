@@ -21,7 +21,7 @@ public class WidgetBridgePlugin extends Plugin {
         try {
             JSONObject json = new JSONObject(payload.toString());
             WidgetDataStore.save(getContext(), json);
-            QuranifyWidgetProvider.refreshAllWidgets(getContext());
+            SawraWidgetProvider.refreshAllWidgets(getContext());
             call.resolve();
         } catch (Exception error) {
             call.reject("Failed to update widget", error);
@@ -30,7 +30,7 @@ public class WidgetBridgePlugin extends Plugin {
 
     @PluginMethod
     public void refreshWidgets(PluginCall call) {
-        QuranifyWidgetProvider.refreshAllWidgets(getContext());
+        SawraWidgetProvider.refreshAllWidgets(getContext());
         call.resolve();
     }
 }

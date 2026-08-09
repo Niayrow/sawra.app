@@ -3,8 +3,8 @@
     android:minWidth="250dp"
     android:minHeight="110dp"
     android:updatePeriodMillis="1800000"
-    android:initialLayout="@layout/widget_quranify"
+    android:initialLayout="@layout/widget_sawra"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
     android:description="@string/widget_description"
-    android:previewLayout="@layout/widget_quranify" />
+    android:previewLayout="@layout/widget_sawra" />

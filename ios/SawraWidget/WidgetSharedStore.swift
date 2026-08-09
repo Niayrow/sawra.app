@@ -11,8 +11,8 @@ public struct WidgetPlaybackPayload: Codable {
 }
 
 enum WidgetSharedStore {
-    static let appGroupId = "group.com.quranify.app"
-    static let storageKey = "quranify_widget_data"
+    static let appGroupId = "group.app.sawra"
+    static let storageKey = "sawra_widget_data"
 
     static func load() -> WidgetPlaybackPayload {
         guard
@@ -21,7 +21,7 @@ enum WidgetSharedStore {
             let payload = try? JSONDecoder().decode(WidgetPlaybackPayload.self, from: data)
         else {
             return WidgetPlaybackPayload(
-                reciterName: "Quranify",
+                reciterName: "Sawra",
                 surahName: "Al-Fatihah",
                 surahId: 1,
                 surahArabic: "الفَاتِحَة",

@@ -8,7 +8,7 @@ export interface WidgetPlaybackData {
   updatedAt: number;
 }
 
-const WIDGET_STORAGE_KEY = 'quranify_widget_data';
+const WIDGET_STORAGE_KEY = 'sawra_widget_data';
 
 export const readWidgetDataFromWeb = (): WidgetPlaybackData | null => {
   try {

@@ -1,4 +1,4 @@
-const DEVICE_ID_KEY = 'quranify_device_id';
+const DEVICE_ID_KEY = 'sawra_device_id';
 
 const createDeviceId = (): string => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {

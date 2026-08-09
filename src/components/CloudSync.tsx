@@ -3,8 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { useAudio } from '../context/AudioContext';
 import {
   supabase,
-  type QuranifyPlaybackRow,
-  type QuranifyUserSettingsRow,
+  type SawraPlaybackRow,
+  type SawraUserSettingsRow,
 } from '../lib/supabase';
 import { getLocalDeviceId, getLocalDeviceLabel } from '../lib/deviceId';
 import { SURAHS } from '../data/surahs';
@@ -34,7 +34,7 @@ const settingsSignature = (payload: {
     selectedSurahIds: [...payload.selectedSurahIds].sort((a, b) => a - b),
   });
 
-const signatureFromSettingsRow = (row: QuranifyUserSettingsRow) =>
+const signatureFromSettingsRow = (row: SawraUserSettingsRow) =>
   settingsSignature({
     volume: row.volume,
     playbackSpeed: row.playback_speed,
@@ -50,7 +50,7 @@ interface CloudSyncProps {
 }
 
 /**
- * Syncs Quranify favorites, settings/playlist loop, and multi-device playback.
+ * Syncs Sawra favorites, settings/playlist loop, and multi-device playback.
  */
 export const CloudSync: React.FC<CloudSyncProps> = ({ favorites, setFavorites }) => {
   const {
@@ -154,7 +154,7 @@ export const CloudSync: React.FC<CloudSyncProps> = ({ favorites, setFavorites })
   const selectedSurahIdsRef = useRef(selectedSurahIds);
   selectedSurahIdsRef.current = selectedSurahIds;
 
-  const applyRemoteSettings = (row: QuranifyUserSettingsRow) => {
+  const applyRemoteSettings = (row: SawraUserSettingsRow) => {
     if (!row || typeof row.user_id !== 'string') return;
     const signature = signatureFromSettingsRow(row);
 
@@ -212,7 +212,7 @@ export const CloudSync: React.FC<CloudSyncProps> = ({ favorites, setFavorites })
     return Math.max(0, currentTimeRef.current || 0);
   };
 
-  const applyRemoteRow = (row: QuranifyPlaybackRow) => {
+  const applyRemoteRow = (row: SawraPlaybackRow) => {
     if (!row.device_id) return;
 
     if (Date.now() < suppressRemoteUntilRef.current) {
@@ -642,17 +642,17 @@ export const CloudSync: React.FC<CloudSyncProps> = ({ favorites, setFavorites })
     });
 
     const channel = client
-      .channel(`quranify-sync-${userId}`)
+      .channel(`sawra-sync-${userId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'quranify_playback_state',
+          table: 'sawra_playback_state',
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          const row = payload.new as QuranifyPlaybackRow | null;
+          const row = payload.new as SawraPlaybackRow | null;
           if (!row || typeof row.reciter_id !== 'number') return;
           if (payload.eventType === 'DELETE') {
             setRemoteSessionRef.current(null);
@@ -666,11 +666,11 @@ export const CloudSync: React.FC<CloudSyncProps> = ({ favorites, setFavorites })
         {
           event: '*',
           schema: 'public',
-          table: 'quranify_user_settings',
+          table: 'sawra_user_settings',
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          const row = payload.new as QuranifyUserSettingsRow | null;
+          const row = payload.new as SawraUserSettingsRow | null;
           if (!row || payload.eventType === 'DELETE') return;
           applyRemoteSettings(row);
         }

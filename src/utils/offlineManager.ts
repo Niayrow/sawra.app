@@ -1,4 +1,4 @@
-const CACHE_NAME = 'quranify-audio-cache';
+const CACHE_NAME = 'sawra-audio-cache';
 
 /**
  * Checks if Cache Storage is supported in the current environment

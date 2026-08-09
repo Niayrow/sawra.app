@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'quranify-pwa-v112-20260809';
+const CACHE_VERSION = 'sawra-pwa-v113-20260809';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const OFFLINE_URL = '/offline.html';

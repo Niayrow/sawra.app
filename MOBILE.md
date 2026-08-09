@@ -115,15 +115,15 @@ Activer **Play App Signing** (clé d’app gérée par Google) lors du premier u
 3. Le widget affiche la sourate, le récitateur et la progression de la dernière lecture.
 4. Un appui ouvre l'app sur l'onglet Sourates.
 
-Le plugin natif `WidgetBridge` écrit dans `quranify_widget_prefs` et rafraîchit `QuranifyWidgetProvider`.
+Le plugin natif `WidgetBridge` écrit dans `sawra_widget_prefs` et rafraîchit `SawraWidgetProvider`.
 
 ## Widget iOS (WidgetKit)
 
 Sur macOS, dans Xcode :
 
 1. Ouvrez `ios/App/App.xcodeproj`.
-2. **File → Add Target → Widget Extension** (ou ajoutez manuellement le dossier `ios/QuranifyWidget/`).
-3. Activez **App Groups** pour l'app principale et l'extension : `group.com.quranify.app` (à aligner sur `app.sawra` si vous republiez iOS).
+2. **File → Add Target → Widget Extension** (ou ajoutez manuellement le dossier `ios/SawraWidget/`).
+3. Activez **App Groups** pour l'app principale et l'extension : `group.app.sawra` (à aligner sur `app.sawra` si vous republiez iOS).
 4. Ajoutez `WidgetBridgePlugin.swift` au target App.
 5. Partagez `WidgetSharedStore.swift` entre l'app et l'extension.
 6. Build & run sur appareil iOS 14+.

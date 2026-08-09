@@ -1,29 +1,29 @@
 import WidgetKit
 import SwiftUI
 
-struct QuranifyWidgetEntry: TimelineEntry {
+struct SawraWidgetEntry: TimelineEntry {
     let date: Date
     let payload: WidgetPlaybackPayload
 }
 
-struct QuranifyWidgetProvider: TimelineProvider {
-    func placeholder(in context: Context) -> QuranifyWidgetEntry {
-        QuranifyWidgetEntry(date: Date(), payload: WidgetSharedStore.load())
+struct SawraWidgetProvider: TimelineProvider {
+    func placeholder(in context: Context) -> SawraWidgetEntry {
+        SawraWidgetEntry(date: Date(), payload: WidgetSharedStore.load())
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (QuranifyWidgetEntry) -> Void) {
-        completion(QuranifyWidgetEntry(date: Date(), payload: WidgetSharedStore.load()))
+    func getSnapshot(in context: Context, completion: @escaping (SawraWidgetEntry) -> Void) {
+        completion(SawraWidgetEntry(date: Date(), payload: WidgetSharedStore.load()))
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<QuranifyWidgetEntry>) -> Void) {
-        let entry = QuranifyWidgetEntry(date: Date(), payload: WidgetSharedStore.load())
+    func getTimeline(in context: Context, completion: @escaping (Timeline<SawraWidgetEntry>) -> Void) {
+        let entry = SawraWidgetEntry(date: Date(), payload: WidgetSharedStore.load())
         let nextUpdate = Calendar.current.date(byAdding: .minute, value: 30, to: Date()) ?? Date().addingTimeInterval(1800)
         completion(Timeline(entries: [entry], policy: .after(nextUpdate)))
     }
 }
 
-struct QuranifyWidgetEntryView: View {
-    var entry: QuranifyWidgetProvider.Entry
+struct SawraWidgetEntryView: View {
+    var entry: SawraWidgetProvider.Entry
 
     var body: some View {
         ZStack {
@@ -34,7 +34,7 @@ struct QuranifyWidgetEntryView: View {
             )
 
             VStack(alignment: .leading, spacing: 6) {
-                Text("QURANIFY")
+                Text("SAWRA")
                     .font(.system(size: 10, weight: .black))
                     .foregroundStyle(Color(red: 0.2, green: 0.83, blue: 0.6))
                     .tracking(1.2)
@@ -67,25 +67,25 @@ struct QuranifyWidgetEntryView: View {
 }
 
 @main
-struct QuranifyWidgetBundle: WidgetBundle {
+struct SawraWidgetBundle: WidgetBundle {
     var body: some Widget {
-        QuranifyWidget()
+        SawraWidget()
     }
 }
 
-struct QuranifyWidget: Widget {
-    let kind: String = "QuranifyWidget"
+struct SawraWidget: Widget {
+    let kind: String = "SawraWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: QuranifyWidgetProvider()) { entry in
+        StaticConfiguration(kind: kind, provider: SawraWidgetProvider()) { entry in
             if #available(iOS 17.0, *) {
-                QuranifyWidgetEntryView(entry: entry)
+                SawraWidgetEntryView(entry: entry)
                     .containerBackground(.fill.tertiary, for: .widget)
             } else {
-                QuranifyWidgetEntryView(entry: entry)
+                SawraWidgetEntryView(entry: entry)
             }
         }
-        .configurationDisplayName("Quranify")
+        .configurationDisplayName("Sawra")
         .description("Reprenez votre dernière récitation depuis l'écran d'accueil.")
         .supportedFamilies([.systemMedium, .systemSmall])
     }

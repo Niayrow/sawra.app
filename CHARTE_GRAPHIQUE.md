@@ -1,8 +1,8 @@
-# Charte Graphique Quranify
+# Charte Graphique Sawra
 
 ## 1. Intention de marque
 
-Quranify doit transmettre une sensation de calme, de noblesse, de clarté et de précision.  
+Sawra doit transmettre une sensation de calme, de noblesse, de clarté et de précision.  
 L'interface doit sembler premium, contemplative et maîtrisée, sans tomber dans l'ornement excessif.
 
 L'expérience visuelle repose sur 5 piliers :
@@ -878,7 +878,7 @@ Avant d'ajouter un nouveau composant, vérifier :
 
 ## 25. Résumé exécutif
 
-Quranify doit conserver cette identité :
+Sawra doit conserver cette identité :
 
 - `Fond nuit profond`
 - `Surfaces bleu marine raffinées`

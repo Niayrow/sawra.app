@@ -10,16 +10,16 @@ import android.net.Uri;
 import android.widget.RemoteViews;
 import org.json.JSONObject;
 
-public class QuranifyWidgetProvider extends AppWidgetProvider {
+public class SawraWidgetProvider extends AppWidgetProvider {
 
     public static void refreshAllWidgets(Context context) {
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
-        ComponentName component = new ComponentName(context, QuranifyWidgetProvider.class);
+        ComponentName component = new ComponentName(context, SawraWidgetProvider.class);
         int[] ids = manager.getAppWidgetIds(component);
         if (ids.length == 0) {
             return;
         }
-        Intent intent = new Intent(context, QuranifyWidgetProvider.class);
+        Intent intent = new Intent(context, SawraWidgetProvider.class);
         intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
         intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
         context.sendBroadcast(intent);
@@ -30,7 +30,7 @@ public class QuranifyWidgetProvider extends AppWidgetProvider {
         JSONObject data = WidgetDataStore.load(context);
 
         for (int appWidgetId : appWidgetIds) {
-            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_quranify);
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_sawra);
 
             String reciterName = data.optString("reciterName", "Sawra");
             String surahName = data.optString("surahName", "Al-Fatihah");

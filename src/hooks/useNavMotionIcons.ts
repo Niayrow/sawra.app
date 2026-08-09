@@ -31,34 +31,39 @@ const STATIC_ICONS = {
 
 /**
  * Serves static Lucide icons immediately, then upgrades to
- * lucide-react-motion after idle so LCP stays light.
+ * lucide-react-motion only after real user interaction (keeps LCP light).
  */
 export function useNavMotionIcons() {
   const [mod, setMod] = useState<NavMotionModule | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    let idleId: number | undefined;
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    let loaded = false;
 
-    const load = () => {
-      void import('../icons/navMotion').then((loaded) => {
-        if (!cancelled) setMod(loaded);
+    const teardown = () => {
+      window.removeEventListener('pointerdown', onInteract);
+      window.removeEventListener('keydown', onInteract);
+      window.removeEventListener('touchstart', onInteract);
+      window.removeEventListener('scroll', onInteract);
+    };
+
+    const onInteract = () => {
+      if (loaded || cancelled) return;
+      loaded = true;
+      teardown();
+      void import('../icons/navMotion').then((loadedMod) => {
+        if (!cancelled) setMod(loadedMod);
       });
     };
 
-    if (typeof window.requestIdleCallback === 'function') {
-      idleId = window.requestIdleCallback(load, { timeout: 2200 });
-    } else {
-      timeoutId = setTimeout(load, 900);
-    }
+    window.addEventListener('pointerdown', onInteract, { once: true, passive: true });
+    window.addEventListener('keydown', onInteract, { once: true });
+    window.addEventListener('touchstart', onInteract, { once: true, passive: true });
+    window.addEventListener('scroll', onInteract, { once: true, passive: true });
 
     return () => {
       cancelled = true;
-      if (idleId !== undefined && typeof window.cancelIdleCallback === 'function') {
-        window.cancelIdleCallback(idleId);
-      }
-      if (timeoutId !== undefined) clearTimeout(timeoutId);
+      teardown();
     };
   }, []);
 

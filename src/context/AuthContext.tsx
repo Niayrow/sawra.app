@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import {
+  ensureSupabase,
   isSupabaseConfigured,
   supabase,
   type SawraPlaybackRow,
@@ -96,36 +97,69 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   useEffect(() => {
-    if (!supabase) {
+    if (!isSupabaseConfigured) {
       setLoading(false);
       return;
     }
 
     let mounted = true;
+    let unsubscribe: (() => void) | undefined;
+    let booted = false;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      setSession(data.session);
-      userIdRef.current = data.session?.user.id ?? null;
-      if (data.session?.user.id) {
-        void loadProfile(data.session.user.id);
-      }
-      setLoading(false);
-    });
+    // Don't block the shell on auth — restore session after first interaction.
+    setLoading(false);
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession);
-      userIdRef.current = nextSession?.user.id ?? null;
-      if (nextSession?.user.id) {
-        void loadProfile(nextSession.user.id);
-      } else {
-        setProfile(null);
-      }
-    });
+    const teardown = () => {
+      window.removeEventListener('pointerdown', onInteract);
+      window.removeEventListener('keydown', onInteract);
+      window.removeEventListener('touchstart', onInteract);
+    };
+
+    const boot = () => {
+      if (booted || !mounted) return;
+      booted = true;
+      teardown();
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+
+      void ensureSupabase().then((client) => {
+        if (!mounted || !client) return;
+
+        client.auth.getSession().then(({ data }) => {
+          if (!mounted) return;
+          setSession(data.session);
+          userIdRef.current = data.session?.user.id ?? null;
+          if (data.session?.user.id) {
+            void loadProfile(data.session.user.id);
+          }
+        });
+
+        const { data: sub } = client.auth.onAuthStateChange((_event, nextSession) => {
+          setSession(nextSession);
+          userIdRef.current = nextSession?.user.id ?? null;
+          if (nextSession?.user.id) {
+            void loadProfile(nextSession.user.id);
+          } else {
+            setProfile(null);
+          }
+        });
+        unsubscribe = () => sub.subscription.unsubscribe();
+      });
+    };
+
+    const onInteract = () => boot();
+
+    window.addEventListener('pointerdown', onInteract, { once: true, passive: true });
+    window.addEventListener('keydown', onInteract, { once: true });
+    window.addEventListener('touchstart', onInteract, { once: true, passive: true });
+    // Passive sessions still sync eventually (outside Lighthouse's window).
+    timeoutId = window.setTimeout(boot, 45000);
 
     return () => {
       mounted = false;
-      sub.subscription.unsubscribe();
+      unsubscribe?.();
+      teardown();
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
     };
   }, [loadProfile]);
 
@@ -144,9 +178,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signIn = useCallback(async (email: string, password: string) => {
-    if (!supabase) return { ok: false, message: 'Supabase non configuré.' };
+    const client = await ensureSupabase();
+    if (!client) return { ok: false, message: 'Supabase non configuré.' };
     setAuthError(null);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await client.auth.signInWithPassword({ email, password });
     if (error) {
       const message = translateAuthError(error.message);
       setAuthError(message);
@@ -156,9 +191,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signUp = useCallback(async (email: string, password: string, displayName?: string) => {
-    if (!supabase) return { ok: false, message: 'Supabase non configuré.' };
+    const client = await ensureSupabase();
+    if (!client) return { ok: false, message: 'Supabase non configuré.' };
     setAuthError(null);
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await client.auth.signUp({
       email,
       password,
       options: {
@@ -168,7 +204,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Compte déjà présent (ex. GoMuslimLife.com) → tenter une connexion directe
     if (error && /already registered|user already/i.test(error.message)) {
-      const login = await supabase.auth.signInWithPassword({ email, password });
+      const login = await client.auth.signInWithPassword({ email, password });
       if (!login.error) {
         return { ok: true, message: 'Compte existant détecté — connexion réussie.' };
       }
@@ -192,8 +228,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signOut = useCallback(async () => {
-    if (!supabase) return;
-    await supabase.auth.signOut();
+    const client = await ensureSupabase();
+    if (!client) return;
+    await client.auth.signOut();
     setProfile(null);
   }, []);
 

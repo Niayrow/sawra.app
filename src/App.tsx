@@ -397,72 +397,6 @@ const RecitersLoadingSkeleton: React.FC = () => (
   </div>
 );
 
-const LoadingHome: React.FC<{ progress: number; reciterCount: number }> = ({ progress, reciterCount }) => {
-  const countdown = Math.max(0, Math.ceil((100 - progress) / 20));
-  const statusText = progress >= 96
-    ? 'Préparation de l’interface'
-    : reciterCount > 0
-      ? 'Synchronisation du catalogue complet'
-      : 'Chargement des récitateurs';
-
-  return (
-    <div className="min-h-[100dvh] w-full bg-[#07111d] text-[#e6edf5] flex items-center justify-center px-6 py-10 overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(240,209,188,0.12),transparent_42%),radial-gradient(circle_at_10%_90%,rgba(121,144,161,0.12),transparent_35%)] pointer-events-none" />
-      <main className="relative w-full max-w-sm flex flex-col items-center text-center gap-8">
-        <div className="flex flex-col items-center gap-4">
-          <img
-            src="/icons/sansfond.webp"
-            alt="Sawra"
-            width="128"
-            height="128"
-            decoding="async"
-            fetchPriority="high"
-            className="w-32 h-32 object-contain drop-shadow-[0_0_24px_rgba(0,0,0,0.45)]"
-          />
-          <div>
-            <h1 className="text-3xl font-black tracking-tight text-[#f6f8fb] m-0">SAWRA</h1>
-            <p className="text-[11px] tracking-[0.22em] text-[#b4c0ce] font-bold uppercase mt-1">
-              Lecteur coranique gratuit
-            </p>
-          </div>
-        </div>
-
-        <div className="w-full flex flex-col gap-4">
-          <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-[#b4c0ce]">
-            <span>{statusText}</span>
-            <span className="text-[#e7d0c0]">{Math.round(progress)}%</span>
-          </div>
-          <div className="h-3 w-full rounded-full bg-[#111d2d] border border-[#30455c] overflow-hidden shadow-inner">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-[#7990a1] via-[#b9c7d3] to-[#e4ccb4] transition-[width] duration-500 ease-out"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <div className="grid grid-cols-3 gap-2 text-left">
-            <div className="brand-card rounded-2xl p-3">
-              <p className="text-[10px] uppercase tracking-widest text-[#95a7ba] font-bold">Récitants</p>
-              <p className="text-lg font-black text-[#f6f8fb] mt-1">{reciterCount || '...'}</p>
-            </div>
-            <div className="brand-card rounded-2xl p-3">
-              <p className="text-[10px] uppercase tracking-widest text-[#95a7ba] font-bold">Sourates</p>
-              <p className="text-lg font-black text-[#f6f8fb] mt-1">114</p>
-            </div>
-            <div className="brand-card rounded-2xl p-3">
-              <p className="text-[10px] uppercase tracking-widest text-[#95a7ba] font-bold">Départ</p>
-              <p className="text-lg font-black text-[#f6f8fb] mt-1">{countdown}s</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 text-xs text-[#b4c0ce]">
-          <span className="w-2 h-2 rounded-full bg-[#e4ccb4] animate-pulse" />
-          Connexion à l’API coranique
-        </div>
-      </main>
-    </div>
-  );
-};
-
 interface ProductPriorityCardProps {
   title: string;
   summary: string;
@@ -891,7 +825,6 @@ const AppContent: React.FC = () => {
   const deferredReciterSearch = useDeferredValue(reciterSearch);
   const [ayahSyncFilter, setAyahSyncFilter] = useState<'all' | 'with' | 'without'>('all');
   const timingCatalogReady = useTimingCatalogReady();
-  const [loadingProgress, setLoadingProgress] = useState(8);
   const [showLoadingHome, setShowLoadingHome] = useState(true);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const surahSectionRef = useRef<HTMLElement | null>(null);
@@ -1049,27 +982,14 @@ const AppContent: React.FC = () => {
 
   useEffect(() => {
     if (!isLoadingReciters) {
-      const completeTimer = window.setTimeout(() => setLoadingProgress(100), 0);
-      const doneTimer = window.setTimeout(() => setShowLoadingHome(false), 550);
-      return () => {
-        window.clearTimeout(completeTimer);
-        window.clearTimeout(doneTimer);
-      };
+      const doneTimer = window.setTimeout(() => {
+        setShowLoadingHome(false);
+        document.getElementById('boot-splash')?.remove();
+      }, 180);
+      return () => window.clearTimeout(doneTimer);
     }
 
-    const showTimer = window.setTimeout(() => setShowLoadingHome(true), 0);
-    const progressTimer = window.setInterval(() => {
-      setLoadingProgress((value) => {
-        if (value >= 88) return value;
-        const step = value < 45 ? 9 : value < 70 ? 5 : 2;
-        return Math.min(88, value + step);
-      });
-    }, 280);
-
-    return () => {
-      window.clearTimeout(showTimer);
-      window.clearInterval(progressTimer);
-    };
+    setShowLoadingHome(true);
   }, [isLoadingReciters]);
 
   // Favorites state persisted locally
@@ -1337,7 +1257,8 @@ const AppContent: React.FC = () => {
   };
 
   if (showLoadingHome) {
-    return <LoadingHome progress={loadingProgress} reciterCount={reciters.length} />;
+    // Keep the HTML #boot-splash as the LCP element; React stays empty until ready.
+    return null;
   }
 
   return (
@@ -1563,7 +1484,7 @@ const AppContent: React.FC = () => {
                       reciter={reciter}
                       isSelected={activeReciter?.id === reciter.id}
                       onSelect={() => handleSelectReciter(reciter)}
-                      priority={index < 3}
+                      priority={index < 1}
                     />
                   ))}
                 </div>

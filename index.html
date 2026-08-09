@@ -56,9 +56,56 @@
 
     <link rel="preconnect" href="https://mp3quran.net" crossorigin />
     <link rel="dns-prefetch" href="https://mp3quran.net" />
-    <link rel="preconnect" href="https://api.quran.com" crossorigin />
     <link rel="dns-prefetch" href="https://api.quran.com" />
-    <link rel="preload" href="/icons/appicon.webp" as="image" type="image/webp" fetchpriority="high" />
+
+    <!-- LCP: splash logo (outside #root, paints before JS) -->
+    <link rel="preload" href="/icons/sansfond.webp" as="image" type="image/webp" fetchpriority="high" />
+
+    <style>
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        background: #07111d;
+        color: #e6edf5;
+      }
+      #boot-splash {
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2.5rem 1.5rem;
+        box-sizing: border-box;
+        font-family: Outfit, ui-sans-serif, system-ui, sans-serif;
+        background:
+          radial-gradient(circle at 50% 0%, rgba(240, 209, 188, 0.12), transparent 42%),
+          radial-gradient(circle at 10% 90%, rgba(121, 144, 161, 0.12), transparent 35%),
+          #07111d;
+      }
+      #boot-splash img {
+        width: 8rem;
+        height: 8rem;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto 1rem;
+      }
+      #boot-splash h1 {
+        margin: 0;
+        font-size: 1.875rem;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        text-align: center;
+        color: #f6f8fb;
+      }
+      #boot-splash p {
+        margin: 0.35rem 0 0;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        text-align: center;
+        color: #b4c0ce;
+      }
+    </style>
 
     <script type="application/ld+json">
       {
@@ -179,6 +226,20 @@
         <p>Activez JavaScript pour ouvrir le lecteur, ou consultez la <a href="/privacy/" style="color:#c9a06a">politique de confidentialité</a>.</p>
       </main>
     </noscript>
+    <div id="boot-splash" role="status" aria-live="polite" aria-label="Chargement Sawra">
+      <div>
+        <img
+          src="/icons/sansfond.webp"
+          alt=""
+          width="128"
+          height="128"
+          decoding="async"
+          fetchpriority="high"
+        />
+        <h1>SAWRA</h1>
+        <p>Lecteur coranique gratuit</p>
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

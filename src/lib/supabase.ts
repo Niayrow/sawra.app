@@ -1,19 +1,33 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
-export const supabase: SupabaseClient | null = isSupabaseConfigured
-  ? createClient(supabaseUrl!, supabaseAnonKey!, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      },
-    })
-  : null;
+/** Populated by ensureSupabase() — null until the SDK chunk is loaded. */
+export let supabase: SupabaseClient | null = null;
+
+let bootPromise: Promise<SupabaseClient | null> | null = null;
+
+/** Lazy-load @supabase/supabase-js so it stays off the critical boot path. */
+export const ensureSupabase = (): Promise<SupabaseClient | null> => {
+  if (!isSupabaseConfigured) return Promise.resolve(null);
+  if (supabase) return Promise.resolve(supabase);
+  if (!bootPromise) {
+    bootPromise = import('@supabase/supabase-js').then(({ createClient }) => {
+      supabase = createClient(supabaseUrl!, supabaseAnonKey!, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+        },
+      });
+      return supabase;
+    });
+  }
+  return bootPromise;
+};
 
 export type SawraPlaybackRow = {
   user_id: string;

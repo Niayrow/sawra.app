@@ -5,7 +5,7 @@ import {
 } from '../icons/motion';
 import { useAudio } from '../context/AudioContext';
 
-export const APP_VERSION = '1.3.0';
+export const APP_VERSION = '1.4.0';
 
 type LegalPanelId = 'sources' | 'privacy' | 'terms';
 
@@ -19,6 +19,17 @@ const UPDATE_HISTORY: Array<{
   title: string;
   items: string[];
 }> = [
+  {
+    version: '1.4.0',
+    date: '9 août 2026',
+    title: 'Lecteur de versets & nouvelle identité',
+    items: [
+      'Feuille de lecture sourate avec texte, options et sync audio ↔ versets (mp3quran).',
+      'Nouveau branding : appicon PWA, icônes & favicon, logo navbar sans cadre.',
+      'Compte : renommer le nom affiché ; badge Connecté à la place de Connexion.',
+      'Filtres Versets / Sans sur Écouter et polish divers (hero, cartes).',
+    ],
+  },
   {
     version: '1.3.0',
     date: '2 août 2026',

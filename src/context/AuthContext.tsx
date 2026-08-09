@@ -33,6 +33,7 @@ interface AuthContextValue {
   ) => Promise<{ ok: boolean; message?: string }>;
   signOut: () => Promise<void>;
   clearAuthError: () => void;
+  updateDisplayName: (displayName: string) => Promise<{ ok: boolean; message?: string }>;
   fetchFavoriteReciterIds: () => Promise<number[]>;
   setFavoriteReciter: (reciterId: number, liked: boolean) => Promise<void>;
   syncFavoritesMerge: (localIds: number[]) => Promise<number[]>;
@@ -196,6 +197,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProfile(null);
   }, []);
 
+  const updateDisplayName = useCallback(async (displayName: string) => {
+    if (!supabase || !userIdRef.current) {
+      return { ok: false, message: 'Non connecté.' };
+    }
+    const next = displayName.trim().slice(0, 40);
+    if (!next) {
+      return { ok: false, message: 'Le pseudo ne peut pas être vide.' };
+    }
+    const { data, error } = await supabase
+      .from('quranify_profiles')
+      .upsert({
+        id: userIdRef.current,
+        display_name: next,
+        updated_at: new Date().toISOString(),
+      })
+      .select('*')
+      .maybeSingle();
+    if (error) {
+      console.warn('profile rename failed', error.message);
+      return { ok: false, message: 'Impossible d’enregistrer le pseudo.' };
+    }
+    if (data) setProfile(data as QuranifyProfileRow);
+    else setProfile((prev) => (prev ? { ...prev, display_name: next } : prev));
+    return { ok: true };
+  }, []);
+
   const fetchFavoriteReciterIds = useCallback(async () => {
     if (!supabase || !userIdRef.current) return [];
     const { data, error } = await supabase
@@ -330,6 +357,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signUp,
       signOut,
       clearAuthError: () => setAuthError(null),
+      updateDisplayName,
       fetchFavoriteReciterIds,
       setFavoriteReciter,
       syncFavoritesMerge,
@@ -347,6 +375,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signIn,
       signUp,
       signOut,
+      updateDisplayName,
       fetchFavoriteReciterIds,
       setFavoriteReciter,
       syncFavoritesMerge,

@@ -4,7 +4,7 @@ import {
   Play, Pause, SkipForward, SkipBack, ChevronDown, ChevronUp, Volume2, VolumeX,
   Disc, ListMusic, Search, X, Settings, Sparkles, Check, Moon, Repeat,
   Repeat1, Clock, RotateCcw, RotateCw, Gauge, Maximize2, SlidersHorizontal, MonitorSmartphone,
-  SlidersVertical
+  SlidersVertical, BookOpen
 } from '../icons/motion';
 import { PLAYER_THEMES, PLAYER_THEME_IDS, type PlayerThemeId } from './player/playerThemes';
 import {
@@ -16,6 +16,9 @@ import { AudioEffectsPanel } from './player/AudioEffectsPanel';
 import { AUDIO_EFFECT_PRESETS, effectsNeedProcessing } from '../audio/effectsTypes';
 import { getGeneratedReciterAvatar, getReciterImage } from '../utils/images';
 import { SURAHS } from '../data/surahs';
+import { SurahReaderSheet, usePlayerBarAnchor } from './SurahReaderSheet';
+import { useReaderPrefs } from './reader/readerPrefs';
+import { AyahSyncBadge } from './AyahSyncBadge';
 
 const formatTime = (time: number) => {
   if (!Number.isFinite(time) || time < 0) return '–:––';
@@ -127,6 +130,8 @@ export const GlobalPlayerV2: React.FC<{
   } = useAudio();
 
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isReaderOpen, setIsReaderOpen] = useState(false);
+  const [isReaderClosing, setIsReaderClosing] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [prevVolume, setPrevVolume] = useState(volume);
   const [showPlaylist, setShowPlaylist] = useState(false);
@@ -134,6 +139,55 @@ export const GlobalPlayerV2: React.FC<{
   const [showPersonalize, setShowPersonalize] = useState(false);
   const [showEffects, setShowEffects] = useState(false);
   const [showVolumePopover, setShowVolumePopover] = useState(false);
+
+  const openReader = () => {
+    if (isReaderClosing) return;
+    setIsExpanded(false);
+    setShowPlaylist(false);
+    setPlaylistClosing(false);
+    setShowPersonalize(false);
+    setShowEffects(false);
+    setShowVolumePopover(false);
+    setIsReaderClosing(false);
+    setIsReaderOpen(true);
+  };
+
+  const beginCloseReader = () => {
+    if (!isReaderOpen || isReaderClosing) return;
+    setIsReaderClosing(true);
+  };
+
+  const finishCloseReader = () => {
+    setIsReaderOpen(false);
+    setIsReaderClosing(false);
+  };
+
+  const toggleReader = () => {
+    if (isReaderOpen) beginCloseReader();
+    else openReader();
+  };
+
+  /** Chrome join only while fully open — restores during close (no late snap) */
+  const readerDockJoined = isReaderOpen && !isReaderClosing;
+  const [readerPrefs] = useReaderPrefs();
+  const autoOpenedSurahRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!readerPrefs.autoOpenOnPlay || !currentTrack) return;
+    if (playbackStatus !== 'playing' && playbackStatus !== 'buffering') return;
+    const surahId = currentTrack.surah.id;
+    if (autoOpenedSurahRef.current === surahId) return;
+    autoOpenedSurahRef.current = surahId;
+    if (!isReaderOpen && !isReaderClosing) {
+      openReader();
+    }
+  }, [
+    readerPrefs.autoOpenOnPlay,
+    currentTrack?.surah.id,
+    playbackStatus,
+    isReaderOpen,
+    isReaderClosing,
+  ]);
   const [localDocked, setLocalDocked] = useState(false);
   const docked =
     desktopChrome !== undefined ? desktopChrome === 'classic' : localDocked;
@@ -147,12 +201,24 @@ export const GlobalPlayerV2: React.FC<{
   const [drawerSearch, setDrawerSearch] = useState('');
   const currentSurahRowRef = useRef<HTMLButtonElement | null>(null);
   const volumeWrapRef = useRef<HTMLDivElement | null>(null);
+  const playerBarRef = useRef<HTMLDivElement | null>(null);
+
   const swipeStartYRef = useRef<number | null>(null);
   const [liveRemotePos, setLiveRemotePos] = useState(0);
   const remoteClockAnchorRef = useRef<{ pos: number; at: number; key: string } | null>(null);
 
   const theme = PLAYER_THEMES[(playerTheme as PlayerThemeId)] || PLAYER_THEMES.emerald;
   const density = DENSITY_META[prefs.density] || DENSITY_META.expanded;
+  const readerTopRadius =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(min-width: 768px)').matches &&
+    !docked
+      ? '1.75rem'
+      : '0px';
+  const playerBarAnchor = usePlayerBarAnchor(playerBarRef, isReaderOpen, {
+    topRadius: readerTopRadius,
+    deps: [docked, density.barClass, remoteSession, isExpanded, prefs.density, isReaderClosing],
+  });
   const coverUrl = currentTrack ? getReciterImage(currentTrack.reciter) : '';
   const coverFallback = currentTrack ? getGeneratedReciterAvatar(currentTrack.reciter) : '';
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
@@ -365,6 +431,8 @@ export const GlobalPlayerV2: React.FC<{
   };
 
   const openPlaylist = () => {
+    setIsReaderOpen(false);
+    setIsReaderClosing(false);
     setShowPersonalize(false);
     setShowVolumePopover(false);
     setPlaylistClosing(false);
@@ -382,6 +450,8 @@ export const GlobalPlayerV2: React.FC<{
   };
 
   const openPersonalize = () => {
+    setIsReaderOpen(false);
+    setIsReaderClosing(false);
     setShowPlaylist(false);
     setPlaylistClosing(false);
     setShowVolumePopover(false);
@@ -390,6 +460,8 @@ export const GlobalPlayerV2: React.FC<{
   };
 
   const openEffects = () => {
+    setIsReaderOpen(false);
+    setIsReaderClosing(false);
     setShowPlaylist(false);
     setPlaylistClosing(false);
     setShowVolumePopover(false);
@@ -419,6 +491,7 @@ export const GlobalPlayerV2: React.FC<{
     <>
       {/* ── Mini bar: full-width on mobile, large desktop player bar ── */}
       <div
+        ref={playerBarRef}
         className={`fixed z-[50] transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]
           max-md:left-0 max-md:right-0 max-md:w-full max-md:max-w-none
           max-md:bottom-[calc(4.35rem+env(safe-area-inset-bottom,0px))]
@@ -430,6 +503,7 @@ export const GlobalPlayerV2: React.FC<{
           ${remoteSession && !isExpanded ? 'md:min-h-0' : density.barClass}
           ${prefs.showGlow ? `bg-gradient-to-r ${theme.accentGlow} via-transparent to-transparent` : ''}
           ${isExpanded ? 'opacity-0 pointer-events-none translate-y-3 md:opacity-100 md:pointer-events-auto md:translate-y-0' : 'opacity-100'}
+          ${readerDockJoined ? 'max-md:!z-[53] !border-t-0 reader-dock-joined' : ''}
         `}
         style={typeof window !== 'undefined' && window.matchMedia('(min-width:768px)').matches ? {
           bottom: docked ? 0 : '1.5rem',
@@ -535,6 +609,7 @@ export const GlobalPlayerV2: React.FC<{
             />
             <p className="mt-0.5 flex items-center gap-1.5 min-w-0 text-[11px] leading-tight">
               <MarqueeText text={currentTrack.reciter.name} className="min-w-0 text-[#aab7c5]" />
+              <AyahSyncBadge moshaf={currentTrack.moshaf} compact className="shrink-0" />
               {!remoteSession && (
                 <>
                   <span className="shrink-0 text-[#5f7388]" aria-hidden>
@@ -562,21 +637,39 @@ export const GlobalPlayerV2: React.FC<{
             <p className={`text-base font-bold text-[#f6f8fb] truncate leading-tight ${theme.accentTextHover}`}>
               {String(currentTrack.surah.id).padStart(3, '0')}. {currentTrack.surah.name}
             </p>
-            <p className="text-sm text-[#b4c0ce] truncate mt-1">
-              {currentTrack.reciter.name}
+            <p className="text-sm text-[#b4c0ce] mt-1 flex min-w-0 items-center gap-2">
+              <span className="truncate">{currentTrack.reciter.name}</span>
+              <AyahSyncBadge moshaf={currentTrack.moshaf} compact />
               {prefs.showArabic && (
-                <span className="ml-2 font-serif text-[12px] text-[#9fb1c3]">
+                <span className="ml-0.5 shrink-0 font-serif text-[12px] text-[#9fb1c3]">
                   {currentTrack.surah.arabicName}
                 </span>
               )}
             </p>
           </button>
 
-          {/* Mobile primary controls — effects / prev / play / next */}
+          {/* Mobile primary controls — read / effects / prev / play / next */}
           <div
             className="flex items-center gap-1 shrink-0 md:hidden"
             data-player-transport
           >
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleReader();
+              }}
+              className={`w-10 h-10 rounded-full border flex items-center justify-center tap-feedback ${
+                isReaderOpen && !isReaderClosing
+                  ? `${theme.accentBgLight} ${theme.accentBorderActive} ${theme.accentText}`
+                  : 'bg-[#111d2d] border-[#30455c] text-[#e6edf5]'
+              }`}
+              aria-label={isReaderOpen ? 'Fermer la lecture' : 'Lire le Coran'}
+              title={isReaderOpen ? 'Fermer la lecture' : 'Lire le Coran'}
+              aria-pressed={isReaderOpen && !isReaderClosing}
+            >
+              <BookOpen className="w-4 h-4" />
+            </button>
             <button
               type="button"
               onClick={(e) => {
@@ -827,6 +920,20 @@ export const GlobalPlayerV2: React.FC<{
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
+              onClick={toggleReader}
+              className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cea687] ${
+                isReaderOpen && !isReaderClosing
+                  ? `${theme.accentText} ${theme.accentBgLight}`
+                  : 'text-[#aab7c5] hover:text-[#f6f8fb] hover:bg-[#111d2d]/70'
+              }`}
+              title={isReaderOpen ? 'Fermer la lecture' : 'Lire le Coran'}
+              aria-label={isReaderOpen ? 'Fermer la lecture' : 'Lire le Coran'}
+              aria-pressed={isReaderOpen && !isReaderClosing}
+            >
+              <BookOpen className="w-4.5 h-4.5" />
+            </button>
+            <button
+              type="button"
               onClick={openEffects}
               className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#cea687] ${
                 showEffects
@@ -955,7 +1062,10 @@ export const GlobalPlayerV2: React.FC<{
                   {currentTrack.surah.arabicName}
                 </p>
               )}
-              <p className="text-sm text-[#aab7c5] mt-2">{currentTrack.reciter.name}</p>
+              <p className="mt-2 flex items-center justify-center gap-2 text-sm text-[#aab7c5]">
+                <span className="truncate">{currentTrack.reciter.name}</span>
+                <AyahSyncBadge moshaf={currentTrack.moshaf} />
+              </p>
             </button>
 
             <div className="mx-auto mb-7 w-28 h-28 rounded-full border border-[#cea687]/35 bg-[#111d2d]/60 overflow-hidden shadow-[0_0_28px_rgba(206,166,135,0.12)]">
@@ -1044,6 +1154,19 @@ export const GlobalPlayerV2: React.FC<{
                 <RotateCw className="w-5 h-5" />
               </button>
             </div>
+
+            <button
+              type="button"
+              onClick={toggleReader}
+              className={`mb-3 w-full h-12 rounded-2xl border text-sm font-bold flex items-center justify-center gap-2 tap-feedback ${
+                isReaderOpen && !isReaderClosing
+                  ? `${theme.accentBgLight} ${theme.accentBorderActive} ${theme.accentText}`
+                  : 'border-[#cea687]/40 bg-[#cea687]/10 text-[#f0d1bc]'
+              }`}
+            >
+              <BookOpen className="w-5 h-5" />
+              {isReaderOpen ? 'Fermer la lecture' : 'Lire le Coran'}
+            </button>
 
             <div className="grid grid-cols-4 gap-2 mt-auto">
               <button
@@ -1466,10 +1589,11 @@ export const GlobalPlayerV2: React.FC<{
                     >
                       Sourates
                     </h3>
-                    <p className="mt-1 truncate text-[12px] font-medium text-[#aab7c5]">
-                      {currentTrack.reciter.name}
-                      <span className="text-[#5f7388]"> · </span>
-                      {filteredSurahs.length} titres
+                    <p className="mt-1 flex min-w-0 items-center gap-1.5 text-[12px] font-medium text-[#aab7c5]">
+                      <span className="truncate">{currentTrack.reciter.name}</span>
+                      <AyahSyncBadge moshaf={currentTrack.moshaf} compact />
+                      <span className="shrink-0 text-[#5f7388]"> · </span>
+                      <span className="shrink-0">{filteredSurahs.length} titres</span>
                     </p>
                   </div>
                   <button
@@ -1666,6 +1790,16 @@ export const GlobalPlayerV2: React.FC<{
           </div>
         </div>
       )}
+
+      <SurahReaderSheet
+        open={isReaderOpen}
+        closing={isReaderClosing}
+        surah={currentTrack.surah}
+        moshaf={currentTrack.moshaf}
+        onRequestClose={beginCloseReader}
+        onCloseComplete={finishCloseReader}
+        anchor={playerBarAnchor}
+      />
     </>
   );
 };

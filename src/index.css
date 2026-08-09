@@ -1,9 +1,10 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Outfit:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Outfit", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-serif: "Times New Roman", Georgia, serif;
+  --font-quran: "Amiri", "Noto Naskh Arabic", "Times New Roman", serif;
   /* Outfit lit un peu plus petit que Manrope : on remonte xs/sm/base */
   --text-xs: 0.8125rem;
   --text-xs--line-height: 1.3rem;
@@ -139,6 +140,43 @@
     border-width: 0;
   }
 
+  /* Listen page search — same contour language as surah rows */
+  .reciter-search-input {
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(17, 29, 45, 0.78);
+    border: 1px solid rgba(48, 69, 92, 0.45);
+    box-shadow: inset 0 1px 0 rgba(240, 209, 188, 0.04);
+    outline: none;
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .reciter-search-input:hover {
+    background: rgba(22, 37, 56, 0.88);
+    border-color: rgba(70, 96, 123, 0.6);
+  }
+
+  .reciter-search-input:focus,
+  .reciter-search-input:focus-visible {
+    outline: none;
+    background: rgba(17, 29, 45, 0.95);
+    border-color: rgba(206, 166, 135, 0.4);
+    box-shadow:
+      inset 0 1px 0 rgba(240, 209, 188, 0.07),
+      0 0 0 1px rgba(206, 166, 135, 0.1);
+  }
+
+  .reciter-search-input::-webkit-search-decoration,
+  .reciter-search-input::-webkit-search-cancel-button,
+  .reciter-search-input::-webkit-search-results-button,
+  .reciter-search-input::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
   @media (max-width: 767px) {
     input,
     select,
@@ -198,6 +236,283 @@
   .content-visibility-auto {
     content-visibility: auto;
     contain-intrinsic-size: 178px;
+  }
+
+  .arabic-text,
+  .quran-uthmani {
+    font-family: var(--font-quran);
+    font-feature-settings: "liga" 1, "calt" 1;
+    letter-spacing: 0;
+  }
+
+  .quran-uthmani {
+    text-align: right;
+    word-spacing: 0.08em;
+  }
+
+  /* ── Quran reader verse design ── */
+  .quran-reader-header {
+    border-bottom: 1px solid rgba(206, 166, 135, 0.14);
+  }
+
+  .quran-reader-header__wash {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 120% at 12% -20%, rgba(240, 209, 188, 0.14), transparent 55%),
+      linear-gradient(180deg, rgba(22, 37, 56, 0.55) 0%, rgba(10, 20, 32, 0.2) 100%);
+  }
+
+  /* Options panel: expand top → bottom under the modal header */
+  .quran-reader-options-wrap {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .quran-reader-options-wrap.is-open {
+    grid-template-rows: 1fr;
+  }
+
+  .quran-reader-options-clip {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .quran-reader-options {
+    transform: translateY(-12px);
+    opacity: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(180deg, rgba(17, 29, 45, 0.55) 0%, rgba(10, 20, 32, 0.92) 100%);
+    transition:
+      opacity 0.28s ease,
+      transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .quran-reader-options-wrap.is-open .quran-reader-options {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .quran-reader-options-wrap,
+    .quran-reader-options {
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  .quran-reader-scroll {
+    background:
+      radial-gradient(ellipse 70% 40% at 50% 0%, rgba(206, 166, 135, 0.06), transparent 60%),
+      linear-gradient(180deg, rgba(7, 17, 29, 0.35) 0%, rgba(7, 17, 29, 0.15) 100%);
+  }
+
+  .quran-ayah-card {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-radius: 1.15rem;
+    padding: 1rem 1rem 0.95rem 1.05rem;
+    background:
+      linear-gradient(
+        165deg,
+        rgba(30, 48, 70, 0.88) 0%,
+        rgba(17, 29, 45, 0.94) 42%,
+        rgba(10, 20, 32, 0.97) 100%
+      );
+    border: 1px solid rgba(166, 184, 203, 0.12);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 10px 28px rgba(0, 0, 0, 0.22);
+    transition:
+      border-color 0.25s ease,
+      box-shadow 0.25s ease,
+      background 0.25s ease,
+      transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .quran-ayah-card.is-seekable {
+    cursor: pointer;
+  }
+
+  .quran-ayah-card.is-seekable:focus-visible {
+    outline: 2px solid rgba(206, 166, 135, 0.7);
+    outline-offset: 2px;
+  }
+
+  .quran-ayah-card.is-active {
+    border-color: rgba(206, 166, 135, 0.48);
+    background:
+      linear-gradient(
+        165deg,
+        rgba(48, 58, 52, 0.95) 0%,
+        rgba(28, 40, 48, 0.97) 45%,
+        rgba(14, 24, 36, 0.98) 100%
+      );
+    box-shadow:
+      inset 0 1px 0 rgba(240, 209, 188, 0.14),
+      0 0 0 1px rgba(206, 166, 135, 0.12),
+      0 14px 36px rgba(0, 0, 0, 0.32);
+  }
+
+  .quran-ayah-card.is-active .quran-ayah-card__rail {
+    opacity: 1;
+    width: 3px;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(206, 166, 135, 0.55) 18%,
+      rgba(240, 209, 188, 0.9) 50%,
+      rgba(206, 166, 135, 0.55) 82%,
+      transparent 100%
+    );
+  }
+
+  .quran-ayah-card.is-active .quran-ayah-badge {
+    color: #07111d;
+    background: linear-gradient(145deg, #f0d1bc, #cea687);
+  }
+
+  .quran-ayah-card.is-active .quran-ayah-badge__ring {
+    border-color: transparent;
+    box-shadow: none;
+  }
+
+  .quran-ayah-card.is-active .quran-ayah-arabic {
+    color: #fff8f2;
+  }
+
+  .quran-ayah-card:hover {
+    border-color: rgba(206, 166, 135, 0.26);
+    box-shadow:
+      inset 0 1px 0 rgba(240, 209, 188, 0.08),
+      0 14px 34px rgba(0, 0, 0, 0.28);
+  }
+
+  /* Soft top sheen — no blob / stain */
+  .quran-ayah-card__glow {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(240, 209, 188, 0.055) 0%,
+      rgba(240, 209, 188, 0.02) 18%,
+      transparent 42%
+    );
+  }
+
+  .quran-ayah-card__rail {
+    pointer-events: none;
+    position: absolute;
+    inset-block: 16px;
+    inset-inline-start: 0;
+    width: 2px;
+    border-radius: 0 999px 999px 0;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(206, 166, 135, 0.35) 22%,
+      rgba(240, 209, 188, 0.55) 50%,
+      rgba(206, 166, 135, 0.35) 78%,
+      transparent 100%
+    );
+    opacity: 0.7;
+  }
+
+  .quran-ayah-badge {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding-inline: 0.45rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #f1d4c1;
+    background: rgba(7, 17, 29, 0.72);
+  }
+
+  .quran-ayah-badge__ring {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid rgba(206, 166, 135, 0.42);
+    box-shadow:
+      inset 0 0 0 1px rgba(240, 209, 188, 0.08),
+      0 0 16px rgba(206, 166, 135, 0.12);
+  }
+
+  .quran-ayah-arabic {
+    font-size: calc(1.48rem * var(--reader-font-scale, 1));
+    line-height: 2.2;
+    color: #f7fafc;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+  }
+
+  .quran-ayah-phonetic {
+    margin-top: 0.55rem;
+    font-size: calc(0.84rem * var(--reader-font-scale, 1));
+    line-height: 1.55;
+    font-style: italic;
+    font-weight: 500;
+    color: #c4a484;
+    letter-spacing: 0.01em;
+  }
+
+  .quran-ayah-translation {
+    position: relative;
+    margin-top: 0.85rem;
+    padding: 0.85rem 0 0.1rem;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+
+  .quran-ayah-translation::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(206, 166, 135, 0.2) 18%,
+      rgba(240, 209, 188, 0.28) 50%,
+      rgba(206, 166, 135, 0.2) 82%,
+      transparent 100%
+    );
+  }
+
+  .quran-ayah-translation p {
+    margin: 0;
+    text-align: left;
+    font-size: calc(0.8125rem * var(--reader-font-scale, 1));
+    line-height: 1.65;
+    color: #b4c0ce;
+    font-weight: 500;
+  }
+
+  @media (min-width: 768px) {
+    .quran-ayah-arabic {
+      font-size: calc(1.58rem * var(--reader-font-scale, 1));
+      line-height: 2.25;
+    }
+
+    .quran-ayah-phonetic {
+      font-size: calc(0.9rem * var(--reader-font-scale, 1));
+    }
+
+    .quran-ayah-translation p {
+      font-size: calc(0.875rem * var(--reader-font-scale, 1));
+    }
   }
 
   .pb-safe {
@@ -831,6 +1146,167 @@
 .player-sheet-panel.is-closing {
   animation: player-sheet-rise-out 0.22s cubic-bezier(0.4, 0, 0.2, 1) both;
   pointer-events: none;
+}
+
+/* Reader dock: extension of the player bar (same width, flush join) */
+@keyframes player-reader-dock-in {
+  0% {
+    opacity: 0;
+    transform: translateY(18%);
+    clip-path: inset(100% 0 0 0);
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes player-reader-dock-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+    clip-path: inset(0 0 0 0);
+  }
+  55% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(14%);
+    clip-path: inset(100% 0 0 0);
+  }
+}
+
+@keyframes player-reader-backdrop-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes player-reader-backdrop-out {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.player-reader-backdrop {
+  opacity: 1;
+  animation: player-reader-backdrop-in 1.1s cubic-bezier(0.33, 0, 0.2, 1) both;
+}
+
+.player-reader-backdrop.is-closing {
+  animation: player-reader-backdrop-out 1.1s cubic-bezier(0.4, 0, 0.2, 1) both;
+  pointer-events: none;
+}
+
+.player-reader-dock {
+  background: rgba(17, 29, 45, 0.98);
+  backdrop-filter: blur(22px) saturate(1.12);
+  -webkit-backdrop-filter: blur(22px) saturate(1.12);
+  border-left: 1px solid rgba(206, 166, 135, 0.18);
+  border-right: 1px solid rgba(206, 166, 135, 0.18);
+  border-top: 1px solid rgba(206, 166, 135, 0.22);
+  border-bottom: none;
+  /* No bottom edge — must melt into the player bar */
+  box-shadow:
+    0 -24px 56px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(240, 209, 188, 0.08);
+  transform-origin: bottom center;
+  will-change: transform, opacity, clip-path;
+  animation: player-reader-dock-in 1.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.player-reader-dock.is-closing {
+  animation: player-reader-dock-out 1.1s cubic-bezier(0.4, 0, 0.15, 1) both;
+  pointer-events: none;
+}
+
+.player-reader-dock.is-dragging {
+  animation: none !important;
+  transition: none !important;
+  box-shadow:
+    0 -28px 64px rgba(0, 0, 0, 0.48),
+    inset 0 1px 0 rgba(240, 209, 188, 0.1);
+}
+
+.player-reader-dock.is-settled {
+  animation: none !important;
+}
+
+.player-reader-dock.is-drag-closing {
+  animation: none !important;
+  pointer-events: none;
+}
+
+.player-reader-backdrop.is-drag-closing {
+  animation: none !important;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-reader-backdrop,
+  .player-reader-backdrop.is-closing,
+  .player-reader-dock,
+  .player-reader-dock.is-closing {
+    animation-duration: 0.35s !important;
+  }
+}
+
+.mobile-dock-player.reader-dock-joined,
+.reader-dock-joined {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  border-top: none !important;
+  /* Kill any top hairline / inset highlight that reads as a flat seam */
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.45),
+    0 0 40px rgba(206, 166, 135, 0.08) !important;
+}
+
+.mobile-dock-player.reader-dock-joined::before,
+.reader-dock-joined::before {
+  display: none !important;
+}
+
+/* Restore separator / radius in sync with close motion — no late snap */
+.mobile-dock-player,
+.mobile-dock-chrome.mobile-dock-player {
+  transition:
+    bottom 500ms cubic-bezier(0.25, 1, 0.5, 1),
+    left 500ms cubic-bezier(0.25, 1, 0.5, 1),
+    right 500ms cubic-bezier(0.25, 1, 0.5, 1),
+    max-width 500ms cubic-bezier(0.25, 1, 0.5, 1),
+    border-radius 1.1s cubic-bezier(0.33, 0, 0.2, 1),
+    border-color 1.1s cubic-bezier(0.33, 0, 0.2, 1),
+    box-shadow 1.1s cubic-bezier(0.33, 0, 0.2, 1),
+    min-height 500ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.mobile-dock-player::after {
+  transition: opacity 1.1s cubic-bezier(0.33, 0, 0.2, 1);
+}
+
+@media (max-width: 767px) {
+  .player-reader-dock {
+    border-left: none;
+    border-right: none;
+    box-shadow:
+      0 -16px 36px rgba(7, 17, 29, 0.35),
+      inset 0 1px 0 rgba(240, 209, 188, 0.08);
+  }
+
+  .mobile-dock-player.reader-dock-joined {
+    border-top-color: transparent !important;
+    box-shadow:
+      inset 0 1px 0 transparent,
+      0 -14px 28px rgba(7, 17, 29, 0.22) !important;
+  }
+
+  .mobile-dock-player.reader-dock-joined::after {
+    opacity: 0;
+  }
 }
 
 /* Soft page fade — micro transition between tabs / steps */

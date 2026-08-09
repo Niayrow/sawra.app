@@ -2,10 +2,11 @@
 import { useAudio, AudioProvider } from './context/AudioContext';
 import { AuthProvider } from './context/AuthContext';
 import { ReciterCard } from './components/ReciterCard';
+import { AyahSyncBadge, useTimingCatalogReady } from './components/AyahSyncBadge';
 import { Navbar } from './components/Navbar';
 import { 
   Search, Heart, AlertTriangle, Headphones, Play, ArrowRight,
-  Bookmark, Download, ExternalLink, Cloud, ChevronDown, History, Share, User,
+  Bookmark, Download, ExternalLink, Cloud, ChevronDown, History, Share, User, BookOpen,
 } from './icons/motion';
 import type { AppIcon } from './icons/motion';
 import type { Reciter } from './types';
@@ -21,6 +22,7 @@ import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { AuthPromptModal } from './components/AuthPromptModal';
 import { useAuth } from './context/AuthContext';
 import { getAudioUrl } from './utils/audioUrl';
+import { reciterHasAyahTiming } from './utils/ayahTiming';
 import { useReciterNavFusion } from './hooks/useReciterNavFusion';
 import { pushRecentReciterId, readRecentReciterIds } from './utils/recentReciters';
 import {
@@ -525,10 +527,11 @@ const HomeFeaturedReciter: React.FC<HomeFeaturedReciterProps> = ({
           }}
         />
       </span>
-      <span className={`w-full text-[11px] font-semibold leading-tight line-clamp-2 ${
+      <span className={`flex w-full flex-col items-center gap-1 text-[11px] font-semibold leading-tight ${
         isSelected ? 'text-[#f1d4c1]' : 'text-[#d0d9e3]'
       }`}>
-        {reciter.name}
+        <span className="line-clamp-2 w-full">{reciter.name}</span>
+        <AyahSyncBadge reciter={reciter} compact />
       </span>
     </button>
   );
@@ -708,6 +711,8 @@ const AppContent: React.FC = () => {
   const [categoryModalId, setCategoryModalId] = useState<ReciterCategoryId | null>(null);
   const [reciterSearch, setReciterSearch] = useState<string>('');
   const deferredReciterSearch = useDeferredValue(reciterSearch);
+  const [ayahSyncFilter, setAyahSyncFilter] = useState<'all' | 'with' | 'without'>('all');
+  const timingCatalogReady = useTimingCatalogReady();
   const [loadingProgress, setLoadingProgress] = useState(8);
   const [showLoadingHome, setShowLoadingHome] = useState(true);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
@@ -974,23 +979,32 @@ const AppContent: React.FC = () => {
       .filter((r): r is Reciter => !!r);
   }, [reciters]);
 
-  // Client-side fuzzy search on reciters
+  // Client-side fuzzy search on reciters (+ optional ayah-sync filter)
   const filteredReciters = useMemo(() => {
     if (!reciters) return [];
 
-    if (!deferredReciterSearch.trim()) return reciters;
+    let list: Reciter[];
+    if (!deferredReciterSearch.trim()) {
+      list = reciters;
+    } else {
+      const queryNorm = normalizeString(deferredReciterSearch);
+      const scored = reciters
+        .map((r) => ({
+          reciter: r,
+          score: getSearchScore(r, queryNorm),
+        }))
+        .filter((item) => item.score > 0);
 
-    const queryNorm = normalizeString(deferredReciterSearch);
-    const scored = reciters
-      .map(r => ({
-        reciter: r,
-        score: getSearchScore(r, queryNorm)
-      }))
-      .filter(item => item.score > 0);
+      scored.sort((a, b) => b.score - a.score || a.reciter.name.localeCompare(b.reciter.name));
+      list = scored.map((item) => item.reciter);
+    }
 
-    scored.sort((a, b) => b.score - a.score || a.reciter.name.localeCompare(b.reciter.name));
-    return scored.map(item => item.reciter);
-  }, [reciters, deferredReciterSearch]);
+    if (!timingCatalogReady || ayahSyncFilter === 'all') return list;
+    return list.filter((r) => {
+      const hasSync = reciterHasAyahTiming(r);
+      return ayahSyncFilter === 'with' ? hasSync : !hasSync;
+    });
+  }, [reciters, deferredReciterSearch, ayahSyncFilter, timingCatalogReady]);
 
   const isSearchPending = reciterSearch !== deferredReciterSearch;
 
@@ -1001,16 +1015,17 @@ const AppContent: React.FC = () => {
 
   const listenFavoritedReciters = useMemo(() => {
     if (deferredReciterSearch.trim()) return [];
-    return favoritedReciters;
-  }, [favoritedReciters, deferredReciterSearch]);
+    return favoritedReciters.filter((r) => filteredReciters.some((f) => f.id === r.id));
+  }, [favoritedReciters, deferredReciterSearch, filteredReciters]);
 
   const recentReciters = useMemo(() => {
     if (deferredReciterSearch.trim() || !reciters.length || recentReciterIds.length === 0) return [];
+    const allowed = new Set(filteredReciters.map((r) => r.id));
     const byId = new Map(reciters.map((r) => [r.id, r]));
     return recentReciterIds
       .map((id) => byId.get(id))
-      .filter((r): r is Reciter => Boolean(r));
-  }, [reciters, recentReciterIds, deferredReciterSearch]);
+      .filter((r): r is Reciter => Boolean(r) && allowed.has(r.id));
+  }, [reciters, recentReciterIds, deferredReciterSearch, filteredReciters]);
 
   const catalogReciters = useMemo(() => {
     if (deferredReciterSearch.trim()) return filteredReciters;
@@ -1223,16 +1238,6 @@ const AppContent: React.FC = () => {
               <div className="relative z-10 px-4 py-4 md:px-10 md:py-9">
                 {/* Mobile: vertical, centered, fast scan */}
                 <div className="flex flex-col items-center gap-3 text-center md:hidden">
-                  <img
-                    src="/icons/sansfond.webp"
-                    alt="Sawra"
-                    width="72"
-                    height="72"
-                    decoding="async"
-                    fetchPriority="high"
-                    className="hero-logo-float h-[4.5rem] w-[4.5rem] object-contain drop-shadow-[0_12px_36px_rgba(200,160,122,0.4),0_8px_24px_rgba(0,0,0,0.55)]"
-                    draggable={false}
-                  />
                   <h2 className="text-[1.85rem] font-black tracking-tight text-white leading-[1.05]">
                     <span className="hero-title-line">Le Coran,</span>
                     <span className="hero-title-line">
@@ -1248,7 +1253,7 @@ const AppContent: React.FC = () => {
                 </div>
 
                 {/* Desktop: side-by-side brand */}
-                <div className="mb-5 hidden items-center justify-between gap-4 md:flex">
+                <div className="mb-5 hidden md:block">
                   <div className="min-w-0">
                     <h2 className="text-[3.2rem] font-black tracking-tight text-white leading-[1.05]">
                       <span className="hero-title-line">Le Coran,</span>
@@ -1263,16 +1268,6 @@ const AppContent: React.FC = () => {
                       100% gratuit. Sans pub.
                     </p>
                   </div>
-                  <img
-                    src="/icons/sansfond.webp"
-                    alt="Sawra"
-                    width="144"
-                    height="144"
-                    decoding="async"
-                    fetchPriority="high"
-                    className="hero-logo-float h-36 w-36 shrink-0 object-contain drop-shadow-[0_12px_36px_rgba(200,160,122,0.4),0_8px_24px_rgba(0,0,0,0.55)]"
-                    draggable={false}
-                  />
                 </div>
 
                 <div className="mt-3 flex flex-col gap-2 md:mt-0 md:grid md:grid-cols-2 md:gap-2.5">
@@ -1570,7 +1565,7 @@ const AppContent: React.FC = () => {
             className={`flex flex-col ${
               listenStep === 'surahs' && activeReciter
                 ? 'gap-5 max-md:gap-0'
-                : 'gap-5 max-md:pt-4'
+                : 'gap-5 max-md:pt-7 md:pt-6'
             }`}
           >
             {error && (
@@ -1585,13 +1580,6 @@ const AppContent: React.FC = () => {
 
             {listenStep === 'reciters' && (
               <div className="flex flex-col gap-5">
-                <section className="flex flex-col gap-1">
-                  <h2 className="text-lg font-black text-[#f6f8fb]">Choisis un récitateur</h2>
-                  <p className="text-xs text-[#b4c0ce]">
-                    Ensuite, choisis une sourate pour lancer l&apos;écoute.
-                  </p>
-                </section>
-
                 {!isLoadingReciters && (
                   <ReciterCategoryGrid
                     reciters={reciters}
@@ -1612,7 +1600,7 @@ const AppContent: React.FC = () => {
                     onChange={(e) => setReciterSearch(e.target.value)}
                     placeholder="Rechercher un récitateur..."
                     aria-label="Rechercher un récitateur"
-                    className="w-full min-h-12 pl-12 pr-5 py-3.5 bg-[#111d2d]/78 hover:bg-[#162538]/88 focus:bg-[#162538] border border-[#30455c] focus:border-[#cea687]/55 rounded-2xl text-[#e6edf5] placeholder:text-[#8295aa] text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#cea687]/55 focus-visible:ring-offset-2 focus-visible:ring-offset-[#07111d] transition-all"
+                    className="reciter-search-input w-full min-h-12 pl-12 pr-5 py-3.5 rounded-2xl text-sm text-[#e6edf5] placeholder:text-[#8295aa]"
                   />
                   {reciterSearch && (
                     <button
@@ -1624,6 +1612,55 @@ const AppContent: React.FC = () => {
                       Effacer
                     </button>
                   )}
+                </div>
+
+                <div className="flex flex-row items-center gap-2.5">
+                  <aside className="flex min-w-0 flex-1 items-start gap-2.5 rounded-2xl border border-[#cea687]/20 bg-[#111d2d]/70 px-3 py-2.5 sm:gap-3 sm:px-3.5 sm:py-3">
+                    <span
+                      className="ayah-sync-badge mt-0.5 inline-flex shrink-0 items-center rounded-md border border-[#cea687]/40 bg-[#cea687]/12 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] leading-none text-[#f0d1bc]"
+                      aria-hidden
+                    >
+                      Versets
+                    </span>
+                    <p className="min-w-0 text-[11px] leading-snug text-[#b4c0ce] sm:text-[12px]">
+                      <span className="font-semibold text-[#e6edf5]">Verset par verset :</span>{' '}
+                      le verset lu s’illumine avec l’audio. Ouvre le texte via{' '}
+                      <BookOpen
+                        className="mx-0.5 inline-block h-[1.125rem] w-[1.125rem] translate-y-[-2px] align-middle text-[#aab7c5]"
+                        strokeWidth={2}
+                        aria-label="bouton livre du lecteur"
+                      />{' '}
+                      dans le lecteur.
+                    </p>
+                  </aside>
+
+                  <div
+                    className="flex shrink-0 items-center gap-0.5 rounded-2xl border border-[#30455c] bg-[#111d2d]/78 p-1 sm:gap-1"
+                    role="group"
+                    aria-label="Filtrer par verset par verset"
+                  >
+                    {(
+                      [
+                        { id: 'all' as const, label: 'Tous' },
+                        { id: 'with' as const, label: 'Versets' },
+                        { id: 'without' as const, label: 'Sans' },
+                      ] as const
+                    ).map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => setAyahSyncFilter(opt.id)}
+                        aria-pressed={ayahSyncFilter === opt.id}
+                        className={`min-h-9 rounded-xl px-2 text-[10px] font-bold tap-feedback sm:min-h-10 sm:px-3 sm:text-[11px] ${
+                          ayahSyncFilter === opt.id
+                            ? 'bg-[#cea687]/18 text-[#f0d1bc] border border-[#cea687]/35'
+                            : 'text-[#95a7ba] border border-transparent hover:text-[#e6edf5]'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {reciterSearch.trim() && (
@@ -1646,7 +1683,22 @@ const AppContent: React.FC = () => {
                   <RecitersLoadingSkeleton />
                 ) : filteredReciters.length === 0 ? (
                     <div className="flex flex-col items-center justify-center p-12 text-center glass-panel rounded-3xl gap-2">
-                    <p className="text-[#b4c0ce]">Aucun récitateur trouvé</p>
+                    <p className="text-[#b4c0ce]">
+                      {ayahSyncFilter === 'with'
+                        ? 'Aucun récitateur avec verset par verset'
+                        : ayahSyncFilter === 'without'
+                          ? 'Aucun récitateur sans sync versets'
+                          : 'Aucun récitateur trouvé'}
+                    </p>
+                    {ayahSyncFilter !== 'all' && (
+                      <button
+                        type="button"
+                        onClick={() => setAyahSyncFilter('all')}
+                        className="mt-2 text-xs font-semibold text-[#f0d1bc] underline-offset-2 hover:underline"
+                      >
+                        Réafficher tous
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div className="flex flex-col gap-5">

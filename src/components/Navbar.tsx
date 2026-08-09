@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import { Headphones } from '../icons/motion';
 import type { Reciter, Moshaf } from '../types';
+import { useAuth } from '../context/AuthContext';
 import { getGeneratedReciterAvatar, getReciterImage } from '../utils/images';
 import type { NavDesktopStyle } from '../utils/navDesktopStyle';
 import { useNavMotionIcons, type NavTabIcon } from '../hooks/useNavMotionIcons';
@@ -33,7 +34,35 @@ interface NavbarProps {
   exploreFusion?: ExploreNavFusionProps | null;
 }
 
-const LOGO_SRC = '/icons/sansfond.webp';
+const LOGO_SRC = '/icons/appicon.webp';
+
+/** Compact account chip when signed in — replaces the Connexion tab. */
+export const ConnectedBadge: React.FC<{
+  active?: boolean;
+  onClick: () => void;
+  label?: string;
+}> = ({ active = false, onClick, label = 'Connecté' }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`nav-connected-badge inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 tap-feedback transition-colors ${
+      active
+        ? 'border-[#cea687]/45 bg-[#cea687]/18 text-[#f0d1bc]'
+        : 'border-[#cea687]/28 bg-[#cea687]/10 text-[#f0d1bc] hover:border-[#cea687]/45 hover:bg-[#cea687]/16'
+    }`}
+    aria-label="Compte connecté"
+    aria-current={active ? 'page' : undefined}
+    title="Compte"
+  >
+    <span className="relative flex h-1.5 w-1.5 shrink-0" aria-hidden>
+      <span className="absolute inset-0 rounded-full bg-emerald-400/80 animate-pulse" />
+      <span className="relative h-1.5 w-1.5 rounded-full bg-emerald-400" />
+    </span>
+    <span className="text-[10px] font-bold uppercase tracking-[0.12em] leading-none">
+      {label}
+    </span>
+  </button>
+);
 
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
@@ -46,6 +75,11 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const useClassicDesktop = desktopStyle === 'classic';
   const { ready: motionReady, icons, MotionIconConfig } = useNavMotionIcons();
+  const { user, profile } = useAuth();
+  const isSignedIn = Boolean(user);
+  const connectedLabel = profile?.display_name?.trim()
+    ? profile.display_name.trim().slice(0, 12)
+    : 'Connecté';
 
   const desktopTabs: Array<{ id: Exclude<NavTabId, 'more'>; label: string; icon: NavTabIcon }> = [
     { id: 'home', label: 'Accueil', icon: icons.home },
@@ -54,7 +88,9 @@ export const Navbar: React.FC<NavbarProps> = ({
       ? [{ id: 'moments' as const, label: 'Moments', icon: icons.moments }]
       : []),
     { id: 'favorites', label: 'Favoris', icon: icons.favorites },
-    { id: 'account', label: 'Connexion', icon: icons.account },
+    ...(!isSignedIn
+      ? [{ id: 'account' as const, label: 'Connexion', icon: icons.account }]
+      : []),
   ];
 
   /** Mobile: 4 onglets — Moments vit sous Favoris, Connexion dans Options */
@@ -151,6 +187,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           exploreFusion={exploreFusion}
           icons={icons}
           motionReady={motionReady}
+          isSignedIn={isSignedIn}
+          connectedLabel={connectedLabel}
         />
       )}
 
@@ -194,17 +232,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                   aria-label="Sawra — Accueil"
                   className="group/nav-brand flex shrink-0 items-center gap-2 rounded-2xl px-2 py-1.5 transition-all duration-300 hover:bg-[#162538]/60 tap-feedback"
                 >
-                  <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-[0.85rem] bg-[radial-gradient(circle_at_50%_35%,rgba(240,209,188,0.14),rgba(17,29,45,0.92)_68%)] ring-1 ring-[#cea687]/25 shadow-[0_6px_22px_rgba(206,166,135,0.14),inset_0_1px_0_rgba(255,255,255,0.06)]">
-                    <img
-                      src={LOGO_SRC}
-                      alt=""
-                      width="52"
-                      height="52"
-                      decoding="async"
-                      className="h-[3.25rem] w-[3.25rem] object-contain scale-[1.18] drop-shadow-[0_2px_16px_rgba(206,166,135,0.42)] transition-transform duration-300 group-hover/nav-brand:scale-[1.22]"
-                      draggable={false}
-                    />
-                  </span>
+                  <img
+                    src={LOGO_SRC}
+                    alt=""
+                    width="44"
+                    height="44"
+                    decoding="async"
+                    className="h-10 w-10 shrink-0 object-contain drop-shadow-[0_2px_16px_rgba(206,166,135,0.42)] transition-transform duration-300 group-hover/nav-brand:scale-105"
+                    draggable={false}
+                  />
                   <span className="flex flex-col items-start justify-center leading-none">
                     <span className="text-[1.05rem] font-black tracking-[-0.03em] text-[#f6f8fb]">
                       Sawra
@@ -221,7 +257,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {desktopTabs.map((tab) => renderTab(tab.id, tab.label, tab.icon))}
               </div>
 
-              <div className="flex items-center justify-end gap-3 min-w-0">
+              <div className="flex items-center justify-end gap-2.5 min-w-0">
+                {isSignedIn ? (
+                  <ConnectedBadge
+                    active={activeTab === 'account'}
+                    onClick={() => setActiveTab('account')}
+                    label={connectedLabel}
+                  />
+                ) : null}
                 <span className="h-7 w-px shrink-0 bg-[#46607b]/40" aria-hidden />
                 {renderTab('more', 'Options', icons.more)}
               </div>

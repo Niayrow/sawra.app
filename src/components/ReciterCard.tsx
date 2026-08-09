@@ -3,6 +3,7 @@ import type { Reciter } from '../types';
 import { useAudio } from '../context/AudioContext';
 import { Play, Volume2, Heart } from '../icons/motion';
 import { getGeneratedReciterAvatar, getReciterImage } from '../utils/images';
+import { AyahSyncBadge } from './AyahSyncBadge';
 
 interface ReciterCardProps {
   reciter: Reciter;
@@ -115,8 +116,15 @@ export const ReciterCard: React.FC<ReciterCardProps> = ({
               </span>
             </div>
           )}
-          <h3 className={`font-semibold text-lg truncate transition-colors ${isSelected ? 'text-[#f1d4c1]' : 'text-[#f6f8fb] group-hover:text-[#f1d4c1]'}`}>
-            {highlightMatch(reciter.name, searchQuery || '')}
+          <h3
+            className={`flex min-w-0 items-center gap-2 font-semibold text-lg transition-colors ${
+              isSelected ? 'text-[#f1d4c1]' : 'text-[#f6f8fb] group-hover:text-[#f1d4c1]'
+            }`}
+          >
+            <span className="min-w-0 truncate">
+              {highlightMatch(reciter.name, searchQuery || '')}
+            </span>
+            <AyahSyncBadge reciter={reciter} />
           </h3>
         </div>
       </div>

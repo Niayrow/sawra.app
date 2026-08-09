@@ -18,12 +18,15 @@ export const AccountPanel: React.FC = () => {
     signUp,
     signOut,
     clearAuthError,
+    updateDisplayName,
   } = useAuth();
 
   const [mode, setMode] = useState<AuthMode>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [editName, setEditName] = useState('');
+  const [editingName, setEditingName] = useState(false);
   const [busy, setBusy] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
   const [formKey, setFormKey] = useState(0);
@@ -55,7 +58,35 @@ export const AccountPanel: React.FC = () => {
   }
 
   if (user) {
-    const initial = (profile?.display_name || user.email || 'Q').trim().charAt(0).toUpperCase();
+    const shownName = profile?.display_name || 'Compte Sawra';
+    const initial = shownName.trim().charAt(0).toUpperCase() || 'Q';
+
+    const startEditName = () => {
+      setEditName(profile?.display_name || '');
+      setEditingName(true);
+      setInfo(null);
+      clearAuthError();
+    };
+
+    const cancelEditName = () => {
+      setEditingName(false);
+      setEditName('');
+      setInfo(null);
+    };
+
+    const saveDisplayName = async () => {
+      setBusy(true);
+      setInfo(null);
+      clearAuthError();
+      const result = await updateDisplayName(editName);
+      setBusy(false);
+      if (!result.ok) {
+        setInfo(result.message || 'Impossible d’enregistrer.');
+        return;
+      }
+      setEditingName(false);
+      setInfo('Pseudo mis à jour.');
+    };
 
     return (
       <div className="flex flex-col gap-4 pb-2">
@@ -83,12 +114,71 @@ export const AccountPanel: React.FC = () => {
                   <ShieldCheck className="h-3.5 w-3.5" />
                   Connecté
                 </p>
-                <h3 className="mt-2 truncate text-xl font-black tracking-tight text-[#f6f8fb]">
-                  {profile?.display_name || 'Compte Sawra'}
-                </h3>
+                {!editingName ? (
+                  <div className="mt-2 flex min-w-0 items-center gap-2">
+                    <h3 className="truncate text-xl font-black tracking-tight text-[#f6f8fb]">
+                      {shownName}
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={startEditName}
+                      className="shrink-0 rounded-lg border border-[#46607b]/50 bg-[#162538]/70 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#f0d1bc] hover:border-[#cea687]/40 tap-feedback"
+                    >
+                      Modifier
+                    </button>
+                  </div>
+                ) : (
+                  <div className="mt-2 flex flex-col gap-2">
+                    <label className="sr-only" htmlFor="account-display-name">
+                      Pseudo
+                    </label>
+                    <div className="relative">
+                      <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7f93a8]" />
+                      <input
+                        id="account-display-name"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        maxLength={40}
+                        autoFocus
+                        placeholder="Votre pseudo"
+                        className="w-full rounded-xl border border-[#30455c]/55 bg-[#0c1522]/70 py-2.5 pl-10 pr-3 text-sm text-[#f6f8fb] placeholder:text-[#6f8499] focus:border-[#cea687]/50 focus:outline-none focus:ring-2 focus:ring-[#cea687]/20"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => void saveDisplayName()}
+                        className="brand-button-primary rounded-xl px-3 py-2 text-[11px] font-bold disabled:opacity-60 tap-feedback"
+                      >
+                        {busy ? 'Enregistrement…' : 'Enregistrer'}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={cancelEditName}
+                        className="rounded-xl border border-[#46607b]/50 bg-[#162538]/70 px-3 py-2 text-[11px] font-bold text-[#d0d9e3] tap-feedback"
+                      >
+                        Annuler
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <p className="mt-0.5 truncate text-sm text-[#95a7ba]">{user.email}</p>
               </div>
             </div>
+
+            {(authError || info) && (
+              <p
+                className={`mt-4 rounded-2xl border px-3.5 py-2.5 text-xs leading-relaxed ${
+                  authError
+                    ? 'border-rose-500/30 bg-rose-500/10 text-rose-300'
+                    : 'border-[#cea687]/30 bg-[#f0d1bc]/10 text-[#f1d4c1]'
+                }`}
+              >
+                {authError || info}
+              </p>
+            )}
 
             <ul className="mt-6 grid gap-2 sm:grid-cols-2">
               {[

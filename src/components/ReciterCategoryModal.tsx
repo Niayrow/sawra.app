@@ -45,7 +45,7 @@ export const ReciterCategoryGrid: React.FC<ReciterCategoryGridProps> = ({
               type="button"
               disabled={count === 0}
               onClick={() => onOpenCategory(category.id)}
-              className={`group relative h-[88px] overflow-hidden rounded-2xl border text-left transition-all duration-300 tap-feedback disabled:opacity-40 disabled:pointer-events-none ${category.accent.border} ${
+              className={`group relative h-[120px] overflow-hidden rounded-2xl border bg-[#0c1522] text-left transition-all duration-300 tap-feedback disabled:opacity-40 disabled:pointer-events-none ${category.accent.border} ${
                 isActive ? category.accent.glow : 'hover:brightness-110'
               }`}
             >
@@ -56,7 +56,7 @@ export const ReciterCategoryGrid: React.FC<ReciterCategoryGridProps> = ({
                 width="320"
                 height="176"
                 sizes="(max-width: 768px) 45vw, 220px"
-                className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.03]"
                 loading="lazy"
                 decoding="async"
               />

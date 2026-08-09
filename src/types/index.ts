@@ -27,4 +27,13 @@ export interface AudioTrack {
   surah: Surah;
 }
 
+export interface QuranAyah {
+  number: number;
+  key: string;
+  textUthmani: string;
+  translationFr: string;
+  /** Latin phonetic (API word transliteration) */
+  phonetic: string;
+}
+
 export type PlaybackStatus = 'idle' | 'buffering' | 'playing' | 'paused' | 'error';

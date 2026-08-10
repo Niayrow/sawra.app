@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 're
 import { createPortal } from 'react-dom';
 import { useAudio } from '../context/AudioContext';
 import {
-  Play, Pause, SkipForward, SkipBack, ChevronDown, ChevronUp, Volume2, VolumeX,
+  Play, Pause, SkipForward, SkipBack, ChevronDown, Volume2, VolumeX,
   Disc, ListMusic, Search, X, Settings, Sparkles, Check, Moon, Repeat,
   Repeat1, Clock, RotateCcw, RotateCw, Gauge, Maximize2, SlidersHorizontal, MonitorSmartphone,
   SlidersVertical, BookOpen

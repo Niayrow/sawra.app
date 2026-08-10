@@ -38,12 +38,12 @@ export const RECITER_CATEGORIES: ReciterCategory[] = [
     image: '/img/mecca.webp',
     icon: Landmark,
     accent: {
-      border: 'border-amber-400/35',
-      bg: 'bg-gradient-to-br from-amber-500/15 via-slate-900/80 to-slate-950',
-      glow: 'shadow-[0_12px_40px_rgba(245,158,11,0.18)]',
-      text: 'text-amber-300',
-      badge: 'bg-amber-400/10 border-amber-400/25 text-amber-300',
-      iconBg: 'bg-amber-400/15 text-amber-300',
+      border: 'border-[#bfa078]/35',
+      bg: 'bg-gradient-to-br from-[#bfa078]/15 via-slate-900/80 to-slate-950',
+      glow: 'shadow-[0_12px_40px_rgba(191,160,120,0.18)]',
+      text: 'text-[#e2d0ba]',
+      badge: 'bg-[#bfa078]/10 border-[#bfa078]/25 text-[#e2d0ba]',
+      iconBg: 'bg-[#bfa078]/15 text-[#e2d0ba]',
     },
     reciterIds: onlyCurated([
       54, // Abderrahmane Al-Soudais

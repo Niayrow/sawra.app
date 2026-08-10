@@ -56,7 +56,7 @@ export const AyahSyncBadge: React.FC<AyahSyncBadgeProps> = ({
 
   return (
     <span
-      className={`ayah-sync-badge inline-flex shrink-0 items-center rounded-md border border-[#c9a06a]/40 bg-[#c9a06a]/12 font-bold uppercase tracking-[0.08em] text-[#e4ccb4] ${
+      className={`ayah-sync-badge inline-flex shrink-0 items-center rounded-md border border-[#bfa078]/40 bg-[#bfa078]/12 font-bold uppercase tracking-[0.08em] text-[#e2d0ba] ${
         compact ? 'px-1 py-px text-[8px] leading-none' : 'px-1.5 py-0.5 text-[9px] leading-none'
       } ${className}`}
       title="Verset par verset disponible"

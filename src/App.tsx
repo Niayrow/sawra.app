@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useMemo, lazy, Suspense, useDeferredValue, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useMemo, lazy, Suspense, useDeferredValue, useCallback, useRef } from 'react';
 import { useAudio, AudioProvider } from './context/AudioContext';
 import { AuthProvider } from './context/AuthContext';
 import { ReciterCard } from './components/ReciterCard';
@@ -438,12 +438,12 @@ const HomeFeaturedReciter: React.FC<HomeFeaturedReciterProps> = ({
       onClick={onSelect}
       className={`shrink-0 w-[7.25rem] flex flex-col items-center gap-2.5 rounded-2xl p-2 text-center transition-all tap-feedback ${
         isSelected
-          ? 'bg-[#e4ccb4]/10 ring-1 ring-[#e4ccb4]/35'
+          ? 'bg-[#e2d0ba]/10 ring-1 ring-[#e2d0ba]/35'
           : 'hover:bg-[#162538]/70'
       }`}
     >
       <span className={`relative h-[4.75rem] w-[4.75rem] overflow-hidden rounded-[1.35rem] border-2 bg-[#111d2d] shadow-[0_10px_24px_rgba(0,0,0,0.35)] ${
-        isSelected ? 'border-[#e4ccb4] shadow-[0_0_22px_rgba(201,160,106,0.38)]' : 'border-[#46607b]/70'
+        isSelected ? 'border-[#e2d0ba] shadow-[0_0_22px_rgba(191,160,120,0.38)]' : 'border-[#46607b]/70'
       }`}>
         <ReciterPortrait
           reciter={reciter}
@@ -492,7 +492,7 @@ const MakkahMomentCard: React.FC<((typeof MAKKAH_MOMENTS)[number] & { featured?:
               <h3 className={`mt-1 font-black text-[#f6f8fb] ${featured ? 'text-lg sm:text-[1.35rem]' : 'text-base'}`}>
                 {title}
               </h3>
-              <p className={`mt-1 font-semibold text-[#e8d4bc] ${featured ? 'text-sm' : 'text-xs'}`}>{reciter}</p>
+              <p className={`mt-1 font-semibold text-[#e6d5c2] ${featured ? 'text-sm' : 'text-xs'}`}>{reciter}</p>
               {featured && (
                 <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#b4c0ce]">
                   Une récitation mise en avant pour ouvrir la sélection.
@@ -500,12 +500,12 @@ const MakkahMomentCard: React.FC<((typeof MAKKAH_MOMENTS)[number] & { featured?:
               )}
             </div>
             <span className="flex flex-col items-center gap-2 shrink-0">
-              <span className={`flex items-center justify-center rounded-2xl bg-[#20334a] text-[#e4ccb4] ${featured ? 'h-12 w-12' : 'h-11 w-11'}`}>
+              <span className={`flex items-center justify-center rounded-2xl bg-[#20334a] text-[#e2d0ba] ${featured ? 'h-12 w-12' : 'h-11 w-11'}`}>
                 <Play className={`ml-0.5 fill-current ${featured ? 'h-5 w-5' : 'h-4.5 w-4.5'}`} />
               </span>
               <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#d0d9e3]">
                 {expanded ? 'Réduire' : 'Ouvrir'}
-                <ChevronDown className={`h-3.5 w-3.5 text-[#e4ccb4] transition-transform ${expanded ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-3.5 w-3.5 text-[#e2d0ba] transition-transform ${expanded ? 'rotate-180' : ''}`} />
               </span>
             </span>
           </div>
@@ -530,7 +530,7 @@ const MakkahMomentCard: React.FC<((typeof MAKKAH_MOMENTS)[number] & { featured?:
           <div className="mt-3 rounded-[1.2rem] border border-[#30455c]/45 bg-[#0f1928]/80 p-3.5 sm:p-4">
             <div className="flex flex-col gap-2">
               <h4 className="text-sm font-black text-[#f6f8fb]">{title}</h4>
-              <p className="text-xs font-semibold text-[#e8d4bc]">{reciter}</p>
+              <p className="text-xs font-semibold text-[#e6d5c2]">{reciter}</p>
             </div>
 
             <div className="mt-3 flex flex-wrap gap-2">
@@ -1308,9 +1308,9 @@ const AppContent: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleNavigate('listen')}
-                className="flex items-center gap-3 rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-left tap-feedback"
+                className="flex items-center gap-3 rounded-2xl border border-[#bfa078]/30 bg-[#bfa078]/10 px-4 py-3 text-left tap-feedback"
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-400/15 text-amber-300">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#bfa078]/15 text-[#e2d0ba]">
                   <Download className="h-4.5 w-4.5" />
                 </span>
                 <span className="min-w-0 flex-1">
@@ -1321,7 +1321,7 @@ const AppContent: React.FC = () => {
                       : 'Aucune sourate téléchargée sur cet appareil'}
                   </span>
                 </span>
-                <ArrowRight className="h-4 w-4 shrink-0 text-amber-300/80" />
+                <ArrowRight className="h-4 w-4 shrink-0 text-[#e2d0ba]/80" />
               </button>
             )}
             <section className="home-hero">
@@ -1393,10 +1393,11 @@ const AppContent: React.FC = () => {
                 <p className="mt-1 text-xs text-[#95a7ba]">L’essentiel, sans surcharge.</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 gap-3">
                 {[
                   {
                     id: 'listen',
+                    tone: 'explore',
                     label: 'Explorer',
                     hint: 'Récitateurs et sourates',
                     icon: Headphones,
@@ -1404,6 +1405,7 @@ const AppContent: React.FC = () => {
                   },
                   {
                     id: 'favorites',
+                    tone: 'favorites',
                     label: 'Favoris',
                     hint: favoritedReciters.length
                       ? `${favoritedReciters.length} récitateur${favoritedReciters.length > 1 ? 's' : ''}`
@@ -1413,6 +1415,7 @@ const AppContent: React.FC = () => {
                   },
                   {
                     id: 'downloads',
+                    tone: 'downloads',
                     label: 'Téléchargées',
                     hint: downloadedEntries.length
                       ? `${downloadedEntries.length} sourate${downloadedEntries.length > 1 ? 's' : ''} hors-ligne`
@@ -1422,6 +1425,7 @@ const AppContent: React.FC = () => {
                   },
                   {
                     id: 'account',
+                    tone: 'account',
                     label: 'Connexion',
                     hint: user ? 'Sync activée' : 'Local — connectez-vous pour sync',
                     icon: Cloud,
@@ -1434,13 +1438,20 @@ const AppContent: React.FC = () => {
                       key={action.id}
                       type="button"
                       onClick={action.onClick}
-                      className="group rounded-[1.35rem] border border-[#30455c]/60 bg-[#132031]/70 px-3.5 py-3.5 text-left transition-colors hover:bg-[#162538]/88 tap-feedback"
+                      className={`home-quick-tile home-quick-tile--${action.tone} tap-feedback`}
                     >
-                      <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#20334a] text-[#e8d4bc]">
-                        <Icon className="h-4.5 w-4.5" />
+                      <span className="home-quick-tile__inner">
+                        <span className="home-quick-tile__top">
+                          <span className="home-quick-tile__icon" aria-hidden>
+                            <Icon className="h-4.5 w-4.5" />
+                          </span>
+                          <span className="home-quick-tile__chevron" aria-hidden>
+                            <ArrowRight className="h-3.5 w-3.5" />
+                          </span>
+                        </span>
+                        <span className="home-quick-tile__label">{action.label}</span>
+                        <span className="home-quick-tile__hint">{action.hint}</span>
                       </span>
-                      <span className="mt-3 block text-[13px] font-black text-[#f6f8fb]">{action.label}</span>
-                      <span className="mt-1 block text-[11px] leading-relaxed text-[#95a7ba]">{action.hint}</span>
                     </button>
                   );
                 })}
@@ -1470,7 +1481,7 @@ const AppContent: React.FC = () => {
                       setActiveTab('listen');
                       setListenStep('reciters');
                     }}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#d0d9e3] hover:text-[#e8d4bc]"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#d0d9e3] hover:text-[#e6d5c2]"
                   >
                     Tous
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -1501,7 +1512,7 @@ const AppContent: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleNavigate('favorites')}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#d0d9e3] hover:text-[#e8d4bc]"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#d0d9e3] hover:text-[#e6d5c2]"
                   >
                     Voir
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -1565,7 +1576,7 @@ const AppContent: React.FC = () => {
                         : 'Sur Android/Chrome : menu ⋮ → « Installer l’application » ou « Ajouter à l’écran d’accueil ».'
                     );
                   }}
-                  className="inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-full border border-[#c9a06a]/30 bg-[#e4ccb4]/12 px-4 py-2.5 text-[12px] font-bold text-[#e8d4bc] transition-colors hover:bg-[#e4ccb4]/18 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a] tap-feedback"
+                  className="inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-full border border-[#bfa078]/30 bg-[#e2d0ba]/12 px-4 py-2.5 text-[12px] font-bold text-[#e6d5c2] transition-colors hover:bg-[#e2d0ba]/18 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] tap-feedback"
                 >
                   <Share className="h-3.5 w-3.5" aria-hidden />
                   Ajouter à l’écran d’accueil
@@ -1589,7 +1600,7 @@ const AppContent: React.FC = () => {
                       <button
                         type="button"
                         onClick={item.onClick}
-                        className="min-h-9 px-1 text-[#aab7c5] transition-colors hover:text-[#e8d4bc] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a]"
+                        className="min-h-9 px-1 text-[#aab7c5] transition-colors hover:text-[#e6d5c2] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078]"
                       >
                         {item.label}
                       </button>
@@ -1602,7 +1613,7 @@ const AppContent: React.FC = () => {
                     href={GOMUSLIMLIFE_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex min-h-9 items-center gap-1 px-1 text-[#aab7c5] transition-colors hover:text-[#e8d4bc] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a]"
+                    className="inline-flex min-h-9 items-center gap-1 px-1 text-[#aab7c5] transition-colors hover:text-[#e6d5c2] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078]"
                   >
                     GoMuslimLife
                     <ExternalLink className="h-3 w-3 opacity-50" aria-hidden />
@@ -1618,14 +1629,14 @@ const AppContent: React.FC = () => {
                   href="https://sofianeweb.fr"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group inline-flex items-center gap-1.5 rounded-full border border-[#30455c]/45 bg-[#0c1522]/70 px-3 py-1.5 text-[11px] text-[#95a7ba] transition-all duration-300 hover:border-[#c9a06a]/35 hover:bg-[#162538]/80 hover:text-[#e6edf5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a]"
+                  className="group inline-flex items-center gap-1.5 rounded-full border border-[#30455c]/45 bg-[#0c1522]/70 px-3 py-1.5 text-[11px] text-[#95a7ba] transition-all duration-300 hover:border-[#bfa078]/35 hover:bg-[#162538]/80 hover:text-[#e6edf5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078]"
                 >
                   <span>Imaginé &amp; façonné par</span>
-                  <span className="font-bold text-[#e8d4bc] transition-colors group-hover:text-[#e4ccb4]">
+                  <span className="font-bold text-[#e6d5c2] transition-colors group-hover:text-[#e2d0ba]">
                     sofianeweb.fr
                   </span>
                   <span
-                    className="inline-block text-[#c9a06a] transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                    className="inline-block text-[#bfa078] transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                     aria-hidden
                   >
                     ↗
@@ -1690,7 +1701,7 @@ const AppContent: React.FC = () => {
                       type="button"
                       onClick={() => setReciterSearch('')}
                       aria-label="Effacer la recherche"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 min-h-9 min-w-9 text-xs text-[#b4c0ce] hover:text-[#f6f8fb] px-2 py-1 bg-[#1b2d43] rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a]"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 min-h-9 min-w-9 text-xs text-[#b4c0ce] hover:text-[#f6f8fb] px-2 py-1 bg-[#1b2d43] rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078]"
                     >
                       Effacer
                     </button>
@@ -1698,9 +1709,9 @@ const AppContent: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2.5">
-                  <aside className="flex min-w-0 w-full flex-1 items-center gap-2 rounded-2xl border border-[#c9a06a]/20 bg-[#111d2d]/70 px-3 py-2 sm:gap-3 sm:px-3.5 sm:py-3">
+                  <aside className="flex min-w-0 w-full flex-1 items-center gap-2 rounded-2xl border border-[#bfa078]/20 bg-[#111d2d]/70 px-3 py-2 sm:gap-3 sm:px-3.5 sm:py-3">
                     <span
-                      className="ayah-sync-badge inline-flex shrink-0 items-center rounded-md border border-[#c9a06a]/40 bg-[#c9a06a]/12 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] leading-none text-[#e4ccb4]"
+                      className="ayah-sync-badge inline-flex shrink-0 items-center rounded-md border border-[#bfa078]/40 bg-[#bfa078]/12 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] leading-none text-[#e2d0ba]"
                       aria-hidden
                     >
                       Versets
@@ -1736,7 +1747,7 @@ const AppContent: React.FC = () => {
                         aria-pressed={ayahSyncFilter === opt.id}
                         className={`min-h-9 flex-1 rounded-xl px-2 text-[10px] font-bold tap-feedback sm:min-h-10 sm:flex-none sm:px-3 sm:text-[11px] ${
                           ayahSyncFilter === opt.id
-                            ? 'bg-[#c9a06a]/18 text-[#e4ccb4] border border-[#c9a06a]/35'
+                            ? 'bg-[#bfa078]/18 text-[#e2d0ba] border border-[#bfa078]/35'
                             : 'text-[#95a7ba] border border-transparent hover:text-[#e6edf5]'
                         }`}
                       >
@@ -1777,7 +1788,7 @@ const AppContent: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setAyahSyncFilter('all')}
-                        className="mt-2 text-xs font-semibold text-[#e4ccb4] underline-offset-2 hover:underline"
+                        className="mt-2 text-xs font-semibold text-[#e2d0ba] underline-offset-2 hover:underline"
                       >
                         Réafficher tous
                       </button>
@@ -1788,7 +1799,7 @@ const AppContent: React.FC = () => {
                     {recentReciters.length > 0 && (
                       <section className="flex flex-col gap-3">
                         <h3 className="text-sm font-bold text-[#d7e4ef] flex items-center gap-2">
-                          <History className="w-4 h-4 text-[#e4ccb4]" />
+                          <History className="w-4 h-4 text-[#e2d0ba]" />
                           Vos derniers récitateurs écoutés
                         </h3>
                         <div className="grid grid-cols-1 gap-3.5">
@@ -1923,7 +1934,7 @@ const AppContent: React.FC = () => {
                 onClick={() => handleNavigate('favorites')}
                 className={`min-h-10 flex-1 rounded-xl px-2 py-2 text-[11px] font-bold transition-all tap-feedback ${
                   activeTab === 'favorites'
-                    ? 'bg-[#e4ccb4]/14 text-[#e8d4bc]'
+                    ? 'bg-[#e2d0ba]/14 text-[#e6d5c2]'
                     : 'text-[#95a7ba] hover:text-[#e6edf5]'
                 }`}
               >
@@ -1937,7 +1948,7 @@ const AppContent: React.FC = () => {
                   onClick={() => handleNavigate('moments')}
                   className={`min-h-10 flex-1 rounded-xl px-2 py-2 text-[11px] font-bold transition-all tap-feedback ${
                     activeTab === 'moments'
-                      ? 'bg-[#e4ccb4]/14 text-[#e8d4bc]'
+                      ? 'bg-[#e2d0ba]/14 text-[#e6d5c2]'
                       : 'text-[#95a7ba] hover:text-[#e6edf5]'
                   }`}
                 >
@@ -1951,7 +1962,7 @@ const AppContent: React.FC = () => {
         {activeTab === 'moments' && isOnline && (
           <div className="flex flex-col gap-5 pb-16 sm:pb-20 max-md:pt-2 md:pt-3">
             <section className="relative overflow-hidden rounded-3xl border border-[#30455c]/55 bg-[linear-gradient(180deg,rgba(17,29,45,0.94),rgba(9,17,28,0.98))] p-5 sm:p-6">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(240,209,188,0.12),transparent_42%),radial-gradient(circle_at_85%_20%,rgba(121,144,161,0.14),transparent_28%)]" aria-hidden="true" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(241,232,220,0.12),transparent_42%),radial-gradient(circle_at_85%_20%,rgba(121,144,161,0.14),transparent_28%)]" aria-hidden="true" />
               <div className="relative z-10 flex flex-col gap-5">
                 <div className="max-w-2xl">
                   <span className="brand-chip inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest">
@@ -2072,9 +2083,9 @@ const AppContent: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleNavigate('account')}
-                className="mt-5 flex w-full items-center gap-3 rounded-2xl border border-[#c9a06a]/30 bg-[#e4ccb4]/[0.08] px-4 py-3.5 text-left transition-colors hover:bg-[#e4ccb4]/[0.14] tap-feedback md:hidden"
+                className="mt-5 flex w-full items-center gap-3 rounded-2xl border border-[#bfa078]/30 bg-[#e2d0ba]/[0.08] px-4 py-3.5 text-left transition-colors hover:bg-[#e2d0ba]/[0.14] tap-feedback md:hidden"
               >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#20334a] text-[#e8d4bc]">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#20334a] text-[#e6d5c2]">
                   <User className="h-5 w-5" />
                 </span>
                 <span className="min-w-0 flex-1">
@@ -2083,7 +2094,7 @@ const AppContent: React.FC = () => {
                     {user ? 'Compte synchronisé — favoris & reprise' : 'Synchroniser favoris et reprise de lecture'}
                   </span>
                 </span>
-                <ArrowRight className="h-4 w-4 shrink-0 text-[#c9a06a]/80" />
+                <ArrowRight className="h-4 w-4 shrink-0 text-[#bfa078]/80" />
               </button>
 
               <NavDesktopStyleToggle
@@ -2104,9 +2115,9 @@ const AppContent: React.FC = () => {
                     type="button"
                     onClick={() => setMorePanel(item.id)}
                     aria-pressed={morePanel === item.id}
-                    className={`min-h-11 rounded-2xl border px-3 py-3 text-xs font-bold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a] ${
+                    className={`min-h-11 rounded-2xl border px-3 py-3 text-xs font-bold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] ${
                       morePanel === item.id
-                        ? 'border-[#c9a06a]/35 bg-[#e4ccb4]/12 text-[#e8d4bc]'
+                        ? 'border-[#bfa078]/35 bg-[#e2d0ba]/12 text-[#e6d5c2]'
                         : 'border-[#30455c] bg-[#111d2d]/72 text-[#b4c0ce] hover:text-[#f6f8fb]'
                     }`}
                   >
@@ -2141,9 +2152,9 @@ const AppContent: React.FC = () => {
                       role="tab"
                       aria-selected={legalSub === item.id}
                       onClick={() => setLegalSub(item.id)}
-                      className={`min-h-10 flex-1 rounded-xl px-2 py-2 text-[11px] sm:text-xs font-bold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a] ${
+                      className={`min-h-10 flex-1 rounded-xl px-2 py-2 text-[11px] sm:text-xs font-bold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] ${
                         legalSub === item.id
-                          ? 'bg-[#e4ccb4]/14 text-[#e8d4bc]'
+                          ? 'bg-[#e2d0ba]/14 text-[#e6d5c2]'
                           : 'text-[#95a7ba] hover:text-[#e6edf5]'
                       }`}
                     >

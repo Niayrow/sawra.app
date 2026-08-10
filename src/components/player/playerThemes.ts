@@ -1,4 +1,4 @@
-﻿export type PlayerThemeId = 'emerald' | 'amber' | 'blue' | 'purple' | 'oled';
+export type PlayerThemeId = 'emerald' | 'amber' | 'blue' | 'purple' | 'oled';
 
 export interface PlayerThemeTokens {
   name: string;
@@ -37,20 +37,20 @@ export const PLAYER_THEMES: Record<PlayerThemeId, PlayerThemeTokens> = {
   },
   amber: {
     name: 'Bronze doré',
-    accent: 'bg-[#c9a06a] hover:bg-[#d4b07a]',
-    accentText: 'text-[#e4ccb4]',
-    accentTextHover: 'hover:text-[#e8d4bc]',
-    accentBgLight: 'bg-[#e4ccb4]/12',
-    accentBorder: 'border-[#c9a06a]/18',
-    accentBorderActive: 'border-[#c9a06a]/38',
-    accentBorderLight: 'border-[#c9a06a]/12',
-    accentRing: 'ring-[#c9a06a]/24',
-    accentShadow: 'shadow-[#9c6c3c]/20',
-    accentGlow: 'from-[#c9a06a]/12',
-    glowDisc: 'text-[#e4ccb4] drop-shadow-[0_0_8px_rgba(201,160,106,0.45)]',
-    sliderAccentColor: '#c9a06a',
+    accent: 'bg-[#bfa078] hover:bg-[#cbb08a]',
+    accentText: 'text-[#e2d0ba]',
+    accentTextHover: 'hover:text-[#e6d5c2]',
+    accentBgLight: 'bg-[#e2d0ba]/12',
+    accentBorder: 'border-[#bfa078]/18',
+    accentBorderActive: 'border-[#bfa078]/38',
+    accentBorderLight: 'border-[#bfa078]/12',
+    accentRing: 'ring-[#bfa078]/24',
+    accentShadow: 'shadow-[#8a7350]/20',
+    accentGlow: 'from-[#bfa078]/12',
+    glowDisc: 'text-[#e2d0ba] drop-shadow-[0_0_8px_rgba(191,160,120,0.45)]',
+    sliderAccentColor: '#bfa078',
     sliderBackground: (percent) =>
-      `linear-gradient(to right, #c9a06a 0%, #c9a06a ${percent}%, #162538 ${percent}%, #162538 100%)`,
+      `linear-gradient(to right, #bfa078 0%, #bfa078 ${percent}%, #162538 ${percent}%, #162538 100%)`,
   },
   blue: {
     name: 'Brume Azurée',

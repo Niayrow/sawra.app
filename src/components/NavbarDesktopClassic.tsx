@@ -83,14 +83,14 @@ export const NavbarDesktopClassic: React.FC<NavbarDesktopClassicProps> = ({
               : {})}
             className={`nav-tab__glyph shrink-0 transition-colors duration-300 ${
               isActive
-                ? 'text-[#e4ccb4]'
-                : 'text-[#8fa3b0] group-hover:text-[#e8d4bc]'
+                ? 'text-[#e2d0ba]'
+                : 'text-[#8fa3b0] group-hover:text-[#e6d5c2]'
             }`}
           />
           <span
             className={`text-[12px] leading-none tracking-wide transition-colors duration-300 ${
               isActive
-                ? 'font-bold text-[#e8d4bc]'
+                ? 'font-bold text-[#e6d5c2]'
                 : 'font-medium text-[#9fb1c3] group-hover:text-[#e8eef5]'
             }`}
           >
@@ -110,7 +110,7 @@ export const NavbarDesktopClassic: React.FC<NavbarDesktopClassicProps> = ({
       style={fusionStyle}
     >
       <nav
-        className="nav-desktop-classic glass-panel-opaque backdrop-blur-2xl border-b border-[#c9a06a]/18"
+        className="nav-desktop-classic glass-panel-opaque backdrop-blur-2xl border-b border-[#bfa078]/18"
         aria-label="Navigation principale"
       >
         <div className="nav-desktop-classic-inner mx-auto grid h-[4.15rem] max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-3 px-6 lg:px-8">
@@ -124,14 +124,14 @@ export const NavbarDesktopClassic: React.FC<NavbarDesktopClassicProps> = ({
               <img
                 src={LOGO_SRC}
                 alt=""
-                className="h-9 w-9 shrink-0 object-contain drop-shadow-[0_2px_16px_rgba(201,160,106,0.42)] transition-transform duration-300 group-hover/nav-brand:scale-105"
+                className="h-9 w-9 shrink-0 object-contain drop-shadow-[0_2px_16px_rgba(191,160,120,0.42)] transition-transform duration-300 group-hover/nav-brand:scale-105"
                 draggable={false}
               />
               <span className="flex flex-col items-start justify-center leading-none">
                 <span className="reciter-name-gradient is-selected text-[1.02rem] font-black tracking-[-0.03em]">
                   Sawra
                 </span>
-                <span className="mt-1 text-[9px] font-bold uppercase tracking-[0.22em] text-[#c9a06a]/80">
+                <span className="mt-1 text-[9px] font-bold uppercase tracking-[0.22em] text-[#bfa078]/80">
                   Coran
                 </span>
               </span>
@@ -170,7 +170,7 @@ export const NavbarDesktopClassic: React.FC<NavbarDesktopClassicProps> = ({
               />
             </div>
             <div className="nav-reciter-fusion-meta min-w-0 flex-1">
-              <p className="text-[10px] uppercase font-bold tracking-wider text-[#e4ccb4]/90">
+              <p className="text-[10px] uppercase font-bold tracking-wider text-[#e2d0ba]/90">
                 Récitateur
               </p>
               <p className="truncate text-sm font-semibold text-[#f6f8fb]">{reciterFusion.reciter.name}</p>
@@ -197,11 +197,11 @@ export const NavbarDesktopClassic: React.FC<NavbarDesktopClassicProps> = ({
           style={{ pointerEvents: fusionProgress >= 0.85 ? 'auto' : 'none' }}
         >
           <div className="mx-auto flex w-full max-w-6xl items-center gap-3">
-            <div className="nav-reciter-fusion-avatar flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#c9a06a]/35 bg-[#e4ccb4]/12 text-[#e4ccb4]">
+            <div className="nav-reciter-fusion-avatar flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#bfa078]/35 bg-[#e2d0ba]/12 text-[#e2d0ba]">
               <Headphones className="h-4 w-4" />
             </div>
             <div className="nav-reciter-fusion-meta min-w-0 flex-1">
-              <p className="text-[10px] uppercase font-bold tracking-wider text-[#e4ccb4]/90">
+              <p className="text-[10px] uppercase font-bold tracking-wider text-[#e2d0ba]/90">
                 Explorer
               </p>
               <p className="truncate text-sm font-semibold text-[#f6f8fb]">Les voix</p>

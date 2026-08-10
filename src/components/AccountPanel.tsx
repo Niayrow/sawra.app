@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   LogIn, LogOut, UserPlus, Mail, Lock, User, ShieldCheck, Cloud,
   Heart, MonitorSmartphone, SlidersHorizontal, ExternalLink, Eye, EyeOff,
@@ -42,11 +42,11 @@ export const AccountPanel: React.FC = () => {
 
   if (!configured) {
     return (
-      <div className="rounded-3xl border border-[#c9a06a]/20 bg-[#e4ccb4]/6 p-5">
+      <div className="rounded-3xl border border-[#bfa078]/20 bg-[#e2d0ba]/6 p-5">
         <h3 className="font-bold text-[#f6f8fb]">Compte cloud indisponible</h3>
         <p className="mt-2 text-sm text-[#b4c0ce]">
-          Ajoutez <code className="text-[#e8d4bc]">VITE_SUPABASE_URL</code> et{' '}
-          <code className="text-[#e8d4bc]">VITE_SUPABASE_ANON_KEY</code> dans{' '}
+          Ajoutez <code className="text-[#e6d5c2]">VITE_SUPABASE_URL</code> et{' '}
+          <code className="text-[#e6d5c2]">VITE_SUPABASE_ANON_KEY</code> dans{' '}
           <code className="text-[#d0d9e3]">.env.local</code> puis relancez le serveur.
         </p>
       </div>
@@ -96,17 +96,17 @@ export const AccountPanel: React.FC = () => {
             aria-hidden
           />
           <div
-            className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[radial-gradient(circle,rgba(240,209,188,0.22),transparent_68%)]"
+            className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[radial-gradient(circle,rgba(241,232,220,0.22),transparent_68%)]"
             aria-hidden
           />
           <div
-            className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#e4ccb4]/45 to-transparent"
+            className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#e2d0ba]/45 to-transparent"
             aria-hidden
           />
 
           <div className="relative z-10 p-5 sm:p-7">
             <div className="flex items-center gap-4">
-              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[1.25rem] bg-gradient-to-br from-[#e4ccb4] to-[#c9a06a] text-xl font-black text-[#0c1522] shadow-[0_10px_28px_rgba(201,160,106,0.35)]">
+              <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[1.25rem] bg-gradient-to-br from-[#e2d0ba] to-[#bfa078] text-xl font-black text-[#0c1522] shadow-[0_10px_28px_rgba(191,160,120,0.35)]">
                 {initial}
               </span>
               <div className="min-w-0 flex-1">
@@ -122,7 +122,7 @@ export const AccountPanel: React.FC = () => {
                     <button
                       type="button"
                       onClick={startEditName}
-                      className="shrink-0 rounded-lg border border-[#46607b]/50 bg-[#162538]/70 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#e4ccb4] hover:border-[#c9a06a]/40 tap-feedback"
+                      className="shrink-0 rounded-lg border border-[#46607b]/50 bg-[#162538]/70 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#e2d0ba] hover:border-[#bfa078]/40 tap-feedback"
                     >
                       Modifier
                     </button>
@@ -141,7 +141,7 @@ export const AccountPanel: React.FC = () => {
                         maxLength={40}
                         autoFocus
                         placeholder="Votre pseudo"
-                        className="w-full rounded-xl border border-[#30455c]/55 bg-[#0c1522]/70 py-2.5 pl-10 pr-3 text-sm text-[#f6f8fb] placeholder:text-[#6f8499] focus:border-[#c9a06a]/50 focus:outline-none focus:ring-2 focus:ring-[#c9a06a]/20"
+                        className="w-full rounded-xl border border-[#30455c]/55 bg-[#0c1522]/70 py-2.5 pl-10 pr-3 text-sm text-[#f6f8fb] placeholder:text-[#6f8499] focus:border-[#bfa078]/50 focus:outline-none focus:ring-2 focus:ring-[#bfa078]/20"
                       />
                     </div>
                     <div className="flex gap-2">
@@ -173,7 +173,7 @@ export const AccountPanel: React.FC = () => {
                 className={`mt-4 rounded-2xl border px-3.5 py-2.5 text-xs leading-relaxed ${
                   authError
                     ? 'border-rose-500/30 bg-rose-500/10 text-rose-300'
-                    : 'border-[#c9a06a]/30 bg-[#e4ccb4]/10 text-[#e8d4bc]'
+                    : 'border-[#bfa078]/30 bg-[#e2d0ba]/10 text-[#e6d5c2]'
                 }`}
               >
                 {authError || info}
@@ -191,7 +191,7 @@ export const AccountPanel: React.FC = () => {
                   key={label}
                   className="flex items-center gap-2.5 rounded-2xl border border-[#30455c]/45 bg-[#0c1522]/55 px-3.5 py-3 text-[12px] font-medium text-[#d0d9e3]"
                 >
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#e4ccb4]/12 text-[#e8d4bc]">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#e2d0ba]/12 text-[#e6d5c2]">
                     <Icon className="h-3.5 w-3.5" />
                   </span>
                   {label}
@@ -261,11 +261,11 @@ export const AccountPanel: React.FC = () => {
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute -right-16 -top-10 h-44 w-44 rounded-full bg-[radial-gradient(circle,rgba(240,209,188,0.16),transparent_68%)]"
+        className="pointer-events-none absolute -right-16 -top-10 h-44 w-44 rounded-full bg-[radial-gradient(circle,rgba(241,232,220,0.16),transparent_68%)]"
         aria-hidden
       />
       <div
-        className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#e4ccb4]/45 to-transparent"
+        className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#e2d0ba]/45 to-transparent"
         aria-hidden
       />
 
@@ -274,7 +274,7 @@ export const AccountPanel: React.FC = () => {
           <span
             className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border transition-colors duration-[400ms] ${
               isSignIn
-                ? 'border-[#c9a06a]/35 bg-[#e4ccb4]/14 text-[#e8d4bc]'
+                ? 'border-[#bfa078]/35 bg-[#e2d0ba]/14 text-[#e6d5c2]'
                 : 'border-[#46607b]/50 bg-[#20334a]/80 text-[#d0d9e3]'
             }`}
           >
@@ -303,7 +303,7 @@ export const AccountPanel: React.FC = () => {
           aria-label="Mode d’authentification"
         >
           <span
-            className={`pointer-events-none absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-xl bg-[#e4ccb4] shadow-[0_6px_18px_rgba(201,160,106,0.28)] transition-transform duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+            className={`pointer-events-none absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-xl bg-[#e2d0ba] shadow-[0_6px_18px_rgba(191,160,120,0.28)] transition-transform duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
               isSignIn ? 'translate-x-0' : 'translate-x-[calc(100%+4px)]'
             }`}
             aria-hidden
@@ -350,7 +350,7 @@ export const AccountPanel: React.FC = () => {
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder="Ex. Sofiane"
                     tabIndex={isSignIn ? -1 : 0}
-                    className="w-full rounded-2xl border border-[#30455c]/55 bg-[#0c1522]/70 py-3 pl-11 pr-3.5 text-sm text-[#f6f8fb] placeholder:text-[#6f8499] transition-colors focus:border-[#c9a06a]/50 focus:outline-none focus:ring-2 focus:ring-[#c9a06a]/20"
+                    className="w-full rounded-2xl border border-[#30455c]/55 bg-[#0c1522]/70 py-3 pl-11 pr-3.5 text-sm text-[#f6f8fb] placeholder:text-[#6f8499] transition-colors focus:border-[#bfa078]/50 focus:outline-none focus:ring-2 focus:ring-[#bfa078]/20"
                   />
                 </div>
               </label>
@@ -370,7 +370,7 @@ export const AccountPanel: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="vous@email.com"
-                className="w-full rounded-2xl border border-[#30455c]/55 bg-[#0c1522]/70 py-3 pl-11 pr-3.5 text-sm text-[#f6f8fb] placeholder:text-[#6f8499] transition-colors focus:border-[#c9a06a]/50 focus:outline-none focus:ring-2 focus:ring-[#c9a06a]/20"
+                className="w-full rounded-2xl border border-[#30455c]/55 bg-[#0c1522]/70 py-3 pl-11 pr-3.5 text-sm text-[#f6f8fb] placeholder:text-[#6f8499] transition-colors focus:border-[#bfa078]/50 focus:outline-none focus:ring-2 focus:ring-[#bfa078]/20"
               />
             </div>
           </label>
@@ -389,7 +389,7 @@ export const AccountPanel: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Au moins 6 caractères"
-                className="w-full rounded-2xl border border-[#30455c]/55 bg-[#0c1522]/70 py-3 pl-11 pr-12 text-sm text-[#f6f8fb] placeholder:text-[#6f8499] transition-colors focus:border-[#c9a06a]/50 focus:outline-none focus:ring-2 focus:ring-[#c9a06a]/20"
+                className="w-full rounded-2xl border border-[#30455c]/55 bg-[#0c1522]/70 py-3 pl-11 pr-12 text-sm text-[#f6f8fb] placeholder:text-[#6f8499] transition-colors focus:border-[#bfa078]/50 focus:outline-none focus:ring-2 focus:ring-[#bfa078]/20"
               />
               <button
                 type="button"
@@ -408,7 +408,7 @@ export const AccountPanel: React.FC = () => {
               className={`rounded-2xl border px-3.5 py-2.5 text-xs leading-relaxed ${
                 authError
                   ? 'border-rose-500/30 bg-rose-500/10 text-rose-300'
-                  : 'border-[#c9a06a]/30 bg-[#e4ccb4]/10 text-[#e8d4bc]'
+                  : 'border-[#bfa078]/30 bg-[#e2d0ba]/10 text-[#e6d5c2]'
               }`}
             >
               {authError || info}
@@ -431,7 +431,7 @@ export const AccountPanel: React.FC = () => {
               <button
                 type="button"
                 onClick={() => switchMode('signup')}
-                className="font-bold text-[#e8d4bc] underline-offset-2 hover:underline"
+                className="font-bold text-[#e6d5c2] underline-offset-2 hover:underline"
               >
                 S&apos;inscrire
               </button>
@@ -442,7 +442,7 @@ export const AccountPanel: React.FC = () => {
               <button
                 type="button"
                 onClick={() => switchMode('signin')}
-                className="font-bold text-[#e8d4bc] underline-offset-2 hover:underline"
+                className="font-bold text-[#e6d5c2] underline-offset-2 hover:underline"
               >
                 Se connecter
               </button>

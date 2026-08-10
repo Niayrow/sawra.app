@@ -1,4 +1,4 @@
-﻿import type { Reciter } from '../types';
+import type { Reciter } from '../types';
 
 /** Brand plate behind every cutout portrait (layered in ReciterPortrait). */
 export const RECITER_BACKGROUND = '/reciters/background.webp';
@@ -54,10 +54,10 @@ export const hasLocalReciterImage = (reciterId: number) =>
   Object.prototype.hasOwnProperty.call(RECITER_IMAGES, reciterId);
 
 const AVATAR_PALETTES = [
-  ['#07111d', '#162538', '#e4ccb4', '#7990a1'],
-  ['#0d1725', '#1b2d43', '#c9a06a', '#8fa3b0'],
-  ['#111d2d', '#22364f', '#d4b07a', '#b8c7d2'],
-  ['#09131f', '#203249', '#e8d4bc', '#95a7ba'],
+  ['#07111d', '#162538', '#e2d0ba', '#7990a1'],
+  ['#0d1725', '#1b2d43', '#bfa078', '#8fa3b0'],
+  ['#111d2d', '#22364f', '#cbb08a', '#b8c7d2'],
+  ['#09131f', '#203249', '#e6d5c2', '#95a7ba'],
   ['#0b1622', '#16293e', '#d7b299', '#7f97ab'],
   ['#07111d', '#1a2b3f', '#e6c8b3', '#aab7c5'],
 ];

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { Reciter } from '../types';
 import { useAudio } from '../context/AudioContext';
 import { Play, Volume2, Heart } from '../icons/motion';
@@ -97,7 +97,7 @@ export const ReciterCard: React.FC<ReciterCardProps> = ({
     return (
       <span>
         {before}
-        <span className="text-[#e8d4bc] font-extrabold bg-[#e4ccb4]/10 px-0.5 rounded border-b border-[#c9a06a]/35 shadow-[0_0_8px_rgba(201,160,106,0.18)]">
+        <span className="text-[#e6d5c2] font-extrabold bg-[#e2d0ba]/10 px-0.5 rounded border-b border-[#bfa078]/35 shadow-[0_0_8px_rgba(191,160,120,0.18)]">
           {match}
         </span>
         {after}
@@ -109,8 +109,8 @@ export const ReciterCard: React.FC<ReciterCardProps> = ({
 
   const nameClass = searchQuery?.trim()
     ? isSelected
-      ? 'text-[#e8d4bc]'
-      : 'text-[#f6f8fb] group-hover:text-[#e8d4bc]'
+      ? 'text-[#e6d5c2]'
+      : 'text-[#f6f8fb] group-hover:text-[#e6d5c2]'
     : `reciter-name-gradient${isSelected ? ' is-selected' : ''}`;
 
   const actions = (
@@ -118,7 +118,7 @@ export const ReciterCard: React.FC<ReciterCardProps> = ({
       <button
         type="button"
         onClick={onToggleFavorite}
-        className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all border tap-feedback focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a] ${
+        className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all border tap-feedback focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] ${
           isFavorite
             ? 'bg-[#f08c8c]/14 border-[#f08c8c]/30 text-[#f2a3a3] shadow-[0_0_12px_rgba(240,140,140,0.14)]'
             : 'bg-[#07111d]/60 border-[#30455c]/80 text-[#95a7ba] hover:text-[#f2a3a3] hover:bg-[#f08c8c]/10'
@@ -133,8 +133,8 @@ export const ReciterCard: React.FC<ReciterCardProps> = ({
       <span
         className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all ${
           isSelected
-            ? 'bg-[#e4ccb4] text-[#111d2d] shadow-lg shadow-[#9c6c3c]/20'
-            : 'bg-[#162538]/85 text-[#d0d9e3] border border-[#46607b]/50 group-hover:bg-[#e4ccb4] group-hover:text-[#111d2d]'
+            ? 'bg-[#e2d0ba] text-[#111d2d] shadow-lg shadow-[#8a7350]/20'
+            : 'bg-[#162538]/85 text-[#d0d9e3] border border-[#46607b]/50 group-hover:bg-[#e2d0ba] group-hover:text-[#111d2d]'
         }`}
       >
         {isPlayingThisReciter ? (
@@ -152,8 +152,8 @@ export const ReciterCard: React.FC<ReciterCardProps> = ({
 
   const shellClass = `glass-panel-interactive cursor-pointer rounded-2xl tap-feedback relative group ${
     isSelected
-      ? 'border-[#c9a06a]/40 bg-[#111d2d]/92 shadow-[0_0_28px_rgba(201,160,106,0.16)] ring-1 ring-[#e4ccb4]/25'
-      : 'hover:border-[#c9a06a]/30'
+      ? 'border-[#bfa078]/40 bg-[#111d2d]/92 shadow-[0_0_28px_rgba(191,160,120,0.16)] ring-1 ring-[#e2d0ba]/25'
+      : 'hover:border-[#bfa078]/30'
   }`;
 
   if (layout === 'stacked') {
@@ -174,7 +174,7 @@ export const ReciterCard: React.FC<ReciterCardProps> = ({
           <div
             className={`relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-2xl transition-transform duration-300 group-hover:scale-[1.03] ${
               isSelected
-                ? 'ring-2 ring-[#e4ccb4] ring-offset-2 ring-offset-[#07111d] shadow-[0_10px_28px_rgba(201,160,106,0.28)]'
+                ? 'ring-2 ring-[#e2d0ba] ring-offset-2 ring-offset-[#07111d] shadow-[0_10px_28px_rgba(191,160,120,0.28)]'
                 : 'border border-[#46607b]/45 shadow-[0_10px_24px_rgba(0,0,0,0.35)]'
             }`}
           >
@@ -185,7 +185,7 @@ export const ReciterCard: React.FC<ReciterCardProps> = ({
         <div className="min-w-0">
           {isPlayingThisReciter && (
             <div className="mb-1.5">
-              <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-[#e8d4bc] bg-[#e4ccb4]/10 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-[#e6d5c2] bg-[#e2d0ba]/10 px-2 py-0.5 rounded-full">
                 <Volume2 className="w-3 h-3 animate-playback-pulse" /> Lecture en cours
               </span>
             </div>
@@ -217,7 +217,7 @@ export const ReciterCard: React.FC<ReciterCardProps> = ({
       {/* Dominant portrait panel — fades into the card on the right */}
       <div
         className={`relative h-full w-[5.25rem] shrink-0 overflow-hidden rounded-l-2xl sm:w-[6.75rem] ${
-          isSelected ? 'shadow-[inset_0_0_0_1px_rgba(240,209,188,0.28)]' : ''
+          isSelected ? 'shadow-[inset_0_0_0_1px_rgba(241,232,220,0.28)]' : ''
         }`}
       >
         <ReciterPortrait
@@ -234,7 +234,7 @@ export const ReciterCard: React.FC<ReciterCardProps> = ({
           aria-hidden
         />
         {isPlayingThisReciter && (
-          <span className="absolute bottom-2 left-2 z-[3] inline-flex items-center gap-1 rounded-full border border-[#c9a06a]/35 bg-[#07111d]/75 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#e8d4bc] backdrop-blur-md">
+          <span className="absolute bottom-2 left-2 z-[3] inline-flex items-center gap-1 rounded-full border border-[#bfa078]/35 bg-[#07111d]/75 px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#e6d5c2] backdrop-blur-md">
             <Volume2 className="h-3 w-3 animate-playback-pulse" />
             Live
           </span>

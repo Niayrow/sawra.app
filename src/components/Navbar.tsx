@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Headphones } from '../icons/motion';
 import type { Reciter, Moshaf } from '../types';
 import { useAuth } from '../context/AuthContext';
@@ -47,8 +47,8 @@ export const ConnectedBadge: React.FC<{
     onClick={onClick}
     className={`nav-connected-badge inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1.5 tap-feedback transition-colors ${
       active
-        ? 'border-[#c9a06a]/45 bg-[#c9a06a]/18 text-[#e4ccb4]'
-        : 'border-[#c9a06a]/28 bg-[#c9a06a]/10 text-[#e4ccb4] hover:border-[#c9a06a]/45 hover:bg-[#c9a06a]/16'
+        ? 'border-[#bfa078]/45 bg-[#bfa078]/18 text-[#e2d0ba]'
+        : 'border-[#bfa078]/28 bg-[#bfa078]/10 text-[#e2d0ba] hover:border-[#bfa078]/45 hover:bg-[#bfa078]/16'
     }`}
     aria-label="Compte connecté"
     aria-current={active ? 'page' : undefined}
@@ -137,7 +137,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <span className="nav-tab__inner relative z-10 flex flex-col items-center gap-0.5 transition-transform duration-100 ease-out group-active:scale-95 md:gap-1">
           <span
             className={`nav-tab__icon flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-300 md:h-auto md:w-auto md:rounded-none md:bg-transparent ${
-              isActive ? 'bg-[#e4ccb4]/14 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] md:bg-transparent md:shadow-none' : ''
+              isActive ? 'bg-[#e2d0ba]/14 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] md:bg-transparent md:shadow-none' : ''
             }`}
           >
             <Icon
@@ -148,15 +148,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : {})}
               className={`nav-tab__glyph transition-colors duration-300 md:h-[17px] md:w-[17px] ${
                 isActive
-                  ? 'text-[#e4ccb4] drop-shadow-[0_0_10px_rgba(240,209,188,0.35)] md:drop-shadow-none'
-                  : 'text-[#7f93a8] group-hover:text-[#e8eef5] md:group-hover:text-[#e8d4bc]'
+                  ? 'text-[#e2d0ba] drop-shadow-[0_0_10px_rgba(241,232,220,0.35)] md:drop-shadow-none'
+                  : 'text-[#7f93a8] group-hover:text-[#e8eef5] md:group-hover:text-[#e6d5c2]'
               }`}
             />
           </span>
           <span
             className={`nav-tab__label text-[10px] font-semibold tracking-wide transition-colors duration-300 md:text-[12px] md:leading-none ${
               isActive
-                ? 'text-[#e8d4bc] md:font-bold'
+                ? 'text-[#e6d5c2] md:font-bold'
                 : 'text-[#7a8fa3] group-hover:text-[#e8eef5] md:font-medium md:text-[#9fb1c3]'
             }`}
           >
@@ -238,14 +238,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                     width="44"
                     height="44"
                     decoding="async"
-                    className="h-10 w-10 shrink-0 object-contain drop-shadow-[0_2px_16px_rgba(201,160,106,0.42)] transition-transform duration-300 group-hover/nav-brand:scale-105"
+                    className="h-10 w-10 shrink-0 object-contain drop-shadow-[0_2px_16px_rgba(191,160,120,0.42)] transition-transform duration-300 group-hover/nav-brand:scale-105"
                     draggable={false}
                   />
                   <span className="flex flex-col items-start justify-center leading-none">
                     <span className="reciter-name-gradient is-selected text-[1.05rem] font-black tracking-[-0.03em]">
                       Sawra
                     </span>
-                    <span className="mt-1 text-[9px] font-bold uppercase tracking-[0.22em] text-[#c9a06a]/80">
+                    <span className="mt-1 text-[9px] font-bold uppercase tracking-[0.22em] text-[#bfa078]/80">
                       Coran
                     </span>
                   </span>
@@ -285,7 +285,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 />
               </div>
               <div className="nav-reciter-fusion-meta min-w-0 flex-1">
-                <p className="text-[10px] uppercase font-bold tracking-wider text-[#e4ccb4]/90">
+                <p className="text-[10px] uppercase font-bold tracking-wider text-[#e2d0ba]/90">
                   Récitateur
                 </p>
                 <p className="text-sm font-semibold text-[#f6f8fb] truncate">{reciterFusion.reciter.name}</p>
@@ -310,11 +310,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               aria-hidden={fusionProgress < 0.05}
               style={{ pointerEvents: fusionProgress >= 0.85 ? 'auto' : 'none' }}
             >
-              <div className="nav-reciter-fusion-avatar flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#c9a06a]/35 bg-[#e4ccb4]/12 text-[#e4ccb4]">
+              <div className="nav-reciter-fusion-avatar flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#bfa078]/35 bg-[#e2d0ba]/12 text-[#e2d0ba]">
                 <Headphones className="h-4 w-4" />
               </div>
               <div className="nav-reciter-fusion-meta min-w-0 flex-1">
-                <p className="text-[10px] uppercase font-bold tracking-wider text-[#e4ccb4]/90">
+                <p className="text-[10px] uppercase font-bold tracking-wider text-[#e2d0ba]/90">
                   Explorer
                 </p>
                 <p className="text-sm font-semibold text-[#f6f8fb] truncate">Les voix</p>

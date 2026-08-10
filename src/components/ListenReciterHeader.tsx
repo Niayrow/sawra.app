@@ -124,7 +124,7 @@ export const ListenReciterHeader: React.FC<ListenReciterHeaderProps> = ({
           }`}
         >
           <div className="flex items-center gap-3.5 pt-0 md:gap-5 md:min-w-0 md:flex-1 max-[390px]:gap-2">
-            <div className="reciter-fusion-avatar relative h-[5.5rem] w-[5.5rem] shrink-0 overflow-hidden rounded-full border-2 border-[#c9a06a]/40 bg-[#111d2d] shadow-[0_0_28px_rgba(201,160,106,0.18)] sm:h-24 sm:w-24 max-[390px]:h-14 max-[390px]:w-14 max-[390px]:border">
+            <div className="reciter-fusion-avatar relative h-[5.5rem] w-[5.5rem] shrink-0 overflow-hidden rounded-full border-2 border-[#bfa078]/40 bg-[#111d2d] shadow-[0_0_28px_rgba(191,160,120,0.18)] sm:h-24 sm:w-24 max-[390px]:h-14 max-[390px]:w-14 max-[390px]:border">
               <ReciterPortrait
                 reciter={activeReciter}
                 width={96}
@@ -154,7 +154,7 @@ export const ListenReciterHeader: React.FC<ListenReciterHeaderProps> = ({
                       <span className="max-[390px]:hidden">{availableSurahCount} sourates disponibles</span>
                       <span className="hidden max-[390px]:inline">{availableSurahCount} sourates</span>
                       {offlineSurahCount > 0 ? (
-                        <span className="font-medium text-[#c9a06a]">
+                        <span className="font-medium text-[#bfa078]">
                           <span className="px-1 text-[#5f7388]">·</span>
                           <span className="max-[390px]:hidden">dont {offlineSurahCount} hors ligne</span>
                           <span className="hidden max-[390px]:inline">{offlineSurahCount} hors ligne</span>
@@ -184,7 +184,7 @@ export const ListenReciterHeader: React.FC<ListenReciterHeaderProps> = ({
               aria-pressed={isFavorite}
               className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition-colors tap-feedback md:h-11 md:w-11 max-[390px]:h-9 max-[390px]:w-9 ${
                 isFavorite
-                  ? 'border-[#c9a06a]/45 bg-[#e4ccb4]/16 text-[#e4ccb4]'
+                  ? 'border-[#bfa078]/45 bg-[#e2d0ba]/16 text-[#e2d0ba]'
                   : 'border-[#46607b] bg-[#162538]/70 text-[#aab7c5] hover:text-[#f6f8fb]'
               }`}
               tabIndex={controlsDisabled ? -1 : 0}
@@ -213,7 +213,7 @@ export const ListenReciterHeader: React.FC<ListenReciterHeaderProps> = ({
             aria-hidden={progress >= 0.08}
           >
             <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[#95a7ba]">
-              <Disc className="h-3 w-3 text-[#e4ccb4]" />
+              <Disc className="h-3 w-3 text-[#e2d0ba]" />
               Riwaya
             </span>
             <div className="flex flex-wrap gap-1.5">
@@ -226,7 +226,7 @@ export const ListenReciterHeader: React.FC<ListenReciterHeaderProps> = ({
                     onClick={() => onSelectMoshaf(m)}
                     className={`rounded-lg border px-2.5 py-1 text-[10px] font-medium transition-all tap-feedback ${
                       isMoshafSelected
-                        ? 'border-[#c9a06a]/35 bg-[#e4ccb4]/12 text-[#e8d4bc]'
+                        ? 'border-[#bfa078]/35 bg-[#e2d0ba]/12 text-[#e6d5c2]'
                         : 'border-[#30455c] bg-[#111d2d]/68 text-[#b4c0ce] hover:bg-[#162538] hover:text-[#e6edf5]'
                     }`}
                     tabIndex={progress >= 0.08 ? -1 : 0}

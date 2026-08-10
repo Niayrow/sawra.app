@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Cloud, Heart, Headphones, X, LogIn } from '../icons/motion';
 
 interface AuthPromptModalProps {
@@ -29,7 +29,7 @@ export const AuthPromptModal: React.FC<AuthPromptModalProps> = ({
       />
 
       <div className="relative z-10 w-full max-w-md overflow-hidden rounded-t-3xl sm:rounded-3xl brand-card shadow-[0_20px_60px_rgba(0,0,0,0.55)] animate-[slide-up_0.28s_cubic-bezier(0.16,1,0.3,1)]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(240,209,188,0.16),transparent_50%)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(241,232,220,0.16),transparent_50%)] pointer-events-none" />
 
         <div className="relative px-5 pt-4 pb-5">
           <div className="flex justify-center sm:hidden mb-3">
@@ -42,7 +42,7 @@ export const AuthPromptModal: React.FC<AuthPromptModalProps> = ({
                 <Cloud className="h-5 w-5" />
               </span>
               <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-widest text-[#e4ccb4]">
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#e2d0ba]">
                   Compte Sawra
                 </p>
                 <h2 id="auth-prompt-title" className="text-lg font-black text-[#f6f8fb] leading-tight">

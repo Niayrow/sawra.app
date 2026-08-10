@@ -50,11 +50,11 @@ const ReciterSlotPicker: React.FC<ReciterSlotPickerProps> = ({
   }, [reciters, query]);
 
   return (
-    <div className={`flex flex-col gap-3 rounded-2xl border p-4 transition-all ${borderClass} ${isActive ? 'ring-1 ring-[#e4ccb4]/24 shadow-lg' : 'bg-[#111d2d]/40'}`}>
+    <div className={`flex flex-col gap-3 rounded-2xl border p-4 transition-all ${borderClass} ${isActive ? 'ring-1 ring-[#e2d0ba]/24 shadow-lg' : 'bg-[#111d2d]/40'}`}>
       <div className="flex items-center justify-between gap-2">
         <span className={`text-[10px] font-black uppercase tracking-widest ${accentClass}`}>{label}</span>
         {isActive && status === 'playing' && (
-          <span className="text-[9px] font-bold uppercase tracking-wider text-[#e4ccb4] animate-pulse">En lecture</span>
+          <span className="text-[9px] font-bold uppercase tracking-wider text-[#e2d0ba] animate-pulse">En lecture</span>
         )}
       </div>
 
@@ -81,7 +81,7 @@ const ReciterSlotPicker: React.FC<ReciterSlotPickerProps> = ({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={`Récitateur ${side}…`}
-          className="w-full pl-9 pr-3 py-2 bg-[#07111d]/70 border border-[#30455c] rounded-xl text-xs text-[#e6edf5] placeholder:text-[#8295aa] focus:outline-none focus:border-[#c9a06a]/45"
+          className="w-full pl-9 pr-3 py-2 bg-[#07111d]/70 border border-[#30455c] rounded-xl text-xs text-[#e6edf5] placeholder:text-[#8295aa] focus:outline-none focus:border-[#bfa078]/45"
         />
       </div>
 
@@ -96,7 +96,7 @@ const ReciterSlotPicker: React.FC<ReciterSlotPickerProps> = ({
               }}
               className={`text-left text-xs px-3 py-2 rounded-lg transition-colors ${
                 reciter?.id === r.id
-                  ? 'bg-[#e4ccb4]/12 text-[#e8d4bc]'
+                  ? 'bg-[#e2d0ba]/12 text-[#e6d5c2]'
                   : 'text-[#d0d9e3] hover:bg-[#162538]/85'
               }`}
             >
@@ -131,8 +131,8 @@ const CompareSlotControls: React.FC<CompareSlotControlsProps> = ({
     disabled={!reciter}
     className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all tap-feedback disabled:opacity-40 disabled:cursor-not-allowed ${
       isActive && status === 'playing'
-        ? 'bg-[#e4ccb4] text-[#111d2d] shadow-lg shadow-[#9c6c3c]/20'
-        : 'bg-[#111d2d] border border-[#30455c] text-[#e6edf5] hover:border-[#c9a06a]/35'
+        ? 'bg-[#e2d0ba] text-[#111d2d] shadow-lg shadow-[#8a7350]/20'
+        : 'bg-[#111d2d] border border-[#30455c] text-[#e6edf5] hover:border-[#bfa078]/35'
     }`}
   >
     {status === 'buffering' ? (
@@ -210,7 +210,7 @@ export const ReciterCompare: React.FC = () => {
       </div>
 
       {!canCompare && reciterA && reciterB && reciterA.id === reciterB.id && (
-        <div className="flex items-center gap-2 text-xs text-[#e8d4bc] bg-[#e4ccb4]/10 border border-[#c9a06a]/20 rounded-xl px-4 py-3">
+        <div className="flex items-center gap-2 text-xs text-[#e6d5c2] bg-[#e2d0ba]/10 border border-[#bfa078]/20 rounded-xl px-4 py-3">
           <AlertCircle className="w-4 h-4 shrink-0" />
           Choisissez deux récitateurs différents pour comparer.
         </div>
@@ -248,7 +248,7 @@ export const ReciterCompare: React.FC = () => {
           ))}
         </div>
         <p className="text-center text-sm text-[#d0d9e3]">
-          <span className="font-serif arabic-text text-[#e4ccb4] text-lg mr-2">{surah.arabicName}</span>
+          <span className="font-serif arabic-text text-[#e2d0ba] text-lg mr-2">{surah.arabicName}</span>
           {surah.name} — {surah.translation}
         </p>
       </div>
@@ -268,8 +268,8 @@ export const ReciterCompare: React.FC = () => {
         <ReciterSlotPicker
           label="Voix B"
           side="B"
-          accentClass="text-[#e4ccb4]"
-          borderClass={activeSide === 'B' ? 'border-[#c9a06a]/40 bg-[#e4ccb4]/6' : 'border-[#30455c]/60'}
+          accentClass="text-[#e2d0ba]"
+          borderClass={activeSide === 'B' ? 'border-[#bfa078]/40 bg-[#e2d0ba]/6' : 'border-[#30455c]/60'}
           reciter={reciterB}
           reciters={reciters}
           isActive={activeSide === 'B'}
@@ -292,7 +292,7 @@ export const ReciterCompare: React.FC = () => {
           reciter={reciterB}
           status={slotB.status}
           isActive={activeSide === 'B'}
-          accentClass="text-[#e4ccb4]"
+          accentClass="text-[#e2d0ba]"
           onToggle={() => void toggleSide('B')}
         />
       </div>
@@ -306,7 +306,7 @@ export const ReciterCompare: React.FC = () => {
           void switchActiveSide(activeSide === 'A' ? 'B' : 'A');
         }}
         disabled={!canCompare}
-        className="w-full py-3.5 rounded-2xl border border-[#46607b] bg-[#111d2d]/78 text-[#e6edf5] font-bold text-sm flex items-center justify-center gap-2 hover:border-[#c9a06a]/35 hover:text-[#e8d4bc] transition-all tap-feedback disabled:opacity-40"
+        className="w-full py-3.5 rounded-2xl border border-[#46607b] bg-[#111d2d]/78 text-[#e6edf5] font-bold text-sm flex items-center justify-center gap-2 hover:border-[#bfa078]/35 hover:text-[#e6d5c2] transition-all tap-feedback disabled:opacity-40"
       >
         <ArrowLeftRight className="w-4 h-4" />
         Basculer A ↔ B (même position)
@@ -331,7 +331,7 @@ export const ReciterCompare: React.FC = () => {
           className="w-full h-1.5 bg-[#162538] rounded-lg appearance-none cursor-pointer disabled:opacity-40"
           style={{
             background: activeSide
-              ? `linear-gradient(to right, ${activeSide === 'A' ? '#7990a1' : '#c9a06a'} 0%, ${activeSide === 'A' ? '#7990a1' : '#c9a06a'} ${progressPercent}%, #162538 ${progressPercent}%, #162538 100%)`
+              ? `linear-gradient(to right, ${activeSide === 'A' ? '#7990a1' : '#bfa078'} 0%, ${activeSide === 'A' ? '#7990a1' : '#bfa078'} ${progressPercent}%, #162538 ${progressPercent}%, #162538 100%)`
               : undefined,
           }}
         />

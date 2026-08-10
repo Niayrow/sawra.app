@@ -105,14 +105,14 @@ export const DownloadedSurahsPage: React.FC<DownloadedSurahsPageProps> = ({
           <span
             className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${
               offlineMode
-                ? 'bg-amber-400/12 text-amber-300'
-                : 'bg-[#20334a] text-[#e4ccb4]'
+                ? 'bg-[#bfa078]/12 text-[#e2d0ba]'
+                : 'bg-[#20334a] text-[#e2d0ba]'
             }`}
           >
             {offlineMode ? <WifiOff className="h-4.5 w-4.5" /> : <Download className="h-4.5 w-4.5" />}
           </span>
         </div>
-        <p className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#c9a06a]/25 bg-[#e4ccb4]/10 px-3 py-1 text-[11px] font-bold text-[#e8d4bc]">
+        <p className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#bfa078]/25 bg-[#e2d0ba]/10 px-3 py-1 text-[11px] font-bold text-[#e6d5c2]">
           <CloudCheck className="h-3.5 w-3.5" />
           {entries.length} sourate{entries.length !== 1 ? 's' : ''} hors-ligne
         </p>
@@ -167,7 +167,7 @@ export const DownloadedSurahsPage: React.FC<DownloadedSurahsPageProps> = ({
                   </span>
                   <ChevronDown
                     className={`h-4.5 w-4.5 shrink-0 text-[#95a7ba] transition-transform duration-250 ${
-                      isOpen ? 'rotate-180 text-[#e8d4bc]' : ''
+                      isOpen ? 'rotate-180 text-[#e6d5c2]' : ''
                     }`}
                     aria-hidden
                   />
@@ -195,19 +195,19 @@ export const DownloadedSurahsPage: React.FC<DownloadedSurahsPageProps> = ({
                               type="button"
                               onClick={() => handlePlay(entry)}
                               className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors tap-feedback ${
-                                isCurrent ? 'bg-[#e4ccb4]/08' : 'hover:bg-[#162538]/70'
+                                isCurrent ? 'bg-[#e2d0ba]/08' : 'hover:bg-[#162538]/70'
                               }`}
                             >
                               <span
                                 className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold tabular-nums ${
                                   isCurrent
-                                    ? 'border-[#c9a06a]/45 bg-[#e4ccb4]/16 text-[#e8d4bc]'
+                                    ? 'border-[#bfa078]/45 bg-[#e2d0ba]/16 text-[#e6d5c2]'
                                     : 'border-[#46607b]/50 bg-[#0c1522] text-[#aab7c5]'
                                 }`}
                               >
                                 {isPlaying ? (
                                   <span className="flex h-3 items-end gap-0.5">
-                                    <span className="w-0.5 h-full rounded-full bg-[#e4ccb4] animate-[shimmer_0.6s_infinite_alternate]" />
+                                    <span className="w-0.5 h-full rounded-full bg-[#e2d0ba] animate-[shimmer_0.6s_infinite_alternate]" />
                                     <span className="w-0.5 h-2/3 rounded-full bg-white/80 animate-[shimmer_0.6s_infinite_alternate]" />
                                     <span className="w-0.5 h-full rounded-full bg-[#7990a1] animate-[shimmer_0.6s_infinite_alternate]" />
                                   </span>
@@ -227,7 +227,7 @@ export const DownloadedSurahsPage: React.FC<DownloadedSurahsPageProps> = ({
                               </span>
                               <Play
                                 className={`h-4 w-4 shrink-0 ${
-                                  isCurrent ? 'text-[#e8d4bc]' : 'text-[#7f93a8]'
+                                  isCurrent ? 'text-[#e6d5c2]' : 'text-[#7f93a8]'
                                 }`}
                               />
                             </button>

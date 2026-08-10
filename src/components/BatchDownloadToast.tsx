@@ -221,14 +221,14 @@ export const BatchDownloadToast: React.FC = () => {
               className={`absolute inset-x-0 top-0 h-px ${
                 isDone
                   ? 'bg-gradient-to-r from-transparent via-[#4ade80]/70 to-transparent'
-                  : 'bg-gradient-to-r from-transparent via-[#e4ccb4]/50 to-transparent'
+                  : 'bg-gradient-to-r from-transparent via-[#e2d0ba]/50 to-transparent'
               }`}
               aria-hidden
             />
 
             {!isDone ? (
               <div
-                className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-[radial-gradient(circle,rgba(240,209,188,0.14)_0%,transparent_70%)]"
+                className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-[radial-gradient(circle,rgba(241,232,220,0.14)_0%,transparent_70%)]"
                 aria-hidden
               />
             ) : null}
@@ -255,7 +255,7 @@ export const BatchDownloadToast: React.FC = () => {
                     cy={RING_SIZE / 2}
                     r={RING_RADIUS}
                     fill="none"
-                    stroke={isDone ? '#4ade80' : '#e4ccb4'}
+                    stroke={isDone ? '#4ade80' : '#e2d0ba'}
                     strokeWidth={RING_STROKE}
                     strokeLinecap="round"
                     strokeDasharray={RING_CIRCUMFERENCE}
@@ -267,7 +267,7 @@ export const BatchDownloadToast: React.FC = () => {
                   className={`absolute inset-[5px] flex items-center justify-center rounded-full ${
                     isDone
                       ? 'bg-[#4ade80]/18 text-[#86efac]'
-                      : 'bg-[#e4ccb4]/16 text-[#f0e2d0]'
+                      : 'bg-[#e2d0ba]/16 text-[#f1e8dc]'
                   }`}
                 >
                   {isDone ? (
@@ -300,7 +300,7 @@ export const BatchDownloadToast: React.FC = () => {
                   {!alreadyUpToDate ? (
                     <span
                       className={`shrink-0 pt-0.5 text-[18px] font-black tabular-nums leading-none tracking-tight ${
-                        isDone ? 'text-[#4ade80]' : 'text-[#e4ccb4]'
+                        isDone ? 'text-[#4ade80]' : 'text-[#e2d0ba]'
                       }`}
                     >
                       {percent}
@@ -319,7 +319,7 @@ export const BatchDownloadToast: React.FC = () => {
                       className={`absolute inset-y-0 left-0 overflow-hidden rounded-full ${
                         isDone
                           ? 'bg-gradient-to-r from-[#22c55e] to-[#4ade80]'
-                          : 'bg-gradient-to-r from-[#9c6c3c] via-[#c9a06a] to-[#e4ccb4]'
+                          : 'bg-gradient-to-r from-[#8a7350] via-[#bfa078] to-[#e2d0ba]'
                       }`}
                       style={{ width: `${barWidth}%` }}
                     >

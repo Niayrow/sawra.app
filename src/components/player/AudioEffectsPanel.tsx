@@ -172,12 +172,12 @@ export const AudioEffectsPanel: React.FC<Props> = ({ effects, supported, theme, 
           className={`rounded-xl border-2 px-1.5 py-2.5 text-center transition-[opacity,filter,border-color,background-color,box-shadow] duration-200 tap-feedback outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#07111d] ${
             customActive
               ? `${theme.accentBgLight} ${theme.accentBorderActive}`
-              : 'border-dashed border-[#c9a06a]/35 bg-[#e4ccb4]/[0.04] opacity-[0.48] hover:opacity-75'
+              : 'border-dashed border-[#bfa078]/35 bg-[#e2d0ba]/[0.04] opacity-[0.48] hover:opacity-75'
           }`}
           style={
             customActive
               ? { boxShadow: `0 0 0 1px ${theme.sliderAccentColor}66, 0 0 18px ${theme.sliderAccentColor}28` }
-              : { boxShadow: 'inset 0 1px 0 rgba(240,209,188,0.05)' }
+              : { boxShadow: 'inset 0 1px 0 rgba(241,232,220,0.05)' }
           }
           title="Réglages manuels"
           aria-pressed={customActive}

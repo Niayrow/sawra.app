@@ -126,18 +126,18 @@ export const AboutPanel: React.FC<AboutPanelProps> = ({ onOpenLegal }) => {
   return (
     <div className="flex flex-col gap-5 pb-8">
       <div className="relative overflow-hidden rounded-3xl brand-card p-6">
-        <div className="absolute -top-16 -right-10 h-40 w-40 rounded-full bg-[#e4ccb4]/14 blur-3xl pointer-events-none" />
+        <div className="absolute -top-16 -right-10 h-40 w-40 rounded-full bg-[#e2d0ba]/14 blur-3xl pointer-events-none" />
         <div className="relative">
           <div className="flex items-center gap-3">
             <img
               src="/icons/sansfond.webp"
               alt=""
-              className="h-11 w-11 object-contain drop-shadow-[0_2px_12px_rgba(201,160,106),0.45)]"
+              className="h-11 w-11 object-contain drop-shadow-[0_2px_12px_rgba(191,160,120),0.45)]"
               draggable={false}
             />
             <div>
               <div className="flex items-center gap-2">
-                <Compass className="w-4 h-4 text-[#e4ccb4]" />
+                <Compass className="w-4 h-4 text-[#e2d0ba]" />
                 <h2 className="text-xl font-bold text-[#f6f8fb]">À propos de Sawra</h2>
               </div>
               <p className="mt-1 text-sm leading-relaxed text-[#b4c0ce]">
@@ -165,7 +165,7 @@ export const AboutPanel: React.FC<AboutPanelProps> = ({ onOpenLegal }) => {
 
       <div className="glass-panel rounded-3xl border border-[#30455c]/60 p-5 flex flex-col gap-4">
         <div className="flex items-center gap-2">
-          <History className="w-4 h-4 text-[#e4ccb4]" />
+          <History className="w-4 h-4 text-[#e2d0ba]" />
           <h3 className="text-sm font-bold text-[#f6f8fb]">Historique des mises à jour</h3>
         </div>
 
@@ -176,7 +176,7 @@ export const AboutPanel: React.FC<AboutPanelProps> = ({ onOpenLegal }) => {
               <span
                 className={`absolute left-0 top-1.5 h-3.5 w-3.5 rounded-full border-2 ${
                   index === 0
-                    ? 'border-[#e4ccb4] bg-[#c9a06a]/40'
+                    ? 'border-[#e2d0ba] bg-[#bfa078]/40'
                     : 'border-[#46607b] bg-[#111d2d]'
                 }`}
                 aria-hidden
@@ -185,11 +185,11 @@ export const AboutPanel: React.FC<AboutPanelProps> = ({ onOpenLegal }) => {
                 <span className="text-sm font-bold text-[#f6f8fb]">v{release.version}</span>
                 <span className="text-[11px] text-[#95a7ba]">{release.date}</span>
               </div>
-              <p className="mt-0.5 text-xs font-semibold text-[#e8d4bc]">{release.title}</p>
+              <p className="mt-0.5 text-xs font-semibold text-[#e6d5c2]">{release.title}</p>
               <ul className="mt-2 flex flex-col gap-1.5">
                 {release.items.map((item) => (
                   <li key={item} className="text-[12px] leading-relaxed text-[#b4c0ce] flex gap-2">
-                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#9c6c3c]" aria-hidden />
+                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-[#8a7350]" aria-hidden />
                     <span>{item}</span>
                   </li>
                 ))}
@@ -244,7 +244,7 @@ export const AboutPanel: React.FC<AboutPanelProps> = ({ onOpenLegal }) => {
           <button
             type="button"
             onClick={handleClear}
-            className="mt-1 flex min-h-11 items-center justify-center gap-2 w-full py-2.5 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 hover:border-rose-500/40 text-rose-400 text-xs font-semibold rounded-xl transition-all duration-200 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a]"
+            className="mt-1 flex min-h-11 items-center justify-center gap-2 w-full py-2.5 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 hover:border-rose-500/40 text-rose-400 text-xs font-semibold rounded-xl transition-all duration-200 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078]"
           >
             <Trash2 className="w-4 h-4" />
             <span>Vider le cache hors-ligne</span>
@@ -263,9 +263,9 @@ export const AboutPanel: React.FC<AboutPanelProps> = ({ onOpenLegal }) => {
               key={id}
               type="button"
               onClick={() => onOpenLegal(id)}
-              className="flex min-h-11 items-center gap-2 rounded-2xl border border-[#30455c]/55 bg-[#111d2d]/70 px-3.5 py-3 text-left text-xs font-semibold text-[#d0d9e3] transition-colors hover:border-[#46607b]/60 hover:text-[#f6f8fb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a] tap-feedback"
+              className="flex min-h-11 items-center gap-2 rounded-2xl border border-[#30455c]/55 bg-[#111d2d]/70 px-3.5 py-3 text-left text-xs font-semibold text-[#d0d9e3] transition-colors hover:border-[#46607b]/60 hover:text-[#f6f8fb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] tap-feedback"
             >
-              <Icon className="h-4 w-4 shrink-0 text-[#e4ccb4]" aria-hidden />
+              <Icon className="h-4 w-4 shrink-0 text-[#e2d0ba]" aria-hidden />
               {label}
             </button>
           ))}
@@ -273,7 +273,7 @@ export const AboutPanel: React.FC<AboutPanelProps> = ({ onOpenLegal }) => {
       )}
 
       <div className="rounded-2xl border border-[#30455c]/40 bg-[#111d2d]/45 p-4 flex items-center gap-3">
-        <Sparkles className="w-5 h-5 text-[#e4ccb4] shrink-0" />
+        <Sparkles className="w-5 h-5 text-[#e2d0ba] shrink-0" />
         <p className="text-[11px] text-[#b4c0ce] leading-relaxed">
           Conçu pour une écoute sereine : sources claires, données maîtrisées, Coran au centre.
         </p>
@@ -285,7 +285,7 @@ export const AboutPanel: React.FC<AboutPanelProps> = ({ onOpenLegal }) => {
           href="https://sofianeweb.fr"
           target="_blank"
           rel="noopener noreferrer"
-          className="group flex min-h-9 items-center gap-1.5 rounded-full border border-[#30455c]/40 bg-[#111d2d]/45 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-[#aab7c5] transition-all duration-300 hover:border-[#46607b]/60 hover:bg-[#162538] hover:text-[#eef3f8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c9a06a]"
+          className="group flex min-h-9 items-center gap-1.5 rounded-full border border-[#30455c]/40 bg-[#111d2d]/45 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-[#aab7c5] transition-all duration-300 hover:border-[#46607b]/60 hover:bg-[#162538] hover:text-[#eef3f8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078]"
         >
           <span>Créé par sofianeweb.fr</span>
           <span className="inline-block transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>

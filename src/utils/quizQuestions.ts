@@ -434,11 +434,11 @@ export async function createQuizSession(
     const voices = voicesForSurah(eligible, surahId);
     if (!voices.length) continue;
 
-    const preferred =
+    const preferred: EligibleVoice[] =
       voices.length > 1 && lastReciterId != null
         ? voices.filter((v) => v.reciter.id !== lastReciterId)
         : voices;
-    const voice = pickRandom(preferred.length ? preferred : voices);
+    const voice: EligibleVoice = pickRandom(preferred.length ? preferred : voices);
     lastReciterId = voice.reciter.id;
     planned.push({ target, voice });
   }

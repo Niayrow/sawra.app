@@ -64,6 +64,11 @@ const SEO_BY_VIEW: Record<string, SeoDoc> = {
     description:
       'Écoutez un verset et trouvez de quelle sourate il vient. Quiz gratuit du Coran, sans publicité, sur Sawra.',
   },
+  learn: {
+    title: 'Apprendre le Coran — Flou, écoute, révélation | Sawra',
+    description:
+      'Entraînez-vous verset par verset : écoutez, récitez à voix haute, puis révélez le texte. Apprentissage gratuit du Coran sur Sawra.',
+  },
 };
 
 const setMetaContent = (selector: string, content: string, attr = 'content') => {

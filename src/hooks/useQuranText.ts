@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { QuranAyah } from '../types';
+import { toFrenchPhonetic } from '../utils/frenchPhonetic';
 
 /** Hamidullah — traduction française (quran.com resource id) */
 const FR_TRANSLATION_ID = 31;
 /** Bump when payload / cleaning changes (invalidates in-memory cache) */
-const TEXT_CACHE_VERSION = 3;
+const TEXT_CACHE_VERSION = 4;
 
 const ayahCache = new Map<string, QuranAyah[]>();
 
@@ -46,13 +47,14 @@ const stripHtml = (raw: string): string =>
 
 const phoneticFromWords = (words: ApiWord[] | undefined): string => {
   if (!words?.length) return '';
-  return words
+  const raw = words
     .filter((w) => (w.char_type_name ?? 'word') === 'word')
     .map((w) => w.transliteration?.text?.trim())
     .filter((t): t is string => Boolean(t))
     .join(' ')
     .replace(/\s+/g, ' ')
     .trim();
+  return toFrenchPhonetic(raw);
 };
 
 const mapVerses = (verses: ApiVerse[]): QuranAyah[] =>

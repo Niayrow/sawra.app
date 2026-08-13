@@ -5,7 +5,7 @@ import {
 } from '../icons/motion';
 import { useAudio } from '../context/AudioContext';
 
-export const APP_VERSION = '1.4.0';
+export const APP_VERSION = '1.5.0';
 
 type LegalPanelId = 'sources' | 'privacy' | 'terms';
 
@@ -19,6 +19,18 @@ const UPDATE_HISTORY: Array<{
   title: string;
   items: string[];
 }> = [
+  {
+    version: '1.5.0',
+    date: '13 août 2026',
+    title: 'Quiz, Apprendre & navigation Pratiquer',
+    items: [
+      'Quiz Coran : « De quelle sourate ? », 5/10/15 questions, niveaux Facile / Moyen / Difficile, récitateurs verset par verset.',
+      'Quiz : clips de 2 versets, changement de voix à chaque question, relecture + suite après une bonne réponse.',
+      'Nouvelle page Apprendre : flou / écoute / révélation, phonétique, taille de groupe libre, préférences mémorisées.',
+      'Navbar Pratiquer (menu bulle Quiz / Apprendre) ; Options dans le header mobile ; dock bas allégé.',
+      'Accueil : Lecture | Explorer · Quiz | Apprendre ; fusion Explorer et animation Pratiquer peaufinées.',
+    ],
+  },
   {
     version: '1.4.0',
     date: '9 août 2026',

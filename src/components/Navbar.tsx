@@ -1,11 +1,14 @@
-import React from 'react';
-import { Headphones } from '../icons/motion';
+import React, { useState } from 'react';
+import { Headphones, Sparkles } from '../icons/motion';
 import type { Reciter, Moshaf } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { ReciterPortrait } from './ReciterPortrait';
 import type { NavDesktopStyle } from '../utils/navDesktopStyle';
 import { useNavMotionIcons, type NavTabIcon } from '../hooks/useNavMotionIcons';
 import { NavbarDesktopClassic } from './NavbarDesktopClassic';
+import { NavPracticeMenu } from './NavPracticeMenu';
+import { MobileAppHeader } from './MobileAppHeader';
+import { MobilePracticeSheet } from './MobilePracticeSheet';
 
 type NavTabId = 'home' | 'listen' | 'moments' | 'favorites' | 'account' | 'more';
 
@@ -32,6 +35,8 @@ interface NavbarProps {
   showMoments?: boolean;
   reciterFusion?: ReciterNavFusionProps | null;
   exploreFusion?: ExploreNavFusionProps | null;
+  onOpenQuiz?: () => void;
+  onOpenLearn?: () => void;
 }
 
 const LOGO_SRC = '/icons/appicon.webp';
@@ -72,6 +77,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   showMoments = true,
   reciterFusion = null,
   exploreFusion = null,
+  onOpenQuiz,
+  onOpenLearn,
 }) => {
   const useClassicDesktop = desktopStyle === 'classic';
   const { ready: motionReady, icons, MotionIconConfig } = useNavMotionIcons();
@@ -80,6 +87,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const connectedLabel = profile?.display_name?.trim()
     ? profile.display_name.trim().slice(0, 12)
     : 'Connecté';
+  const [practiceOpen, setPracticeOpen] = useState(false);
 
   const desktopTabs: Array<{ id: Exclude<NavTabId, 'more'>; label: string; icon: NavTabIcon }> = [
     { id: 'home', label: 'Accueil', icon: icons.home },
@@ -93,7 +101,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       : []),
   ];
 
-  /** Mobile: 4 onglets — Moments vit sous Favoris, Connexion dans Options */
+  /** Mobile: Accueil · Écouter · Favoris · Pratiquer (Options est dans le header) */
   const mobileTabs: Array<{
     id: Exclude<NavTabId, 'more' | 'moments' | 'account'>;
     label: string;
@@ -122,6 +130,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         key={id}
         type="button"
         onClick={() => {
+          setPracticeOpen(false);
           if (activeTab === id) return;
           if (options?.alsoActive?.includes(activeTab)) return;
           setActiveTab(id);
@@ -136,7 +145,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <span className="nav-tab__indicator md:hidden" aria-hidden />
         <span className="nav-tab__inner relative z-10 flex flex-col items-center gap-0.5 transition-transform duration-100 ease-out group-active:scale-95 md:gap-1">
           <span
-            className={`nav-tab__icon flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-300 md:h-auto md:w-auto md:rounded-none md:bg-transparent ${
+            className={`nav-tab__icon relative flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-300 md:h-auto md:w-auto md:rounded-none md:bg-transparent ${
               isActive ? 'bg-[#e2d0ba]/14 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] md:bg-transparent md:shadow-none' : ''
             }`}
           >
@@ -176,8 +185,31 @@ export const Navbar: React.FC<NavbarProps> = ({
       ? ({ ['--fusion-p' as string]: String(fusionProgress) } as React.CSSProperties)
       : undefined;
 
+  const canPractice = Boolean(onOpenQuiz && onOpenLearn);
+
   const tabs = (
     <>
+      <MobileAppHeader
+        onHome={() => {
+          setPracticeOpen(false);
+          setActiveTab('home');
+        }}
+        onOptions={() => {
+          setPracticeOpen(false);
+          setActiveTab('more');
+        }}
+        optionsActive={activeTab === 'more'}
+      />
+
+      {canPractice && (
+        <MobilePracticeSheet
+          open={practiceOpen}
+          onClose={() => setPracticeOpen(false)}
+          onOpenQuiz={onOpenQuiz!}
+          onOpenLearn={onOpenLearn!}
+        />
+      )}
+
       {useClassicDesktop && (
         <NavbarDesktopClassic
           activeTab={activeTab}
@@ -189,12 +221,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           motionReady={motionReady}
           isSignedIn={isSignedIn}
           connectedLabel={connectedLabel}
+          onOpenQuiz={onOpenQuiz}
+          onOpenLearn={onOpenLearn}
         />
       )}
 
       <nav
         style={useClassicDesktop ? undefined : fusionStyle}
-        className={`fixed z-50 glass-panel-opaque backdrop-blur-2xl transition-[box-shadow] duration-300 ease-out overflow-hidden nav-reciter-fusion-shell
+        className={`fixed z-50 glass-panel-opaque backdrop-blur-2xl transition-[box-shadow] duration-300 ease-out overflow-visible md:overflow-visible nav-reciter-fusion-shell
           left-0 right-0 w-full max-w-none translate-x-0 bottom-0
           h-[calc(4.35rem+env(safe-area-inset-bottom,0px))] pb-[env(safe-area-inset-bottom,0px)]
           rounded-none border-x-0 border-b-0
@@ -205,7 +239,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               ? 'md:hidden'
               : 'md:left-8 md:right-8 md:translate-x-0 md:w-auto md:max-w-6xl md:mx-auto md:bottom-auto md:top-6 md:h-auto md:pb-0 md:rounded-[1.35rem] md:border md:border-[#46607b]/40 md:px-4 md:pt-3 md:pb-3.5 md:shadow-2xl md:shadow-black/40'
           }
-          ${!useClassicDesktop && isFusing ? 'is-fusing' : ''}
+          ${!useClassicDesktop && isFusing ? 'is-fusing overflow-hidden' : 'max-md:overflow-hidden'}
         `}
       >
         <div className="flex h-full flex-col">
@@ -220,7 +254,47 @@ export const Navbar: React.FC<NavbarProps> = ({
                   : undefined,
               ),
             )}
-            {renderTab('more', 'Options', icons.more)}
+            {canPractice ? (
+              <button
+                type="button"
+                onClick={() => setPracticeOpen((value) => !value)}
+                className={`nav-tab group relative flex flex-1 flex-col items-center justify-center h-full px-1 py-1 transition-all duration-300 ${
+                  practiceOpen ? 'nav-tab--active' : 'nav-tab--idle'
+                }`}
+                aria-label="Pratiquer"
+                aria-expanded={practiceOpen}
+                aria-haspopup="dialog"
+              >
+                <span className="nav-tab__indicator" aria-hidden />
+                <span className="nav-tab__inner relative z-10 flex flex-col items-center gap-0.5 transition-transform duration-100 ease-out group-active:scale-95">
+                  <span
+                    className={`nav-tab__icon relative flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-300 ${
+                      practiceOpen
+                        ? 'bg-[#e2d0ba]/14 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]'
+                        : ''
+                    }`}
+                  >
+                    <Sparkles
+                      className={`nav-tab__glyph h-[18px] w-[18px] transition-colors duration-300 ${
+                        practiceOpen
+                          ? 'text-[#e2d0ba] drop-shadow-[0_0_10px_rgba(241,232,220,0.35)]'
+                          : 'text-[#7f93a8] group-hover:text-[#e8eef5]'
+                      }`}
+                    />
+                    {!practiceOpen ? <span className="nav-practice-dot" aria-hidden /> : null}
+                  </span>
+                  <span
+                    className={`nav-tab__label text-[10px] font-semibold tracking-wide transition-colors duration-300 ${
+                      practiceOpen ? 'text-[#e6d5c2]' : 'text-[#7a8fa3] group-hover:text-[#e8eef5]'
+                    }`}
+                  >
+                    Pratiquer
+                  </span>
+                </span>
+              </button>
+            ) : (
+              renderTab('more', 'Options', icons.more)
+            )}
           </div>
 
           {!useClassicDesktop && (
@@ -264,6 +338,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                     onClick={() => setActiveTab('account')}
                     label={connectedLabel}
                   />
+                ) : null}
+                {canPractice ? (
+                  <NavPracticeMenu onOpenQuiz={onOpenQuiz!} onOpenLearn={onOpenLearn!} />
                 ) : null}
                 <span className="h-7 w-px shrink-0 bg-[#46607b]/40" aria-hidden />
                 {renderTab('more', 'Options', icons.more)}

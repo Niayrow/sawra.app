@@ -8,8 +8,8 @@ Sawra peut être empaqueté en application Android et iOS avec **Capacitor**, in
 |--------|--------|
 | Nom affiché | Sawra |
 | Package / applicationId | `app.sawra` |
-| versionName | `1.4.0` |
-| versionCode | `4` |
+| versionName | `1.5.0` |
+| versionCode | `5` |
 | targetSdk | `36` |
 | Confidentialité (URL Play) | `https://sawra.app/privacy/` |
 

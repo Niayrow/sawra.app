@@ -200,10 +200,16 @@ export type QuizQuestion = {
   surah: Surah;
   /** First ayah of the clip (inclusive). */
   ayah: number;
-  /** Last ayah of the clip (inclusive) — usually ayah + 1. */
+  /** Last ayah of the quiz clip (inclusive) — usually ayah + 1. */
   ayahEnd: number;
   startMs: number;
   endMs: number;
+  /**
+   * After a correct answer: replay from startMs through this end
+   * (2 quiz ayahs + the following one when available).
+   */
+  revealEndMs: number;
+  ayahRevealEnd: number;
   audioUrl: string;
   choices: Surah[];
 };
@@ -310,38 +316,51 @@ function buildChoices(correct: Surah, pool: Surah[]): Surah[] {
 /**
  * Always prefer a 2-ayah window so short openings (Alif Lam Mim, etc.)
  * are not played alone — they appear in several surahs.
+ * Also resolve a bonus 3rd ayah used after a correct answer.
  */
 function pickTwoAyahClip(
   timings: AyahTiming[],
   preferredAyah?: number,
-): { start: AyahTiming; end: AyahTiming } | null {
+): { start: AyahTiming; end: AyahTiming; bonus: AyahTiming | null } | null {
   const sorted = [...timings]
     .filter((t) => t.endMs > t.startMs)
     .sort((a, b) => a.ayah - b.ayah || a.startMs - b.startMs);
 
   if (!sorted.length) return null;
-  if (sorted.length === 1) return { start: sorted[0], end: sorted[0] };
+  if (sorted.length === 1) {
+    return { start: sorted[0], end: sorted[0], bonus: null };
+  }
+
+  const withBonus = (start: AyahTiming, end: AyahTiming) => {
+    const endIdx = sorted.findIndex((t) => t.ayah === end.ayah && t.startMs === end.startMs);
+    const bonus =
+      endIdx >= 0 && endIdx < sorted.length - 1 ? sorted[endIdx + 1] : null;
+    return { start, end, bonus };
+  };
 
   if (preferredAyah != null) {
     const idx = sorted.findIndex((t) => t.ayah === preferredAyah);
     if (idx >= 0) {
       if (idx < sorted.length - 1) {
-        return { start: sorted[idx], end: sorted[idx + 1] };
+        return withBonus(sorted[idx], sorted[idx + 1]);
       }
       // Last ayah of the surah → include the previous one
-      return { start: sorted[idx - 1], end: sorted[idx] };
+      return withBonus(sorted[idx - 1], sorted[idx]);
     }
   }
 
-  // Prefer starts that leave room for a following ayah
+  // Prefer windows that also leave a 3rd ayah for the correct-answer reveal
   const startCandidates = sorted.slice(0, -1);
-  const usable = startCandidates.filter(
-    (t, i) => sorted[i + 1].endMs - t.startMs >= 1200,
-  );
-  const start = pickRandom(usable.length ? usable : startCandidates);
+  const withThird = startCandidates.filter((_, i) => i + 2 < sorted.length);
+  const pool = withThird.length ? withThird : startCandidates;
+  const usable = pool.filter((t) => {
+    const idx = sorted.indexOf(t);
+    return sorted[idx + 1].endMs - t.startMs >= 1200;
+  });
+  const start = pickRandom(usable.length ? usable : pool);
   const startIdx = sorted.indexOf(start);
   const end = sorted[Math.min(startIdx + 1, sorted.length - 1)];
-  return { start, end };
+  return withBonus(start, end);
 }
 
 type EligibleVoice = { reciter: Reciter; moshaf: Moshaf };
@@ -370,6 +389,8 @@ async function buildQuestionFromTarget(
   );
   if (!clip) return null;
 
+  const revealEnd = clip.bonus ?? clip.end;
+
   return {
     id: `${reciter.id}:${target.surah.id}:${clip.start.ayah}-${clip.end.ayah}:${clip.start.startMs}`,
     reciter,
@@ -379,6 +400,8 @@ async function buildQuestionFromTarget(
     ayahEnd: clip.end.ayah,
     startMs: clip.start.startMs,
     endMs: clip.end.endMs,
+    revealEndMs: revealEnd.endMs,
+    ayahRevealEnd: revealEnd.ayah,
     audioUrl: getAudioUrl(moshaf, target.surah),
     choices: buildChoices(target.surah, choicePool),
   };

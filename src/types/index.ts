@@ -32,7 +32,7 @@ export interface QuranAyah {
   key: string;
   textUthmani: string;
   translationFr: string;
-  /** Latin phonetic (API word transliteration) */
+  /** Phonétique française (translittération adaptée) */
   phonetic: string;
 }
 

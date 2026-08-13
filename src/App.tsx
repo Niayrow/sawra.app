@@ -10,7 +10,7 @@ import {
   Sparkles,
 } from './icons/motion';
 import type { AppIcon } from './icons/motion';
-import type { Reciter } from './types';
+import type { Moshaf, Reciter, Surah } from './types';
 import { ReciterPortrait } from './components/ReciterPortrait';
 import { hasLocalReciterImage } from './utils/images';
 import { getReciterCategory, type ReciterCategoryId } from './data/reciterCategories';
@@ -44,7 +44,8 @@ const SourcesPanel = lazy(() => import('./components/TrustLegalPanels').then((mo
 const PrivacyPanel = lazy(() => import('./components/TrustLegalPanels').then((module) => ({ default: module.PrivacyPanel })));
 const TermsPanel = lazy(() => import('./components/TrustLegalPanels').then((module) => ({ default: module.TermsPanel })));
 const QuizPage = lazy(() => import('./components/QuizPage').then((module) => ({ default: module.QuizPage })));
-const TAB_IDS = ['home', 'listen', 'moments', 'favorites', 'account', 'more', 'quiz'] as const;
+const LearnPage = lazy(() => import('./components/LearnPage').then((module) => ({ default: module.LearnPage })));
+const TAB_IDS = ['home', 'listen', 'moments', 'favorites', 'account', 'more', 'quiz', 'learn'] as const;
 type TabId = typeof TAB_IDS[number];
 type MorePanel = 'downloads' | 'legal' | 'priorities' | 'compare' | 'about' | 'moments';
 type LegalSub = 'sources' | 'privacy' | 'terms';
@@ -107,6 +108,8 @@ const mapLegacyTab = (tab: string | null): TabId => {
       return 'home';
     case 'quiz':
       return 'quiz';
+    case 'learn':
+      return 'learn';
     case 'favorites':
       return 'favorites';
     case 'account':
@@ -628,6 +631,117 @@ const EXPLORE_BUBBLE_SPECKS = [
   { x: 90, size: 5, rise: 40, delay: 0.42 },
 ];
 
+/** Quiz Coran — hover chips (guess motifs) rising like Explorer voices. */
+const QUIZ_BUBBLE_ANCHORS = [
+  { x: 18, rise: 88, drift: -8, delay: 0 },
+  { x: 52, rise: 118, drift: 4, delay: 0.16 },
+  { x: 84, rise: 84, drift: 12, delay: 0.3 },
+];
+
+const QUIZ_BUBBLE_SPECKS = [
+  { x: 22, size: 6, rise: 42, delay: 0.08 },
+  { x: 40, size: 4, rise: 58, delay: 0.46 },
+  { x: 58, size: 5, rise: 50, delay: 0.24 },
+  { x: 72, size: 4, rise: 64, delay: 0.58 },
+  { x: 88, size: 5, rise: 38, delay: 0.38 },
+];
+
+const QUIZ_BUBBLE_CHIPS = [
+  { mark: '?', label: 'Quelle sourate ?' },
+  { mark: '✦', label: 'Écoute le verset' },
+  { mark: '36', label: 'Yâ-Sîn ?' },
+];
+
+const HomeQuizCta: React.FC<{ onOpen: () => void }> = ({ onOpen }) => {
+  const [cloudOpen, setCloudOpen] = useState(false);
+  const [cloudKey, setCloudKey] = useState(0);
+
+  const openCloud = () => {
+    if (!window.matchMedia('(hover: hover)').matches) return;
+    setCloudOpen(true);
+    setCloudKey((k) => k + 1);
+  };
+
+  return (
+    <div
+      className="home-hero__quiz-wrap"
+      onMouseEnter={openCloud}
+      onMouseLeave={() => setCloudOpen(false)}
+      onFocusCapture={openCloud}
+      onBlurCapture={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+          setCloudOpen(false);
+        }
+      }}
+    >
+      <div
+        className={`quiz-bubbles ${cloudOpen ? 'is-visible' : ''}`}
+        aria-hidden={!cloudOpen}
+      >
+        {cloudOpen && (
+          <div key={cloudKey} className="quiz-bubbles__stage">
+            {QUIZ_BUBBLE_SPECKS.map((speck) => (
+              <span
+                key={`quiz-speck-${speck.x}-${speck.size}`}
+                className="quiz-bubbles__speck"
+                style={
+                  {
+                    '--bubble-x': `${speck.x}%`,
+                    '--bubble-size': `${speck.size}px`,
+                    '--bubble-rise': `${speck.rise}px`,
+                    '--bubble-delay': `${speck.delay}s`,
+                  } as React.CSSProperties
+                }
+              />
+            ))}
+
+            {QUIZ_BUBBLE_CHIPS.map((chip, index) => {
+              const anchor = QUIZ_BUBBLE_ANCHORS[index % QUIZ_BUBBLE_ANCHORS.length];
+              return (
+                <span
+                  key={chip.label}
+                  className="quiz-bubbles__bubble"
+                  style={
+                    {
+                      '--bubble-x': `${anchor.x}%`,
+                      '--bubble-rise': `${anchor.rise}px`,
+                      '--bubble-drift': `${anchor.drift}px`,
+                      '--bubble-delay': `${anchor.delay}s`,
+                    } as React.CSSProperties
+                  }
+                >
+                  <span className="quiz-bubbles__mark">{chip.mark}</span>
+                  <span className="quiz-bubbles__name">{chip.label}</span>
+                  <span className="quiz-bubbles__shine" aria-hidden />
+                </span>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <button
+        type="button"
+        onClick={onOpen}
+        className="home-hero__quiz tap-feedback"
+      >
+        <span className="home-hero__quiz-badge">Nouveau</span>
+        <span className="home-hero__quiz-sheen" aria-hidden />
+        <span className="home-hero__quiz-icon" aria-hidden>
+          <Sparkles className="h-4.5 w-4.5" />
+        </span>
+        <span className="home-hero__quiz-text">
+          <span className="home-hero__quiz-title">Quiz Coran</span>
+          <span className="home-hero__quiz-meta">Devinez la sourate du verset</span>
+        </span>
+        <span className="home-hero__quiz-chevron" aria-hidden>
+          <ArrowRight className="h-3.5 w-3.5" />
+        </span>
+      </button>
+    </div>
+  );
+};
+
 function pickExploreCloudReciters(pool: Reciter[], count: number, avoidIds: number[] = []): Reciter[] {
   if (pool.length === 0) return [];
   const avoid = new Set(avoidIds);
@@ -646,8 +760,9 @@ const HomeExploreFusionButton: React.FC<{
   reciters: Reciter[];
   onExplore: () => void;
   onFusionProgressChange: (progress: number) => void;
-}> = ({ enabled, reciters, onExplore, onFusionProgressChange }) => {
-  const { progress, setHeaderRef, setSentinelRef } = useReciterNavFusion(enabled);
+  onFusionSpacerChange?: (spacerPx: number) => void;
+}> = ({ enabled, reciters, onExplore, onFusionProgressChange, onFusionSpacerChange }) => {
+  const { progress, spacerPx, setHeaderRef, setSentinelRef } = useReciterNavFusion(enabled);
   const [cloudOpen, setCloudOpen] = useState(false);
   const [cloudReciters, setCloudReciters] = useState<Reciter[]>([]);
   const cloudKeyRef = useRef(0);
@@ -681,6 +796,10 @@ const HomeExploreFusionButton: React.FC<{
   }, [enabled, onFusionProgressChange]);
 
   React.useEffect(() => {
+    onFusionSpacerChange?.(enabled ? spacerPx : 0);
+  }, [enabled, onFusionSpacerChange, spacerPx]);
+
+  React.useEffect(() => {
     if (!cloudOpen || portraitPool.length === 0) return;
     const id = window.setInterval(refreshCloud, EXPLORE_CLOUD_ROTATE_MS);
     return () => window.clearInterval(id);
@@ -693,11 +812,15 @@ const HomeExploreFusionButton: React.FC<{
   const showCloud = cloudOpen && cloudReciters.length > 0 && progress < 0.35;
 
   return (
-    <div className="min-w-0">
-      <div ref={setSentinelRef} className="hidden md:block h-0 w-full overflow-hidden" aria-hidden />
+    <>
+      <div
+        ref={setSentinelRef}
+        className="home-explore-fusion-sentinel hidden md:block col-span-full h-0 w-full overflow-hidden"
+        aria-hidden
+      />
       <div
         ref={(node) => setHeaderRef(node)}
-        className={`home-explore-fusion relative md:sticky md:top-24 md:z-20 ${
+        className={`home-hero__explore-wrap home-explore-fusion min-w-0 md:sticky md:top-24 md:z-20 md:self-start ${
           enabled && progress > 0.01 ? 'is-fusing' : ''
         }`}
         style={enabled ? mergeStyle : undefined}
@@ -720,84 +843,84 @@ const HomeExploreFusionButton: React.FC<{
           }
         }}
       >
-        <div
-          className={`explore-bubbles ${showCloud ? 'is-visible' : ''}`}
-          aria-hidden={!showCloud}
-        >
-          {showCloud && (
-            <div key={cloudKey} className="explore-bubbles__stage">
-              {EXPLORE_BUBBLE_SPECKS.map((speck) => (
-                <span
-                  key={`speck-${speck.x}-${speck.size}`}
-                  className="explore-bubbles__speck"
-                  style={
-                    {
-                      '--bubble-x': `${speck.x}%`,
-                      '--bubble-size': `${speck.size}px`,
-                      '--bubble-rise': `${speck.rise}px`,
-                      '--bubble-delay': `${speck.delay}s`,
-                    } as React.CSSProperties
-                  }
-                />
-              ))}
-
-              {cloudReciters.map((reciter, index) => {
-                const anchor = EXPLORE_BUBBLE_ANCHORS[index % EXPLORE_BUBBLE_ANCHORS.length];
-                return (
+          <div
+            className={`explore-bubbles ${showCloud ? 'is-visible' : ''}`}
+            aria-hidden={!showCloud}
+          >
+            {showCloud && (
+              <div key={cloudKey} className="explore-bubbles__stage">
+                {EXPLORE_BUBBLE_SPECKS.map((speck) => (
                   <span
-                    key={reciter.id}
-                    className="explore-bubbles__bubble"
+                    key={`speck-${speck.x}-${speck.size}`}
+                    className="explore-bubbles__speck"
                     style={
                       {
-                        '--bubble-x': `${anchor.x}%`,
-                        '--bubble-rise': `${anchor.rise}px`,
-                        '--bubble-drift': `${anchor.drift}px`,
-                        '--bubble-delay': `${anchor.delay}s`,
+                        '--bubble-x': `${speck.x}%`,
+                        '--bubble-size': `${speck.size}px`,
+                        '--bubble-rise': `${speck.rise}px`,
+                        '--bubble-delay': `${speck.delay}s`,
                       } as React.CSSProperties
                     }
-                  >
-                    <span className="explore-bubbles__avatar">
-                      <ReciterPortrait
-                        reciter={reciter}
-                        alt=""
-                        width={44}
-                        height={44}
-                        loading="lazy"
-                        className="h-full w-full"
-                      />
-                    </span>
-                    <span className="explore-bubbles__name">{reciter.name}</span>
-                    <span className="explore-bubbles__shine" aria-hidden />
-                  </span>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                  />
+                ))}
 
-        <button
-          type="button"
-          onClick={onExplore}
-          className="home-explore-fusion-card hero-explore-btn tap-feedback"
-          tabIndex={progress >= 0.92 ? -1 : 0}
-          aria-label="Explorer les voix"
-        >
-          <span className="hero-explore-btn__sheen" aria-hidden />
-          <span className="hero-explore-btn__icon" aria-hidden>
-            <Headphones className="h-4 w-4" />
-          </span>
-          <span className="hero-explore-btn__body">
-            <span className="hero-explore-btn__title">Explorer les voix</span>
-            <span className="hero-explore-btn__meta">
-              Récitateurs, sourates et découverte.
+                {cloudReciters.map((reciter, index) => {
+                  const anchor = EXPLORE_BUBBLE_ANCHORS[index % EXPLORE_BUBBLE_ANCHORS.length];
+                  return (
+                    <span
+                      key={reciter.id}
+                      className="explore-bubbles__bubble"
+                      style={
+                        {
+                          '--bubble-x': `${anchor.x}%`,
+                          '--bubble-rise': `${anchor.rise}px`,
+                          '--bubble-drift': `${anchor.drift}px`,
+                          '--bubble-delay': `${anchor.delay}s`,
+                        } as React.CSSProperties
+                      }
+                    >
+                      <span className="explore-bubbles__avatar">
+                        <ReciterPortrait
+                          reciter={reciter}
+                          alt=""
+                          width={44}
+                          height={44}
+                          loading="lazy"
+                          className="h-full w-full"
+                        />
+                      </span>
+                      <span className="explore-bubbles__name">{reciter.name}</span>
+                      <span className="explore-bubbles__shine" aria-hidden />
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={onExplore}
+            className="home-explore-fusion-card hero-explore-btn tap-feedback"
+            tabIndex={progress >= 0.92 ? -1 : 0}
+            aria-label="Explorer les voix"
+          >
+            <span className="hero-explore-btn__sheen" aria-hidden />
+            <span className="hero-explore-btn__icon" aria-hidden>
+              <Headphones className="h-4 w-4" />
             </span>
-          </span>
-          <span className="hero-explore-btn__chevron" aria-hidden>
-            <ArrowRight className="h-3.5 w-3.5" />
-          </span>
-        </button>
+            <span className="hero-explore-btn__body">
+              <span className="hero-explore-btn__title">Explorer les voix</span>
+              <span className="hero-explore-btn__meta">
+                Récitateurs, sourates et découverte.
+              </span>
+            </span>
+            <span className="hero-explore-btn__chevron" aria-hidden>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </span>
+          </button>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -837,6 +960,7 @@ const AppContent: React.FC = () => {
   const [reciterFusionProgress, setReciterFusionProgress] = useState(0);
   const [reciterFusionSpacerPx, setReciterFusionSpacerPx] = useState(0);
   const [exploreFusionProgress, setExploreFusionProgress] = useState(0);
+  const [exploreFusionSpacerPx, setExploreFusionSpacerPx] = useState(0);
   const [recentReciterIds, setRecentReciterIds] = useState<number[]>(() => readRecentReciterIds());
   const [navDesktopStyle, setNavDesktopStyle] = useState<NavDesktopStyle>(() => loadNavDesktopStyle());
 
@@ -862,6 +986,10 @@ const AppContent: React.FC = () => {
 
   const handleExploreFusionProgress = useCallback((progress: number) => {
     setExploreFusionProgress(progress);
+  }, []);
+
+  const handleExploreFusionSpacer = useCallback((spacerPx: number) => {
+    setExploreFusionSpacerPx(spacerPx);
   }, []);
 
   const reciterFusionEnabled =
@@ -1214,6 +1342,25 @@ const AppContent: React.FC = () => {
     }, 80);
   };
 
+  const handleListenSurahFromQuiz = useCallback(
+    (reciter: Reciter, moshaf: Moshaf, surah: Surah) => {
+      setActiveReciter(reciter);
+      setActiveMoshaf(moshaf);
+      setActiveTab('listen');
+      setListenStep('surahs');
+      setReciterSearch('');
+      playTrack(reciter, moshaf, surah);
+      window.setTimeout(() => {
+        surahSectionRef.current?.scrollIntoView({
+          block: 'start',
+          behavior: 'smooth',
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 80);
+    },
+    [playTrack, setActiveMoshaf, setActiveReciter],
+  );
+
   const handleResumeListening = () => {
     if (!currentTrack) {
       handleNavigate('listen');
@@ -1268,16 +1415,27 @@ const AppContent: React.FC = () => {
   return (
     <div
       data-nav-desktop={navDesktopStyle}
-      data-hide-player={activeTab === 'account' || activeTab === 'quiz' ? 'true' : undefined}
-      data-hide-nav={activeTab === 'quiz' ? 'true' : undefined}
+      data-hide-player={
+        activeTab === 'account' || activeTab === 'quiz' || activeTab === 'learn'
+          ? 'true'
+          : undefined
+      }
+      data-hide-nav={
+        activeTab === 'quiz' || activeTab === 'learn' ? 'true' : undefined
+      }
       className={`flex-1 flex flex-col px-4 max-w-lg mx-auto w-full mobile-shell-padding mobile-app-shell max-md:px-0 ${
-      activeTab === 'quiz'
+      activeTab === 'quiz' || activeTab === 'learn'
         ? 'md:w-full md:max-w-none md:px-6 md:pt-0'
         : `md:w-[min(72rem,calc(100%-4rem))] md:max-w-6xl md:px-0 ${
             navDesktopStyle === 'classic' ? 'md:pt-[5.75rem]' : 'md:pt-28'
           }`
     } ${
-      currentTrack && activeTab !== 'account' && activeTab !== 'quiz' ? 'md:pb-44' : 'md:pb-12'
+      currentTrack &&
+      activeTab !== 'account' &&
+      activeTab !== 'quiz' &&
+      activeTab !== 'learn'
+        ? 'md:pb-44'
+        : 'md:pb-12'
     }`}>
       <CloudSync favorites={favorites} setFavorites={setFavorites} />
       <AuthPromptModal
@@ -1312,7 +1470,7 @@ const AppContent: React.FC = () => {
         >
         
         {activeTab === 'home' && (
-          <div className="flex flex-col gap-4 md:gap-7 pb-16 sm:pb-20 max-md:pt-4 md:pt-5">
+          <div className="flex flex-col gap-4 md:gap-7 pb-16 sm:pb-20 max-md:pt-2 md:pt-5">
             {!isOnline && (
               <button
                 type="button"
@@ -1360,8 +1518,10 @@ const AppContent: React.FC = () => {
                     Reprenez votre lecture, trouvez une belle voix.
                   </p>
                 </header>
+              </div>
+            </section>
 
-                <div className="home-hero__actions home-hero__enter home-hero__enter--4">
+            <div className="home-fusion-scope home-hero__enter home-hero__enter--4">
                   <button
                     type="button"
                     onClick={currentTrack ? handleResumeListening : () => handleNavigate('listen')}
@@ -1386,33 +1546,33 @@ const AppContent: React.FC = () => {
                     </span>
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => handleNavigate('quiz')}
-                    className="home-hero__quiz tap-feedback"
-                  >
-                    <span className="home-hero__quiz-badge">Nouveau</span>
-                    <span className="home-hero__quiz-sheen" aria-hidden />
-                    <span className="home-hero__quiz-icon" aria-hidden>
-                      <Sparkles className="h-4.5 w-4.5" />
-                    </span>
-                    <span className="home-hero__quiz-text">
-                      <span className="home-hero__quiz-title">Quiz Coran</span>
-                      <span className="home-hero__quiz-meta">Devinez la sourate du verset</span>
-                    </span>
-                    <ArrowRight className="home-hero__quiz-arrow h-4 w-4 shrink-0" aria-hidden />
-                  </button>
-
                   <HomeExploreFusionButton
                     enabled={exploreFusionEnabled}
                     reciters={reciters ?? []}
                     onExplore={handleExploreVoices}
                     onFusionProgressChange={handleExploreFusionProgress}
+                    onFusionSpacerChange={handleExploreFusionSpacer}
                   />
-                </div>
-              </div>
-            </section>
 
+                  <HomeQuizCta onOpen={() => handleNavigate('quiz')} />
+
+                  <button
+                    type="button"
+                    onClick={() => handleNavigate('learn')}
+                    className="home-hero__learn tap-feedback"
+                  >
+                    <span className="home-hero__learn-sheen" aria-hidden />
+                    <span className="home-hero__learn-icon" aria-hidden>
+                      <BookOpen className="h-4.5 w-4.5" />
+                    </span>
+                    <span className="home-hero__learn-text">
+                      <span className="home-hero__learn-title">Apprendre</span>
+                      <span className="home-hero__learn-meta">Flou, écoute, révélation</span>
+                    </span>
+                    <ArrowRight className="home-hero__learn-arrow h-4 w-4 shrink-0" aria-hidden />
+                  </button>
+
+              <div className="home-fusion-feed">
             {!isLoadingReciters && (
               <section className="flex flex-col gap-3">
                 <ReciterCategoryGrid
@@ -1599,6 +1759,16 @@ const AppContent: React.FC = () => {
                 </a>
               </div>
             </footer>
+
+            {exploreFusionEnabled && exploreFusionSpacerPx > 0 && (
+              <div
+                className="hidden md:block w-full shrink-0 pointer-events-none"
+                style={{ height: exploreFusionSpacerPx }}
+                aria-hidden
+              />
+            )}
+              </div>
+            </div>
           </div>
         )}
 
@@ -2016,7 +2186,20 @@ const AppContent: React.FC = () => {
         {/* 2.2a Tab Quiz (accès Accueil uniquement) */}
         {activeTab === 'quiz' && (
           <Suspense fallback={<div className="shimmer-loader h-48 rounded-3xl border border-slate-900 max-md:mx-4" />}>
-            <QuizPage onBack={() => handleNavigate('home')} />
+            <QuizPage
+              onBack={() => handleNavigate('home')}
+              onListenSurah={handleListenSurahFromQuiz}
+            />
+          </Suspense>
+        )}
+
+        {/* 2.2a2 Tab Apprentissage (accès Accueil uniquement) */}
+        {activeTab === 'learn' && (
+          <Suspense fallback={<div className="shimmer-loader h-48 rounded-3xl border border-slate-900 max-md:mx-4" />}>
+            <LearnPage
+              onBack={() => handleNavigate('home')}
+              onListenSurah={handleListenSurahFromQuiz}
+            />
           </Suspense>
         )}
 
@@ -2171,7 +2354,7 @@ const AppContent: React.FC = () => {
       )}
 
       {/* 3. Global Audio Player Sheet */}
-      {currentTrack && activeTab !== 'account' && activeTab !== 'quiz' && (
+      {currentTrack && activeTab !== 'account' && activeTab !== 'quiz' && activeTab !== 'learn' && (
         <Suspense fallback={null}>
           <GlobalPlayerV2
             desktopChrome={navDesktopStyle}
@@ -2182,14 +2365,16 @@ const AppContent: React.FC = () => {
 
       <BatchDownloadToast />
 
-      {/* 4. Floating Navbar — hidden on the quiz page */}
-      {activeTab !== 'quiz' && (
+      {/* 4. Floating Navbar — hidden on quiz / learn pages */}
+      {activeTab !== 'quiz' && activeTab !== 'learn' && (
         <Navbar
           activeTab={activeTab}
           setActiveTab={handleSetActiveTab}
           dockWithPlayer={Boolean(currentTrack) && activeTab !== 'account'}
           desktopStyle={navDesktopStyle}
           showMoments={isOnline}
+          onOpenQuiz={() => handleNavigate('quiz')}
+          onOpenLearn={() => handleNavigate('learn')}
           reciterFusion={
             reciterFusionEnabled && activeReciter
               ? {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Headphones } from '../icons/motion';
 import { ConnectedBadge, type ExploreNavFusionProps, type ReciterNavFusionProps } from './Navbar';
+import { NavPracticeMenu } from './NavPracticeMenu';
 import { ReciterPortrait } from './ReciterPortrait';
 import type { NavTabIcon } from '../hooks/useNavMotionIcons';
 
@@ -25,6 +26,8 @@ interface NavbarDesktopClassicProps {
   motionReady?: boolean;
   isSignedIn?: boolean;
   connectedLabel?: string;
+  onOpenQuiz?: () => void;
+  onOpenLearn?: () => void;
 }
 
 const LOGO_SRC = '/icons/appicon.webp';
@@ -39,6 +42,8 @@ export const NavbarDesktopClassic: React.FC<NavbarDesktopClassicProps> = ({
   motionReady = false,
   isSignedIn = false,
   connectedLabel = 'Connecté',
+  onOpenQuiz,
+  onOpenLearn,
 }) => {
   const fusionProgress = reciterFusion?.progress ?? exploreFusion?.progress ?? 0;
   const isFusing =
@@ -148,6 +153,13 @@ export const NavbarDesktopClassic: React.FC<NavbarDesktopClassicProps> = ({
                 active={activeTab === 'account'}
                 onClick={() => setActiveTab('account')}
                 label={connectedLabel}
+              />
+            ) : null}
+            {onOpenQuiz && onOpenLearn ? (
+              <NavPracticeMenu
+                dense
+                onOpenQuiz={onOpenQuiz}
+                onOpenLearn={onOpenLearn}
               />
             ) : null}
             {renderTab('more', 'Options', icons.more)}

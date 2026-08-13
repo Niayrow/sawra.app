@@ -19,15 +19,27 @@ export function useQuizAyahClip(onBeforePlay?: () => void) {
   const clipKeyRef = useRef('');
   const [status, setStatus] = useState<QuizClipStatus>('idle');
   const [error, setError] = useState<string | null>(null);
+  const playbackRateRef = useRef(1);
 
   const ensureAudio = useCallback(() => {
     if (!audioRef.current) {
       const audio = new Audio();
       audio.preload = 'auto';
+      audio.playbackRate = playbackRateRef.current;
       audioRef.current = audio;
     }
     return audioRef.current;
   }, []);
+
+  const setPlaybackRate = useCallback(
+    (rate: number) => {
+      const next = Number.isFinite(rate) ? Math.min(2, Math.max(0.5, rate)) : 1;
+      playbackRateRef.current = next;
+      const audio = audioRef.current;
+      if (audio) audio.playbackRate = next;
+    },
+    [],
+  );
 
   const stop = useCallback(() => {
     const audio = audioRef.current;
@@ -121,6 +133,7 @@ export function useQuizAyahClip(onBeforePlay?: () => void) {
       }
 
       audio.currentTime = clip.startMs / 1000;
+      audio.playbackRate = playbackRateRef.current;
       if (autoplay) {
         await playFromStart();
       } else {
@@ -203,9 +216,10 @@ export function useQuizAyahClip(onBeforePlay?: () => void) {
       replay,
       stop,
       unload,
+      setPlaybackRate,
       isPlaying: status === 'playing',
       isLoading: status === 'loading',
     }),
-    [status, error, loadClip, toggle, replay, stop, unload],
+    [status, error, loadClip, toggle, replay, stop, unload, setPlaybackRate],
   );
 }

@@ -62,12 +62,29 @@ export function useReciterNavFusion(enabled: boolean) {
       }
 
       const currentSpacer = spacerPxRef.current;
+      const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
       const rawMaxScroll = Math.max(
         0,
         document.documentElement.scrollHeight - window.innerHeight - currentSpacer,
       );
-      const needed = SHORT_MERGE_SCROLL_RANGE + FUSION_STICK_BUFFER;
-      const nextSpacer = Math.max(0, Math.ceil(needed - rawMaxScroll));
+
+      const header = headerRef.current;
+      const sentinel = sentinelRef.current;
+      const stickyTop = header
+        ? parseFloat(getComputedStyle(header).top) || 96
+        : 96;
+
+      // ScrollY when the sticky header actually docks — fusion needs
+      // mergeRange *after* this point, not just a tall page overall.
+      let stickAt = scrollY;
+      if (sentinel) {
+        stickAt = scrollY + (sentinel.getBoundingClientRect().bottom - stickyTop);
+      }
+      const remainingAfterStick = rawMaxScroll - Math.max(0, stickAt);
+      const neededAfterStick = SHORT_MERGE_SCROLL_RANGE + FUSION_STICK_BUFFER;
+      const nextSpacer = Math.max(0, Math.ceil(neededAfterStick - remainingAfterStick));
+
+      mergeRangeRef.current = SHORT_MERGE_SCROLL_RANGE;
 
       if (Math.abs(nextSpacer - currentSpacer) >= 8) {
         spacerPxRef.current = nextSpacer;
@@ -103,9 +120,7 @@ export function useReciterNavFusion(enabled: boolean) {
       if (!stuckRef.current) {
         stuckRef.current = true;
         stickScrollY.current = scrollY;
-        // Short pages (spacer active): faster merge. Long pages: full range.
-        mergeRangeRef.current =
-          spacerPxRef.current > 0 ? SHORT_MERGE_SCROLL_RANGE : MERGE_SCROLL_RANGE;
+        mergeRangeRef.current = SHORT_MERGE_SCROLL_RANGE;
       }
 
       const delta = Math.max(0, scrollY - stickScrollY.current);

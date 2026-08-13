@@ -16,7 +16,7 @@ import {
   AlertCircle,
   AudioLines,
 } from '../icons/motion';
-import type { Surah } from '../types';
+import type { Moshaf, Reciter, Surah } from '../types';
 import {
   createQuizSession,
   getQuizEligibleReciters,
@@ -35,9 +35,10 @@ type QuizPhase = 'setup' | 'loading' | 'question' | 'score';
 
 type QuizPageProps = {
   onBack: () => void;
+  onListenSurah: (reciter: Reciter, moshaf: Moshaf, surah: Surah) => void;
 };
 
-export const QuizPage: React.FC<QuizPageProps> = ({ onBack }) => {
+export const QuizPage: React.FC<QuizPageProps> = ({ onBack, onListenSurah }) => {
   const { reciters, pause } = useAudio();
   const isOnline = useOnlineStatus();
   const timingCatalogReady = useTimingCatalogReady();
@@ -134,6 +135,15 @@ export const QuizPage: React.FC<QuizPageProps> = ({ onBack }) => {
     setSelectedId(surah.id);
     if (surah.id === question.surah.id) {
       setScore((s) => s + 1);
+      // Replay the 2 quiz ayahs + the following one as a reward
+      void clip.loadClip(
+        {
+          audioUrl: question.audioUrl,
+          startMs: question.startMs,
+          endMs: question.revealEndMs,
+        },
+        true,
+      );
     }
   };
 
@@ -161,6 +171,12 @@ export const QuizPage: React.FC<QuizPageProps> = ({ onBack }) => {
   const goBack = () => {
     clip.unload();
     onBack();
+  };
+
+  const handleListenFullSurah = () => {
+    if (!question) return;
+    clip.unload();
+    onListenSurah(question.reciter, question.moshaf, question.surah);
   };
 
   const choiceState = (surah: Surah) => {
@@ -427,9 +443,35 @@ export const QuizPage: React.FC<QuizPageProps> = ({ onBack }) => {
                 }`}
               >
                 {selectedId === question.surah.id
-                  ? 'Bonne réponse !'
+                  ? question.revealEndMs > question.endMs
+                    ? 'Bonne réponse — écoutez la suite…'
+                    : 'Bonne réponse !'
                   : `C’était ${question.surah.name}`}
               </p>
+              <button
+                type="button"
+                onClick={handleListenFullSurah}
+                className="quiz-listen-full tap-feedback"
+              >
+                <span className="quiz-listen-full__portrait" aria-hidden>
+                  <ReciterPortrait reciter={question.reciter} width={48} height={48} />
+                </span>
+                <span className="quiz-listen-full__body">
+                  <span className="quiz-listen-full__eyebrow">Continuer l’écoute</span>
+                  <span className="quiz-listen-full__title">
+                    {question.surah.name}
+                    <span dir="rtl" lang="ar">
+                      {question.surah.arabicName}
+                    </span>
+                  </span>
+                  <span className="quiz-listen-full__meta">
+                    Sourate complète · {question.reciter.name}
+                  </span>
+                </span>
+                <span className="quiz-listen-full__play" aria-hidden>
+                  <Play className="ml-0.5 h-4 w-4 fill-current" />
+                </span>
+              </button>
               <button type="button" onClick={handleNext} className="quiz-cta tap-feedback">
                 {isLast ? 'Voir mon score' : 'Question suivante'}
               </button>

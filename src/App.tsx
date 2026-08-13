@@ -6,7 +6,8 @@ import { AyahSyncBadge, useTimingCatalogReady } from './components/AyahSyncBadge
 import { Navbar } from './components/Navbar';
 import { 
   Search, Heart, AlertTriangle, Headphones, Play, ArrowRight,
-  Bookmark, Download, ExternalLink, Cloud, ChevronDown, History, Share, User, BookOpen,
+  Bookmark, Download, ExternalLink, ChevronDown, History, Share, User, BookOpen,
+  Sparkles,
 } from './icons/motion';
 import type { AppIcon } from './icons/motion';
 import type { Reciter } from './types';
@@ -42,7 +43,8 @@ const AccountPanel = lazy(() => import('./components/AccountPanel').then((module
 const SourcesPanel = lazy(() => import('./components/TrustLegalPanels').then((module) => ({ default: module.SourcesPanel })));
 const PrivacyPanel = lazy(() => import('./components/TrustLegalPanels').then((module) => ({ default: module.PrivacyPanel })));
 const TermsPanel = lazy(() => import('./components/TrustLegalPanels').then((module) => ({ default: module.TermsPanel })));
-const TAB_IDS = ['home', 'listen', 'moments', 'favorites', 'account', 'more'] as const;
+const QuizPage = lazy(() => import('./components/QuizPage').then((module) => ({ default: module.QuizPage })));
+const TAB_IDS = ['home', 'listen', 'moments', 'favorites', 'account', 'more', 'quiz'] as const;
 type TabId = typeof TAB_IDS[number];
 type MorePanel = 'downloads' | 'legal' | 'priorities' | 'compare' | 'about' | 'moments';
 type LegalSub = 'sources' | 'privacy' | 'terms';
@@ -103,6 +105,8 @@ const mapLegacyTab = (tab: string | null): TabId => {
     case 'ayah':
     case 'everyayah':
       return 'home';
+    case 'quiz':
+      return 'quiz';
     case 'favorites':
       return 'favorites';
     case 'account':
@@ -1264,11 +1268,16 @@ const AppContent: React.FC = () => {
   return (
     <div
       data-nav-desktop={navDesktopStyle}
-      data-hide-player={activeTab === 'account' ? 'true' : undefined}
-      className={`flex-1 flex flex-col px-4 max-w-lg mx-auto w-full mobile-shell-padding mobile-app-shell max-md:px-0 md:w-[min(72rem,calc(100%-4rem))] md:max-w-6xl md:px-0 ${
-      navDesktopStyle === 'classic' ? 'md:pt-[5.75rem]' : 'md:pt-28'
+      data-hide-player={activeTab === 'account' || activeTab === 'quiz' ? 'true' : undefined}
+      data-hide-nav={activeTab === 'quiz' ? 'true' : undefined}
+      className={`flex-1 flex flex-col px-4 max-w-lg mx-auto w-full mobile-shell-padding mobile-app-shell max-md:px-0 ${
+      activeTab === 'quiz'
+        ? 'md:w-full md:max-w-none md:px-6 md:pt-0'
+        : `md:w-[min(72rem,calc(100%-4rem))] md:max-w-6xl md:px-0 ${
+            navDesktopStyle === 'classic' ? 'md:pt-[5.75rem]' : 'md:pt-28'
+          }`
     } ${
-      currentTrack && activeTab !== 'account' ? 'md:pb-44' : 'md:pb-12'
+      currentTrack && activeTab !== 'account' && activeTab !== 'quiz' ? 'md:pb-44' : 'md:pb-12'
     }`}>
       <CloudSync favorites={favorites} setFavorites={setFavorites} />
       <AuthPromptModal
@@ -1377,6 +1386,23 @@ const AppContent: React.FC = () => {
                     </span>
                   </button>
 
+                  <button
+                    type="button"
+                    onClick={() => handleNavigate('quiz')}
+                    className="home-hero__quiz tap-feedback"
+                  >
+                    <span className="home-hero__quiz-badge">Nouveau</span>
+                    <span className="home-hero__quiz-sheen" aria-hidden />
+                    <span className="home-hero__quiz-icon" aria-hidden>
+                      <Sparkles className="h-4.5 w-4.5" />
+                    </span>
+                    <span className="home-hero__quiz-text">
+                      <span className="home-hero__quiz-title">Quiz Coran</span>
+                      <span className="home-hero__quiz-meta">Devinez la sourate du verset</span>
+                    </span>
+                    <ArrowRight className="home-hero__quiz-arrow h-4 w-4 shrink-0" aria-hidden />
+                  </button>
+
                   <HomeExploreFusionButton
                     enabled={exploreFusionEnabled}
                     reciters={reciters ?? []}
@@ -1384,77 +1410,6 @@ const AppContent: React.FC = () => {
                     onFusionProgressChange={handleExploreFusionProgress}
                   />
                 </div>
-              </div>
-            </section>
-
-            <section className="flex flex-col gap-3">
-              <div className="px-0.5">
-                <h3 className="text-sm font-black text-[#f6f8fb]">Accès rapides</h3>
-                <p className="mt-1 text-xs text-[#95a7ba]">L’essentiel, sans surcharge.</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  {
-                    id: 'listen',
-                    tone: 'explore',
-                    label: 'Explorer',
-                    hint: 'Récitateurs et sourates',
-                    icon: Headphones,
-                    onClick: () => handleNavigate('listen'),
-                  },
-                  {
-                    id: 'favorites',
-                    tone: 'favorites',
-                    label: 'Favoris',
-                    hint: favoritedReciters.length
-                      ? `${favoritedReciters.length} récitateur${favoritedReciters.length > 1 ? 's' : ''}`
-                      : 'Aucun pour l’instant',
-                    icon: Heart,
-                    onClick: () => handleNavigate('favorites'),
-                  },
-                  {
-                    id: 'downloads',
-                    tone: 'downloads',
-                    label: 'Téléchargées',
-                    hint: downloadedEntries.length
-                      ? `${downloadedEntries.length} sourate${downloadedEntries.length > 1 ? 's' : ''} hors-ligne`
-                      : 'Télécharger pour hors-ligne',
-                    icon: Download,
-                    onClick: () => handleNavigate('more', 'downloads'),
-                  },
-                  {
-                    id: 'account',
-                    tone: 'account',
-                    label: 'Connexion',
-                    hint: user ? 'Sync activée' : 'Local — connectez-vous pour sync',
-                    icon: Cloud,
-                    onClick: () => handleNavigate('account'),
-                  },
-                ].map((action) => {
-                  const Icon = action.icon;
-                  return (
-                    <button
-                      key={action.id}
-                      type="button"
-                      onClick={action.onClick}
-                      className={`home-quick-tile home-quick-tile--${action.tone} tap-feedback`}
-                    >
-                      <span className="home-quick-tile__inner">
-                        <span className="home-quick-tile__top">
-                          <span className="home-quick-tile__icon" aria-hidden>
-                            <Icon className="h-4.5 w-4.5" />
-                          </span>
-                          <span className="home-quick-tile__chevron" aria-hidden>
-                            <ArrowRight className="h-3.5 w-3.5" />
-                          </span>
-                        </span>
-                        <span className="home-quick-tile__label">{action.label}</span>
-                        <span className="home-quick-tile__hint">{action.hint}</span>
-                      </span>
-                    </button>
-                  );
-                })}
               </div>
             </section>
 
@@ -2058,6 +2013,13 @@ const AppContent: React.FC = () => {
           </div>
         )}
 
+        {/* 2.2a Tab Quiz (accès Accueil uniquement) */}
+        {activeTab === 'quiz' && (
+          <Suspense fallback={<div className="shimmer-loader h-48 rounded-3xl border border-slate-900 max-md:mx-4" />}>
+            <QuizPage onBack={() => handleNavigate('home')} />
+          </Suspense>
+        )}
+
         {/* 2.2b Tab Connexion */}
         {activeTab === 'account' && (
           <div className="flex flex-col justify-center gap-5 max-md:min-h-[calc(100dvh-5.1rem-env(safe-area-inset-bottom,0px))] max-md:py-4 md:min-h-[min(70vh,40rem)] md:pt-10 md:pb-12 md:max-w-lg md:mx-auto md:w-full">
@@ -2209,7 +2171,7 @@ const AppContent: React.FC = () => {
       )}
 
       {/* 3. Global Audio Player Sheet */}
-      {currentTrack && activeTab !== 'account' && (
+      {currentTrack && activeTab !== 'account' && activeTab !== 'quiz' && (
         <Suspense fallback={null}>
           <GlobalPlayerV2
             desktopChrome={navDesktopStyle}
@@ -2220,32 +2182,34 @@ const AppContent: React.FC = () => {
 
       <BatchDownloadToast />
 
-      {/* 4. Floating Navbar */}
-      <Navbar
-        activeTab={activeTab}
-        setActiveTab={handleSetActiveTab}
-        dockWithPlayer={Boolean(currentTrack) && activeTab !== 'account'}
-        desktopStyle={navDesktopStyle}
-        showMoments={isOnline}
-        reciterFusion={
-          reciterFusionEnabled && activeReciter
-            ? {
-                progress: reciterFusionProgress,
-                reciter: activeReciter,
-                activeMoshaf,
-                onChangeReciter: handleChangeReciter,
-              }
-            : null
-        }
-        exploreFusion={
-          exploreFusionEnabled
-            ? {
-                progress: exploreFusionProgress,
-                onExplore: handleExploreVoices,
-              }
-            : null
-        }
-      />
+      {/* 4. Floating Navbar — hidden on the quiz page */}
+      {activeTab !== 'quiz' && (
+        <Navbar
+          activeTab={activeTab}
+          setActiveTab={handleSetActiveTab}
+          dockWithPlayer={Boolean(currentTrack) && activeTab !== 'account'}
+          desktopStyle={navDesktopStyle}
+          showMoments={isOnline}
+          reciterFusion={
+            reciterFusionEnabled && activeReciter
+              ? {
+                  progress: reciterFusionProgress,
+                  reciter: activeReciter,
+                  activeMoshaf,
+                  onChangeReciter: handleChangeReciter,
+                }
+              : null
+          }
+          exploreFusion={
+            exploreFusionEnabled
+              ? {
+                  progress: exploreFusionProgress,
+                  onExplore: handleExploreVoices,
+                }
+              : null
+          }
+        />
+      )}
 
     </div>
   );

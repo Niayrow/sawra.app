@@ -59,6 +59,11 @@ const SEO_BY_VIEW: Record<string, SeoDoc> = {
     description:
       'Réglez les options et priorités de votre lecteur coranique Sawra.',
   },
+  quiz: {
+    title: 'Quiz Coran — Devinez la sourate | Sawra',
+    description:
+      'Écoutez un verset et trouvez de quelle sourate il vient. Quiz gratuit du Coran, sans publicité, sur Sawra.',
+  },
 };
 
 const setMetaContent = (selector: string, content: string, attr = 'content') => {

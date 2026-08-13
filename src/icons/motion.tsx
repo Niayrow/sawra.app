@@ -7,6 +7,7 @@ export {
   Play,
   Pause,
   ArrowRight,
+  ArrowLeft,
   ArrowLeftRight,
   Bookmark,
   Download,

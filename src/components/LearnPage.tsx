@@ -40,6 +40,7 @@ import {
 } from '../utils/learnPrefs';
 import { JUZ_AMMA_START } from '../utils/quizQuestions';
 import { scoreSurahMatch } from '../utils/surahSearch';
+import { capturePostHogEvent } from '../utils/posthog';
 
 type LearnSurahFilter = 'all' | 'amma' | 'popular';
 
@@ -193,6 +194,13 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onBack, onListenSurah }) =
     if (!selectedReciter || !selectedSurah) return;
     const moshaf = getLearnMoshaf(selectedReciter);
     if (!moshaf) return;
+    capturePostHogEvent('learning_session_started', {
+      reciter_id: selectedReciter.id,
+      moshaf_id: moshaf.id,
+      surah_id: selectedSurah.id,
+      window_size: clampLearnWindowSize(windowSize, maxWindow),
+      repeat_count: repeats,
+    });
     void loop.start({
       reciter: selectedReciter,
       moshaf,

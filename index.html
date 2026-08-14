@@ -7,7 +7,7 @@
     <meta name="color-scheme" content="dark" />
 
     <title>Sawra — Écouter le Coran en ligne gratuitement | Sans publicité</title>
-    <meta name="description" content="Écoutez le Coran en streaming avec les grands récitateurs (Al-Afasy, Soudais, Minshawi…). Lecteur gratuit, sans pub, téléchargement hors-ligne et sync multi-appareils. Essayez Sawra." />
+    <meta name="description" content="Écoutez le Coran en streaming avec les grands récitateurs (Al-Afasy, Soudais, Minshawi…). Bibliothèque, Quiz, Apprendre, hors-ligne et sync multi-appareils. Gratuit, sans pub." />
     <meta name="keywords" content="écouter le Coran, Coran audio gratuit, lecteur coranique, streaming Coran, récitateurs Coran, Mishary Al Afasy, Abderrahmane Al-Soudais, Maher Al Muaiqly, Minshawi, Coran hors ligne, Sawra" />
     <meta name="author" content="Sawra" />
     <meta name="creator" content="Sawra" />
@@ -146,16 +146,22 @@
             "browserRequirements": "Requires JavaScript. Modern browser recommended.",
             "inLanguage": "fr-FR",
             "isAccessibleForFree": true,
-            "description": "Sawra permet d’écouter le Coran en streaming (sources mp3quran.net), de télécharger des sourates pour le hors-ligne, de comparer des récitateurs et de synchroniser favoris et reprise avec un compte. Gratuit et sans publicité.",
+            "description": "Sawra permet d’écouter le Coran en streaming (sources mp3quran.net), de télécharger des sourates pour le hors-ligne, de gérer une Bibliothèque (signets, historique, streak), de s’entraîner avec le Quiz et la page Apprendre, et de synchroniser favoris et reprise avec un compte. Gratuit et sans publicité.",
             "image": "https://sawra.app/og-image.png",
             "screenshot": "https://sawra.app/og-image.png",
             "featureList": [
               "Streaming Coran audio (mp3quran.net)",
               "Grands récitateurs (Al-Afasy, Soudais, Minshawi…)",
+              "Bibliothèque : signets de versets et notes",
+              "Historique d’écoute et streak (compte requis)",
+              "Quiz Coran — devinez la sourate",
+              "Apprendre : flou, écoute, révélation",
+              "Radio Coran en continu",
               "Téléchargement hors-ligne",
-              "Sync multi-appareils avec compte",
+              "Sync multi-appareils avec compte GoMuslimLife",
               "Comparaison de récitateurs",
               "Lecture des versets synchronisée",
+              "Suppression du compte (RGPD)",
               "Installation PWA",
               "100 % gratuit, sans publicité"
             ],
@@ -202,6 +208,46 @@
                   "@type": "Answer",
                   "text": "Oui. Sawra est une application web progressive (PWA) installable sur Android et iOS, avec une expérience optimisée mobile."
                 }
+              },
+              {
+                "@type": "Question",
+                "name": "Comment fonctionnent les signets et la Bibliothèque ?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Vous pouvez marquer des versets précis avec des notes personnelles depuis le lecteur. Retrouvez-les dans l’onglet Bibliothèque, avec vos récitateurs favoris."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Qu’est-ce que le streak et l’historique d’écoute ?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Avec un compte GoMuslimLife, Sawra enregistre votre temps d’écoute, un calendrier sur 7 jours et un streak (au moins 1 minute par jour). Ces données sont synchronisées dans le cloud."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Qu’est-ce que le Quiz Coran et la page Apprendre ?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Le Quiz vous invite à deviner la sourate à partir d’un extrait audio. La page Apprendre propose un entraînement verset par verset avec flou, écoute et révélation du texte."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Puis-je supprimer mon compte et mes données ?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Oui. Depuis l’onglet Connexion, vous pouvez supprimer définitivement votre compte et toutes vos données Sawra (droit d’effacement RGPD). Le compte GoMuslimLife associé est également fermé."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Le compte GoMuslimLife est-il partagé ?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Oui. Un même compte GoMuslimLife sert pour Sawra et gomuslimlife.com : favoris, signets, historique, reprise et préférences sont synchronisés entre appareils."
+                }
               }
             ]
           }
@@ -214,16 +260,36 @@
       <main style="max-width:42rem;margin:2rem auto;padding:0 1.25rem;font-family:system-ui,sans-serif;color:#e6edf5;background:#07111d;line-height:1.6">
         <h1>Sawra — Écouter le Coran en ligne gratuitement</h1>
         <p>Sawra est un lecteur coranique gratuit et sans publicité pour écouter le Coran en streaming avec les grands récitateurs (Al-Afasy, Soudais, Minshawi, Al-Mouaiqly…).</p>
+        <h2>Navigation</h2>
+        <ul>
+          <li><a href="/" style="color:#c9a06a">Accueil</a></li>
+          <li><a href="/?tab=listen" style="color:#c9a06a">Écouter — récitateurs et sourates</a></li>
+          <li><a href="/?tab=favorites" style="color:#c9a06a">Bibliothèque — signets, historique, streak</a></li>
+          <li><a href="/?tab=quiz" style="color:#c9a06a">Quiz Coran</a></li>
+          <li><a href="/?tab=learn" style="color:#c9a06a">Apprendre le Coran</a></li>
+          <li><a href="/?tab=radio" style="color:#c9a06a">Radio Coran</a></li>
+          <li><a href="/?tab=more&amp;panel=about" style="color:#c9a06a">À propos de Sawra</a></li>
+        </ul>
         <h2>Fonctionnalités</h2>
         <ul>
           <li>Streaming Coran audio (sources mp3quran.net)</li>
+          <li>Bibliothèque : signets de versets, historique et streak (compte)</li>
+          <li>Quiz Coran et page Apprendre</li>
+          <li>Radio Coran en continu</li>
           <li>Téléchargement de sourates pour l’écoute hors-ligne</li>
           <li>Favoris et reprise de lecture</li>
-          <li>Synchronisation multi-appareils avec un compte</li>
+          <li>Synchronisation multi-appareils avec un compte GoMuslimLife</li>
           <li>Comparaison de récitateurs et lecture des versets</li>
+          <li>Suppression du compte (RGPD)</li>
           <li>Installation en PWA sur mobile</li>
         </ul>
-        <p>Activez JavaScript pour ouvrir le lecteur, ou consultez la <a href="/privacy/" style="color:#c9a06a">politique de confidentialité</a>.</p>
+        <h2>Informations légales</h2>
+        <ul>
+          <li><a href="/privacy/" style="color:#c9a06a">Politique de confidentialité</a></li>
+          <li><a href="/terms/" style="color:#c9a06a">Conditions d’utilisation</a></li>
+          <li><a href="/sources/" style="color:#c9a06a">Sources & licences audio</a></li>
+        </ul>
+        <p>Activez JavaScript pour ouvrir le lecteur interactif.</p>
       </main>
     </noscript>
     <div id="boot-splash" role="status" aria-live="polite" aria-label="Chargement Sawra">

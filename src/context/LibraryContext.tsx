@@ -11,6 +11,7 @@ import { useAuth } from './AuthContext';
 import { useAudio } from './AudioContext';
 import { useActiveAyah } from '../hooks/useActiveAyah';
 import { requestAuthPrompt } from '../utils/appEvents';
+import { capturePostHogEvent } from '../utils/posthog';
 import { isSupabaseConfigured } from '../lib/supabase';
 import {
   BOOKMARK_PAGE_SIZE,
@@ -233,6 +234,12 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
       createdAt: now,
       updatedAt: now,
     };
+    capturePostHogEvent('ayah_bookmark_added', {
+      surah_id: payload.surahId,
+      ayah_number: payload.ayah,
+      reciter_id: payload.reciterId ?? null,
+      moshaf_id: payload.moshafId ?? null,
+    });
     persistBookmarks([created, ...bookmarksRef.current]);
     if (user) {
       void upsertAyahBookmark(created).then((saved) => {
@@ -261,6 +268,10 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [upsertAyahBookmark, user]);
 
   const removeBookmark = useCallback((surahId: number, ayah: number) => {
+    capturePostHogEvent('ayah_bookmark_removed', {
+      surah_id: surahId,
+      ayah_number: ayah,
+    });
     persistBookmarks(
       bookmarksRef.current.filter((row) => !(row.surahId === surahId && row.ayah === ayah)),
     );

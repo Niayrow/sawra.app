@@ -14,6 +14,7 @@ import { useRadioSession } from '../hooks/useRadioSession';
 import type { Reciter } from '../types';
 import { ReciterPortrait } from './ReciterPortrait';
 import { RadioTheater } from './RadioTheater';
+import { capturePostHogEvent } from '../utils/posthog';
 
 type RadioPageProps = {
   onBack: () => void;
@@ -140,6 +141,7 @@ export const RadioPage: React.FC<RadioPageProps> = ({ onBack, onTheaterChange })
     async (stationId: string) => {
       openTheater(stationId);
       if (radio.activeStationId !== stationId) {
+        capturePostHogEvent('radio_station_started', { station_id: stationId });
         await radio.startStation(stationId);
         return;
       }

@@ -4,14 +4,14 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Confidentialité — Sawra | Lecteur coranique gratuit</title>
-  <meta name="description" content="Politique de confidentialité de Sawra : données locales, compte GoMuslimLife, analytics anonymes, sources audio mp3quran.net. Lecteur coranique gratuit et sans publicité." />
+  <meta name="description" content="Politique de confidentialité de Sawra : données locales, compte GoMuslimLife, historique et streak, suppression de compte. Lecteur coranique gratuit et sans publicité." />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://sawra.app/privacy/" />
   <link rel="alternate" hreflang="fr" href="https://sawra.app/privacy/" />
   <meta property="og:type" content="article" />
   <meta property="og:site_name" content="Sawra" />
   <meta property="og:title" content="Confidentialité — Sawra" />
-  <meta property="og:description" content="Comment Sawra traite vos données : stockage local, sync compte, analytics anonymes. Gratuit, sans publicité ciblée." />
+  <meta property="og:description" content="Comment Sawra traite vos données : stockage local, sync compte, historique, streak, suppression de compte. Gratuit, sans publicité ciblée." />
   <meta property="og:url" content="https://sawra.app/privacy/" />
   <meta property="og:image" content="https://sawra.app/og-image.png" />
   <meta property="og:locale" content="fr_FR" />
@@ -29,7 +29,7 @@
     "inLanguage": "fr-FR",
     "isPartOf": { "@id": "https://sawra.app/#website" },
     "about": { "@id": "https://sawra.app/#organization" },
-    "dateModified": "2026-08-09"
+    "dateModified": "2026-08-14"
   }
   </script>
   <style>
@@ -78,34 +78,56 @@
       border-radius: 1rem;
       padding: 1.25rem 1.35rem;
     }
+    .app-link {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(201, 160, 106, 0.35);
+      background: rgba(201, 160, 106, 0.1);
+      color: #e8d4bc;
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
   <main>
     <p class="eyebrow">Sawra</p>
     <h1>Politique de confidentialité</h1>
-    <p class="meta">Dernière mise à jour · 9 août 2026 · URL publique pour Google Play</p>
+    <p class="meta">Dernière mise à jour · 14 août 2026 · URL publique pour Google Play</p>
 
     <div class="card">
       <p>
         Sawra est un lecteur de Coran (web, PWA et application Android).
         Cette page décrit les données traitées. Une version interactive est aussi disponible dans l’app
-        (À propos → Confidentialité).
+        (<a href="https://sawra.app/?tab=more&amp;panel=legal&amp;section=privacy">À propos → Confidentialité</a>).
       </p>
 
       <h2>1. Sans compte (stockage local)</h2>
       <p>
-        Favoris, thème du lecteur, volume, vitesse, téléchargements audio et reprise locale
-        sont enregistrés sur l’appareil (localStorage / Cache Storage).
+        Favoris, signets de versets, notes, thème du lecteur, volume, vitesse, téléchargements audio
+        et reprise locale sont enregistrés sur l’appareil (localStorage / Cache Storage).
+        L’historique d’écoute (temps total, calendrier, streak) n’est disponible <strong>qu’avec un compte</strong>.
         Ces éléments ne sont pas envoyés à un serveur tant que vous n’êtes pas connecté.
       </p>
 
       <h2>2. Avec un compte GoMuslimLife</h2>
       <p>
-        Si vous vous connectez, nous synchronisons favoris, reprise de lecture, préférences du lecteur
-        et sélection de sourates. Pas de publicité, pas de revente d’historique d’écoute.
+        Si vous vous connectez, nous synchronisons favoris, signets et notes, reprise de lecture
+        (y compris par sourate), historique / streak, préférences du lecteur et sélection de boucle de sourates.
+        Pas de publicité, pas de revente d’historique d’écoute.
         L’authentification et le stockage cloud passent par Supabase.
         Vous pouvez vous déconnecter depuis l’onglet Compte.
+      </p>
+      <p>
+        Vous pouvez aussi <strong>supprimer votre compte et toutes vos données</strong> (droit d’effacement)
+        depuis l’écran Connexion — le compte associé GoMuslimLife est alors fermé définitivement.
+      </p>
+      <p>
+        Les jours d’écoute suivent le fuseau de l’appareil au moment de l’écoute.
+        Un changement de fuseau n’est pas recalculé a posteriori.
       </p>
 
       <h2>3. Identifiants techniques</h2>
@@ -117,7 +139,9 @@
       <h2>4. Analytics</h2>
       <p>
         En production, des métriques anonymes de performance (Vercel Analytics / Speed Insights)
-        peuvent être collectées pour améliorer la stabilité, sans publicité ciblée.
+        et d’usage produit (PostHog) peuvent être collectées pour améliorer la stabilité et
+        l’expérience, sans publicité ciblée.
+        Sawra ne vend pas vos données et n’utilise pas de réseaux publicitaires tiers.
       </p>
 
       <h2>5. Audio tiers</h2>
@@ -127,21 +151,30 @@
         Sawra n’héberge pas les fichiers MP3.
       </p>
 
-      <h2>6. Vos droits</h2>
+      <h2>6. Hors-ligne & conservation</h2>
       <p>
-        Vous pouvez effacer les données locales (cache hors-ligne / données du site) et supprimer
-        votre session cloud. Pour toute question :
+        Les MP3 téléchargés restent tant que le cache n’est pas vidé et que le navigateur
+        ne les purge pas. Ce n’est pas un stockage illimité ni une sauvegarde cloud des fichiers audio.
+      </p>
+
+      <h2>7. Vos droits</h2>
+      <p>
+        Vous pouvez effacer les données locales (cache hors-ligne / données du site), supprimer
+        votre session cloud ou supprimer définitivement votre compte depuis l’app.
+        Pour toute question :
         <a href="https://sofianeweb.fr" rel="noopener noreferrer">sofianeweb.fr</a>
         · compte :
         <a href="https://gomuslimlife.com" rel="noopener noreferrer">GoMuslimLife.com</a>.
       </p>
 
-      <h2>7. Contact éditeur</h2>
+      <h2>8. Contact éditeur</h2>
       <p>
         Éditeur : Sofiane Web —
         <a href="https://sofianeweb.fr" rel="noopener noreferrer">sofianeweb.fr</a>.
         Application : <a href="https://sawra.app">sawra.app</a> · package Android : <code>app.sawra</code>.
       </p>
+
+      <a class="app-link" href="https://sawra.app/?tab=more&amp;panel=legal&amp;section=privacy">Ouvrir dans l’app →</a>
     </div>
 
     <p style="margin-top: 1.5rem; font-size: 0.9rem;">

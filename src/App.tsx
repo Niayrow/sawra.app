@@ -36,6 +36,7 @@ import {
   type NavDesktopStyle,
 } from './utils/navDesktopStyle';
 import { applyDocumentSeo, resolveSeoForView } from './utils/seo';
+import { capturePostHogEvent, capturePostHogPageview } from './utils/posthog';
 
 const SurahList = lazy(() => import('./components/SurahList').then((module) => ({ default: module.SurahList })));
 const GlobalPlayerV2 = lazy(() => import('./components/GlobalPlayerV2').then((module) => ({ default: module.GlobalPlayerV2 })));
@@ -987,8 +988,12 @@ const AppContent: React.FC = () => {
   }, [activeTab, morePanel, legalSub]);
 
   useEffect(() => {
-    applyDocumentSeo(resolveSeoForView(activeTab, morePanel));
-  }, [activeTab, morePanel]);
+    applyDocumentSeo(resolveSeoForView(activeTab, morePanel, legalSub));
+  }, [activeTab, morePanel, legalSub]);
+
+  useEffect(() => {
+    capturePostHogPageview();
+  }, [activeTab, morePanel, legalSub]);
 
   useEffect(() => {
     if (!isLoadingReciters) {
@@ -1026,7 +1031,11 @@ const AppContent: React.FC = () => {
       authPromptShownRef.current = true;
     }
     setFavorites((prev) => {
-      const updated = prev.includes(id) ? prev.filter((fId) => fId !== id) : [...prev, id];
+      const wasFavorited = prev.includes(id);
+      capturePostHogEvent(wasFavorited ? 'reciter_unfavorited' : 'reciter_favorited', {
+        reciter_id: id,
+      });
+      const updated = wasFavorited ? prev.filter((fId) => fId !== id) : [...prev, id];
       try {
         localStorage.setItem('quran_streamer_favorites', JSON.stringify(updated));
       } catch {
@@ -1214,6 +1223,7 @@ const AppContent: React.FC = () => {
   };
 
   const handleSelectReciter = (reciter: Reciter) => {
+    capturePostHogEvent('reciter_selected', { reciter_id: reciter.id });
     setCategoryModalId(null);
     setActiveReciter(reciter);
     setActiveTab('listen');
@@ -1594,9 +1604,14 @@ const AppContent: React.FC = () => {
                   className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 text-[11px]"
                 >
                   {[
-                    { label: 'Sources', onClick: () => openLegal('sources') },
-                    { label: 'Confidentialité', onClick: () => openLegal('privacy') },
-                    { label: 'Conditions', onClick: () => openLegal('terms') },
+                    { label: 'Écouter', href: '/?tab=listen' },
+                    { label: 'Bibliothèque', href: '/?tab=favorites' },
+                    { label: 'Quiz', href: '/?tab=quiz' },
+                    { label: 'Apprendre', href: '/?tab=learn' },
+                    { label: 'À propos', href: '/?tab=more&panel=about' },
+                    { label: 'Sources', href: '/sources/' },
+                    { label: 'Confidentialité', href: '/privacy/' },
+                    { label: 'Conditions', href: '/terms/' },
                   ].map((item, index) => (
                     <React.Fragment key={item.label}>
                       {index > 0 && (
@@ -1604,13 +1619,12 @@ const AppContent: React.FC = () => {
                           ·
                         </span>
                       )}
-                      <button
-                        type="button"
-                        onClick={item.onClick}
+                      <a
+                        href={item.href}
                         className="min-h-9 px-1 text-[#aab7c5] transition-colors hover:text-[#e6d5c2] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078]"
                       >
                         {item.label}
-                      </button>
+                      </a>
                     </React.Fragment>
                   ))}
                   <span className="px-1.5 text-[#46607b]" aria-hidden>

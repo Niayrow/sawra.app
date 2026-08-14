@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /offline.html
+Disallow: /*tab=account
 
 User-agent: GPTBot
 Allow: /

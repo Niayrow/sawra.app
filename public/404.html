@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Page introuvable — Sawra</title>
+  <meta name="description" content="Cette page n’existe pas sur Sawra. Retournez à l’accueil pour écouter le Coran gratuitement." />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07111d;
+      --text: #e6edf5;
+      --muted: #aab7c5;
+      --accent: #c9a06a;
+      --line: rgba(166, 184, 203, 0.16);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(240, 209, 188, 0.1), transparent 42%),
+        radial-gradient(circle at 10% 90%, rgba(121, 144, 161, 0.1), transparent 35%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      padding: 2rem 1.25rem;
+    }
+    main {
+      max-width: 28rem;
+      text-align: center;
+    }
+    img {
+      width: 5rem;
+      height: 5rem;
+      object-fit: contain;
+      margin: 0 auto 1.25rem;
+      display: block;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      letter-spacing: -0.02em;
+    }
+    p { color: var(--muted); margin: 0.75rem 0 0; }
+    nav {
+      margin-top: 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem 1rem;
+    }
+    a {
+      color: #e8d4bc;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    a:hover { text-decoration: underline; }
+    .cta {
+      display: inline-block;
+      margin-top: 1.5rem;
+      padding: 0.65rem 1.25rem;
+      border-radius: 999px;
+      border: 1px solid rgba(201, 160, 106, 0.35);
+      background: rgba(201, 160, 106, 0.12);
+      color: #e8d4bc;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <img src="/icons/sansfond.webp" alt="" width="80" height="80" />
+    <h1>Page introuvable</h1>
+    <p>Cette adresse n’existe pas sur Sawra. Le Coran vous attend à l’accueil.</p>
+    <a class="cta" href="/">Retour à l’accueil</a>
+    <nav aria-label="Liens utiles">
+      <a href="/?tab=listen">Écouter</a>
+      <a href="/?tab=favorites">Bibliothèque</a>
+      <a href="/?tab=quiz">Quiz</a>
+      <a href="/?tab=learn">Apprendre</a>
+      <a href="/privacy/">Confidentialité</a>
+    </nav>
+  </main>
+</body>
+</html>

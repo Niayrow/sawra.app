@@ -39,7 +39,7 @@ export const ReciterPortrait: React.FC<ReciterPortraitProps> = ({
   const local = hasLocalReciterImage(reciter.id);
   const src = getReciterImage(reciter);
   const fallback = getGeneratedReciterAvatar(reciter);
-  const label = alt ?? reciter.name;
+  const label = alt ?? `Portrait de ${reciter.name}`;
 
   if (!local) {
     return (

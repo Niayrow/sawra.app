@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { precacheAppShellInBackground } from './utils/appShellPrecache'
+import { initPostHog } from './utils/posthog'
+
+initPostHog()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -10,7 +13,7 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
-// Defer analytics so they never block first paint
+// Defer third-party analytics so they never block first paint
 if (import.meta.env.PROD) {
   const loadInsights = () => {
     void import('@vercel/analytics/react').then(({ Analytics }) => {

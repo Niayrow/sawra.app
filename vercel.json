@@ -1,4 +1,11 @@
 {
+  "rewrites": [
+    {
+      "source": "/:path+",
+      "destination": "/404.html",
+      "statusCode": 404
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

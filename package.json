@@ -26,6 +26,7 @@
     "lucide-react": "^1.16.0",
     "lucide-react-motion": "^0.4.0",
     "motion": "^12.43.0",
+    "posthog-js": "^1.417.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },

@@ -1,12 +1,60 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Compass, Cloud, HardDrive, Headphones, Shield, Sparkles, Trash2, Wifi,
   MonitorSmartphone, ListMusic, Smartphone, ExternalLink, History, BookOpen, FileText,
-  Bookmark,
+  Bookmark, ChevronDown,
 } from '../icons/motion';
 import { useAudio } from '../context/AudioContext';
 
 export const APP_VERSION = '1.6.0';
+
+const FAQ_ITEMS: Array<{ question: string; answer: string }> = [
+  {
+    question: 'Sawra est-il gratuit ?',
+    answer:
+      'Oui. Sawra est 100 % gratuit et sans publicité. Vous pouvez écouter le Coran en streaming sans créer de compte.',
+  },
+  {
+    question: 'D’où viennent les audios du Coran ?',
+    answer:
+      'Les flux audio proviennent de mp3quran.net. Sawra ne revend pas d’écoute et n’héberge pas les fichiers MP3.',
+  },
+  {
+    question: 'Puis-je écouter le Coran hors ligne ?',
+    answer:
+      'Oui. Téléchargez des sourates sur votre appareil pour les réécouter sans connexion.',
+  },
+  {
+    question: 'Comment fonctionnent les signets et la Bibliothèque ?',
+    answer:
+      'Marquez des versets précis avec des notes depuis le lecteur. Retrouvez-les dans l’onglet Bibliothèque, avec vos récitateurs favoris.',
+  },
+  {
+    question: 'Qu’est-ce que le streak et l’historique d’écoute ?',
+    answer:
+      'Avec un compte GoMuslimLife, Sawra enregistre votre temps d’écoute, un calendrier sur 7 jours et un streak (≥ 1 min / jour). Données synchronisées dans le cloud.',
+  },
+  {
+    question: 'Qu’est-ce que le Quiz Coran et la page Apprendre ?',
+    answer:
+      'Le Quiz vous invite à deviner la sourate à partir d’un extrait audio. Apprendre propose un entraînement verset par verset : flou, écoute, révélation.',
+  },
+  {
+    question: 'Puis-je supprimer mon compte et mes données ?',
+    answer:
+      'Oui. Depuis Connexion, supprimez définitivement votre compte et toutes vos données Sawra (droit d’effacement RGPD). Le compte GoMuslimLife associé est fermé.',
+  },
+  {
+    question: 'Le compte GoMuslimLife est-il partagé ?',
+    answer:
+      'Oui. Un même compte sert pour Sawra et gomuslimlife.com : favoris, signets, historique, reprise et préférences sont synchronisés entre appareils.',
+  },
+  {
+    question: 'Sawra fonctionne-t-il sur mobile ?',
+    answer:
+      'Oui. Sawra est une PWA installable sur Android et iOS, avec une expérience optimisée mobile.',
+  },
+];
 
 type LegalPanelId = 'sources' | 'privacy' | 'terms';
 
@@ -244,6 +292,18 @@ export const AboutPanel: React.FC<AboutPanelProps> = ({ onOpenLegal }) => {
         ))}
       </div>
 
+      <div className="glass-panel rounded-3xl border border-[#30455c]/60 p-5 flex flex-col gap-3">
+        <div className="flex items-center gap-2">
+          <BookOpen className="w-4 h-4 text-[#e2d0ba]" />
+          <h3 className="text-sm font-bold text-[#f6f8fb]">Questions fréquentes</h3>
+        </div>
+        <div className="flex flex-col gap-2">
+          {FAQ_ITEMS.map(({ question, answer }) => (
+            <FaqItem key={question} question={question} answer={answer} />
+          ))}
+        </div>
+      </div>
+
       <div className="glass-panel rounded-3xl border border-[#30455c]/60 p-4 flex flex-col gap-3">
         <div className="flex items-center justify-between border-b border-[#111d2d] pb-2">
           <div className="flex items-center gap-2">
@@ -322,6 +382,32 @@ export const AboutPanel: React.FC<AboutPanelProps> = ({ onOpenLegal }) => {
           <span className="inline-block transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5">↗</span>
         </a>
       </div>
+    </div>
+  );
+};
+
+const FaqItem: React.FC<{ question: string; answer: string }> = ({ question, answer }) => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="rounded-xl border border-[#30455c]/45 bg-[#111d2d]/45 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        aria-expanded={open}
+        className="flex w-full min-h-11 items-center justify-between gap-3 px-3.5 py-3 text-left text-xs font-semibold text-[#e6edf5] transition-colors hover:bg-[#162538]/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078]"
+      >
+        <span>{question}</span>
+        <ChevronDown
+          className={`h-4 w-4 shrink-0 text-[#95a7ba] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          aria-hidden
+        />
+      </button>
+      {open && (
+        <p className="border-t border-[#30455c]/40 px-3.5 py-3 text-[12px] leading-relaxed text-[#b4c0ce]">
+          {answer}
+        </p>
+      )}
     </div>
   );
 };

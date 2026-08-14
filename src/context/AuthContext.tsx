@@ -22,6 +22,7 @@ import {
 import type { AyahBookmark, ListenDay, SurahProgress } from '../utils/libraryTypes';
 import { NOTE_MAX_LENGTH } from '../utils/libraryTypes';
 import { clearLocalLibraryData } from '../utils/libraryStorage';
+import { identifyPostHogUser, resetPostHogUser } from '../utils/posthog';
 
 type AuthMode = 'signin' | 'signup';
 
@@ -106,6 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<SawraProfileRow | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const userIdRef = useRef<string | null>(null);
+  const identifiedUserIdRef = useRef<string | null>(null);
 
   const user = session?.user ?? null;
 
@@ -185,10 +187,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         const { data: sub } = client.auth.onAuthStateChange((_event, nextSession) => {
+          const nextUserId = nextSession?.user.id ?? null;
+          if (identifiedUserIdRef.current && identifiedUserIdRef.current !== nextUserId) {
+            resetPostHogUser();
+            identifiedUserIdRef.current = null;
+          }
+
           setSession(nextSession);
-          userIdRef.current = nextSession?.user.id ?? null;
-          if (nextSession?.user.id) {
-            void loadProfile(nextSession.user.id);
+          userIdRef.current = nextUserId;
+          if (nextUserId) {
+            void loadProfile(nextUserId);
           } else {
             setProfile(null);
           }
@@ -287,6 +295,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!client) return;
     await client.auth.signOut();
     setProfile(null);
+    resetPostHogUser();
+    identifiedUserIdRef.current = null;
   }, []);
 
   const deleteOwnAccount = useCallback(async () => {
@@ -304,8 +314,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await client.auth.signOut();
     }
     setProfile(null);
+    resetPostHogUser();
+    identifiedUserIdRef.current = null;
     return { ok: true };
   }, []);
+
+  useEffect(() => {
+    if (!sessionReady || !user?.id || identifiedUserIdRef.current === user.id) return;
+    if (identifiedUserIdRef.current) resetPostHogUser();
+
+    const displayName = user.user_metadata.display_name;
+    identifyPostHogUser(user.id, {
+      email: user.email,
+      name: typeof displayName === 'string' ? displayName : undefined,
+    });
+    identifiedUserIdRef.current = user.id;
+  }, [sessionReady, user]);
 
   const updateDisplayName = useCallback(async (displayName: string) => {
     if (!supabase || !userIdRef.current) {

@@ -51,8 +51,7 @@ export const ReciterCategoryGrid: React.FC<ReciterCategoryGridProps> = ({
             >
               <img
                 src={category.image}
-                alt=""
-                aria-hidden="true"
+                alt={`${category.title} — ${category.subtitle}`}
                 width="400"
                 height="400"
                 sizes="(max-width: 640px) 45vw, 160px"

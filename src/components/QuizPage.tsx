@@ -30,6 +30,7 @@ import {
   type QuizSession,
 } from '../utils/quizQuestions';
 import { ensureTimingCatalog } from '../utils/ayahTiming';
+import { capturePostHogEvent } from '../utils/posthog';
 
 type QuizPhase = 'setup' | 'loading' | 'question' | 'score';
 
@@ -117,6 +118,10 @@ export const QuizPage: React.FC<QuizPageProps> = ({ onBack, onListenSurah }) => 
       const next = await createQuizSession(reciters, length, difficulty, ac.signal);
       if (ac.signal.aborted) return;
       setSession(next);
+      capturePostHogEvent('quiz_started', {
+        difficulty,
+        question_count: next.questions.length,
+      });
       setPhase('question');
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') return;
@@ -151,6 +156,11 @@ export const QuizPage: React.FC<QuizPageProps> = ({ onBack, onListenSurah }) => 
     if (!session) return;
     if (isLast) {
       clip.unload();
+      capturePostHogEvent('quiz_completed', {
+        difficulty: session.difficulty,
+        question_count: session.questions.length,
+        score,
+      });
       setPhase('score');
       return;
     }

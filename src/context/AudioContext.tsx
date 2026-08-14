@@ -6,6 +6,7 @@ import { simplifyMoshafName } from '../utils/moshafLabel';
 import { filterCuratedReciters, CURATED_RECITER_IDS } from '../data/curatedReciters';
 import { getAudioUrl } from '../utils/audioUrl';
 import { syncWidgetPlayback } from '../utils/widgetSync';
+import { capturePostHogEvent } from '../utils/posthog';
 import {
   getAudioCacheInfo,
   downloadAndCacheUrl,
@@ -515,6 +516,11 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           return next;
         });
         done += 1;
+        capturePostHogEvent('surah_download_completed', {
+          reciter_id: reciter.id,
+          moshaf_id: moshaf.id,
+          surah_id: surah.id,
+        });
         setBatchDownload({
           done,
           total: pending.length,
@@ -995,7 +1001,9 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const displayReciter = RECITER_NAME_CORRECTIONS[catalogReciter.id]
       ? { ...catalogReciter, name: RECITER_NAME_CORRECTIONS[catalogReciter.id] }
       : catalogReciter;
-    
+
+    const safeStartAt = Number.isFinite(startAt) ? Math.max(0, startAt) : 0;
+
     // 1. Update State synchronously
     const newTrack: AudioTrack = { reciter: displayReciter, moshaf, surah };
     setCurrentTrack(newTrack);
@@ -1006,7 +1014,6 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     // 2. Play Audio File
     const audioUrl = getAudioUrl(moshaf, surah);
-    const safeStartAt = Number.isFinite(startAt) ? Math.max(0, startAt) : 0;
 
     audio.pause();
     
@@ -1077,6 +1084,12 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     
     try {
       await audio.play();
+      capturePostHogEvent('surah_playback_started', {
+        reciter_id: displayReciter.id,
+        moshaf_id: moshaf.id,
+        surah_id: surah.id,
+        resumed: safeStartAt > 0,
+      });
       setPlaybackStatus('playing');
     } catch (err) {
       console.error('Audio reproduction rejected:', err);

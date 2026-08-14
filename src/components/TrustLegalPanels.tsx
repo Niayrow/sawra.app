@@ -152,7 +152,8 @@ export const PrivacyPanel: React.FC = () => (
     <Section icon={Shield} title="Mesures techniques & analytics">
       <p>
         En production, des métriques <Em>anonymes</Em> de performance (
-        <Strong>Vercel Analytics</Strong> / Speed Insights) peuvent être collectées pour améliorer la stabilité —{' '}
+        <Strong>Vercel Analytics</Strong> / Speed Insights) et d’usage produit (
+        <Strong>PostHog</Strong>) peuvent être collectées pour améliorer la stabilité —{' '}
         <Strong>sans publicité ciblée</Strong>.
       </p>
       <p>

@@ -3,6 +3,7 @@ import { radioMetadata } from '../routeMeta';
 import { decodeCustomRadio, customRadioShareUrl } from '@/utils/customRadio';
 import {
   buildCustomRadioSocialMeta,
+  CUSTOM_RADIO_OG_FALLBACK,
   customRadioOgImageUrl,
 } from '@/utils/customRadioShare';
 import { SITE_ORIGIN } from '@/utils/seoMetadata';
@@ -29,6 +30,7 @@ export async function generateMetadata({
   const { title, description } = buildCustomRadioSocialMeta(config);
   const url = customRadioShareUrl(config, SITE_ORIGIN);
   const ogImage = customRadioOgImageUrl(config, SITE_ORIGIN);
+  const alt = `${config.name} — Radio Coran sur Sawra`;
 
   return {
     title,
@@ -46,9 +48,18 @@ export async function generateMetadata({
       images: [
         {
           url: ogImage,
+          secureUrl: ogImage,
           width: 1200,
           height: 630,
-          alt: `${config.name} — Radio Coran sur Sawra`,
+          type: 'image/png',
+          alt,
+        },
+        {
+          url: CUSTOM_RADIO_OG_FALLBACK,
+          width: 1200,
+          height: 630,
+          type: 'image/png',
+          alt: 'Sawra — Radio Coran',
         },
       ],
     },
@@ -56,7 +67,7 @@ export async function generateMetadata({
       card: 'summary_large_image',
       title,
       description,
-      images: [ogImage],
+      images: [ogImage, CUSTOM_RADIO_OG_FALLBACK],
     },
   };
 }

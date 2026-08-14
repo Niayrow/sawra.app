@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   LogIn, LogOut, UserPlus, Mail, Lock, User, ShieldCheck, Cloud,
   Heart, MonitorSmartphone, SlidersHorizontal, ExternalLink, Eye, EyeOff,
+  Trash2, AlertTriangle,
 } from '../icons/motion';
 import { useAuth } from '../context/AuthContext';
 
@@ -17,6 +18,7 @@ export const AccountPanel: React.FC = () => {
     signIn,
     signUp,
     signOut,
+    deleteOwnAccount,
     clearAuthError,
     updateDisplayName,
   } = useAuth();
@@ -31,6 +33,8 @@ export const AccountPanel: React.FC = () => {
   const [info, setInfo] = useState<string | null>(null);
   const [formKey, setFormKey] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteEmail, setDeleteEmail] = useState('');
 
   const switchMode = (next: AuthMode) => {
     if (next === mode) return;
@@ -219,6 +223,95 @@ export const AccountPanel: React.FC = () => {
             </button>
           </div>
         </section>
+
+        <section className="rounded-[1.75rem] border border-rose-400/20 bg-[#140d12]/80 p-5 sm:p-6">
+          <div className="flex items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-rose-400/25 bg-rose-500/10 text-rose-300">
+              <AlertTriangle className="h-4 w-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h4 className="text-sm font-black text-[#f6f8fb]">Supprimer mon compte</h4>
+              <p className="mt-1 text-[12px] leading-relaxed text-[#95a7ba]">
+                Droit d’effacement : toutes vos données Sawra (favoris, signets, historique, reprise)
+                et ce compte sont supprimés définitivement. Le compte associé{' '}
+                <span className="font-semibold text-[#d0d9e3]">GoMuslimLife</span> est aussi fermé.
+              </p>
+            </div>
+          </div>
+
+          {!deleteOpen ? (
+            <button
+              type="button"
+              onClick={() => {
+                setDeleteOpen(true);
+                setDeleteEmail('');
+                setInfo(null);
+                clearAuthError();
+              }}
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-xs font-bold text-rose-200 transition-colors hover:bg-rose-500/16 tap-feedback"
+            >
+              <Trash2 className="h-4 w-4" />
+              Supprimer toutes mes données et mon compte
+            </button>
+          ) : (
+            <div className="mt-4 flex flex-col gap-3">
+              <p className="text-[12px] leading-relaxed text-[#c8d1db]">
+                Action irréversible. Tapez votre e-mail{' '}
+                <span className="font-semibold text-[#f6f8fb]">{user.email}</span> pour confirmer.
+              </p>
+              <label className="sr-only" htmlFor="account-delete-confirm">
+                Confirmer l’e-mail
+              </label>
+              <input
+                id="account-delete-confirm"
+                type="email"
+                autoComplete="off"
+                value={deleteEmail}
+                onChange={(e) => setDeleteEmail(e.target.value)}
+                placeholder="votre@email.com"
+                className="w-full rounded-xl border border-rose-400/25 bg-[#0c1522]/80 py-2.5 px-3 text-sm text-[#f6f8fb] placeholder:text-[#6f8499] focus:border-rose-400/50 focus:outline-none focus:ring-2 focus:ring-rose-400/20"
+              />
+              {info && (
+                <p className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-[12px] text-rose-300">
+                  {info}
+                </p>
+              )}
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <button
+                  type="button"
+                  disabled={busy || deleteEmail.trim().toLowerCase() !== (user.email || '').toLowerCase()}
+                  onClick={() => {
+                    void (async () => {
+                      setBusy(true);
+                      setInfo(null);
+                      clearAuthError();
+                      const result = await deleteOwnAccount();
+                      setBusy(false);
+                      if (!result.ok) {
+                        setInfo(result.message || 'Suppression impossible.');
+                      }
+                    })();
+                  }}
+                  className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-rose-500 px-4 text-[12px] font-bold text-white disabled:opacity-45 tap-feedback"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {busy ? 'Suppression…' : 'Confirmer la suppression'}
+                </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => {
+                    setDeleteOpen(false);
+                    setDeleteEmail('');
+                  }}
+                  className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-[#46607b]/50 bg-[#162538]/70 px-4 text-[12px] font-bold text-[#d0d9e3] tap-feedback"
+                >
+                  Annuler
+                </button>
+              </div>
+            </div>
+          )}
+        </section>
       </div>
     );
   }
@@ -290,7 +383,7 @@ export const AccountPanel: React.FC = () => {
               </h3>
               <p className="mt-1.5 text-xs leading-relaxed text-[#95a7ba] sm:text-[13px]">
                 {isSignIn
-                  ? 'Connectez-vous pour synchroniser vos favoris, votre reprise et vos préférences sur Sawra.'
+                  ? 'Connectez-vous pour synchroniser vos favoris, signets, historique, reprise et préférences sur Sawra.'
                   : 'Créez votre compte Sawra en quelques secondes pour retrouver votre écoute sur tous vos appareils.'}
               </p>
             </div>

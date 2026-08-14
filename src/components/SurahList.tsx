@@ -8,6 +8,7 @@ import {
 } from '../icons/motion';
 import { getAudioUrl } from '../utils/audioUrl';
 import { getSurahSuggestions, scoreSurahMatch } from '../utils/surahSearch';
+import { useLibrary } from '../context/LibraryContext';
 
 interface SurahListProps {
   onChooseReciter?: () => void;
@@ -44,6 +45,7 @@ export const SurahList: React.FC<SurahListProps> = ({ onChooseReciter }) => {
     batchDownload,
     deleteSurah,
   } = useAudio();
+  const { getProgress } = useLibrary();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
@@ -930,6 +932,24 @@ export const SurahList: React.FC<SurahListProps> = ({ onChooseReciter }) => {
                     <p className="text-[11px] text-[#aab7c5]/85 truncate mt-1 font-medium leading-snug">
                       {surah.translation}
                     </p>
+                    {(() => {
+                      if (selectMode || !activeReciter || !activeMoshaf) return null;
+                      const resume = getProgress(activeReciter.id, activeMoshaf.id, surah.id);
+                      if (!resume || resume.positionSeconds < 5) return null;
+                      return (
+                        <button
+                          type="button"
+                          data-row-action
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            playTrack(activeReciter, activeMoshaf, surah, resume.positionSeconds);
+                          }}
+                          className="mt-1.5 inline-flex items-center rounded-full border border-[#bfa078]/30 bg-[#e2d0ba]/10 px-2 py-0.5 text-[10px] font-bold text-[#e2d0ba] tap-feedback"
+                        >
+                          {resume.ayah != null ? `Reprendre v. ${resume.ayah}` : 'Reprendre'}
+                        </button>
+                      );
+                    })()}
                   </div>
 
                   <span

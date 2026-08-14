@@ -39,6 +39,7 @@ export type RemotePlaybackSession = {
   moshafId: number;
   surahId: number;
   positionSeconds: number;
+  ayah: number | null;
   deviceId: string;
   deviceLabel: string | null;
   updatedAt: string;
@@ -70,6 +71,7 @@ interface AudioContextType {
   suppressRemoteUntil: number;
   setSuppressRemoteUntil: (ts: number) => void;
   getAccurateCurrentTime: () => number;
+  isSeekingNow: () => boolean;
 
   // Offline / Cache States & Actions
   cachedUrls: Set<string>;
@@ -366,6 +368,11 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Audio HTML5 Reference
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const seekingUntilRef = useRef(0);
+  const markSeeking = () => {
+    seekingUntilRef.current = Date.now() + 320;
+  };
+  const isSeekingNow = () => Date.now() < seekingUntilRef.current;
 
   const ensureEffectsEngine = useCallback(async () => {
     const audio = audioRef.current;
@@ -1040,6 +1047,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const applyStartTime = () => {
       try {
         if (safeStartAt > 0) {
+          markSeeking();
           audio.currentTime = safeStartAt;
         }
         setCurrentTime(safeStartAt);
@@ -1142,6 +1150,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (audioRef.current && Number.isFinite(time)) {
       const upperBound = Number.isFinite(duration) && duration > 0 ? duration : Number.POSITIVE_INFINITY;
       const safeTime = Math.min(upperBound, Math.max(0, time));
+      markSeeking();
       audioRef.current.currentTime = safeTime;
       setCurrentTime(safeTime);
       writeStorage(`${LOCAL_STORAGE_PREFIX}timestamp`, String(safeTime));
@@ -1416,6 +1425,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       suppressRemoteUntil,
       setSuppressRemoteUntil: setSuppressRemoteUntilSafe,
       getAccurateCurrentTime,
+      isSeekingNow,
       
       reciters,
       isLoadingReciters,

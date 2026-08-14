@@ -3,7 +3,6 @@ export {
   MotionIconConfig,
   House,
   Headphones,
-  Play,
   Heart,
   Settings,
   User,

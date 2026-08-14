@@ -1,12 +1,14 @@
 import React, { useEffect, useState, useMemo, lazy, Suspense, useDeferredValue, useCallback, useRef } from 'react';
 import { useAudio, AudioProvider } from './context/AudioContext';
 import { AuthProvider } from './context/AuthContext';
+import { LibraryProvider, useLibrary } from './context/LibraryContext';
+import { AUTH_PROMPT_EVENT } from './utils/appEvents';
 import { ReciterCard } from './components/ReciterCard';
 import { AyahSyncBadge, useTimingCatalogReady } from './components/AyahSyncBadge';
 import { Navbar } from './components/Navbar';
 import { 
   Search, Heart, AlertTriangle, Headphones, Play, ArrowRight,
-  Bookmark, Download, ExternalLink, ChevronDown, History, Share, User, BookOpen,
+  Download, ExternalLink, History, Share, User, BookOpen,
   Sparkles,
 } from './icons/motion';
 import type { AppIcon } from './icons/motion';
@@ -47,9 +49,10 @@ const TermsPanel = lazy(() => import('./components/TrustLegalPanels').then((modu
 const QuizPage = lazy(() => import('./components/QuizPage').then((module) => ({ default: module.QuizPage })));
 const LearnPage = lazy(() => import('./components/LearnPage').then((module) => ({ default: module.LearnPage })));
 const RadioPage = lazy(() => import('./components/RadioPage').then((module) => ({ default: module.RadioPage })));
-const TAB_IDS = ['home', 'listen', 'moments', 'favorites', 'account', 'more', 'quiz', 'learn', 'radio'] as const;
+const LibraryPage = lazy(() => import('./components/LibraryPage').then((module) => ({ default: module.LibraryPage })));
+const TAB_IDS = ['home', 'listen', 'favorites', 'account', 'more', 'quiz', 'learn', 'radio'] as const;
 type TabId = typeof TAB_IDS[number];
-type MorePanel = 'downloads' | 'legal' | 'priorities' | 'compare' | 'about' | 'moments';
+type MorePanel = 'downloads' | 'legal' | 'priorities' | 'compare' | 'about';
 type LegalSub = 'sources' | 'privacy' | 'terms';
 type ListenStep = 'reciters' | 'surahs';
 
@@ -61,13 +64,6 @@ const PRODUCT_PRIORITIES: Array<{
   icon: AppIcon;
 }> = [
   {
-    id: 'library',
-    title: 'Bibliothèque personnelle',
-    summary: 'Étendre les favoris vers des signets de sourates, historique et reprise ciblée.',
-    detail: 'Une couche personnelle améliore fortement la fidélisation et les reprises quotidiennes.',
-    icon: Bookmark,
-  },
-  {
     id: 'native',
     title: 'Apps natives & liste d’attente',
     summary: 'Préparer App Store / Google Play tout en renforçant l’installation PWA « écran d’accueil ».',
@@ -76,7 +72,7 @@ const PRODUCT_PRIORITIES: Array<{
   },
 ];
 
-const MORE_PANEL_IDS: MorePanel[] = ['downloads', 'legal', 'priorities', 'compare', 'about', 'moments'];
+const MORE_PANEL_IDS: MorePanel[] = ['downloads', 'legal', 'priorities', 'compare', 'about'];
 const LEGAL_SUB_IDS: LegalSub[] = ['sources', 'privacy', 'terms'];
 
 const isMorePanel = (value: string | null): value is MorePanel =>
@@ -104,7 +100,7 @@ const mapLegacyTab = (tab: string | null): TabId => {
     case 'surahs':
       return 'listen';
     case 'moments':
-      return 'moments';
+      return 'home';
     case 'ayah':
     case 'everyayah':
       return 'home';
@@ -166,36 +162,6 @@ const getInitialLegalSub = (): LegalSub => {
 
 const FEATURED_RECITER_IDS = [123, 54, 20, 86, 102, 92, 30, 31];
 const GOMUSLIMLIFE_URL = 'https://gomuslimlife.com';
-const MAKKAH_MOMENTS = [
-  {
-    id: 'shuraim-marking-recitation',
-    title: 'Récitation marquante de Sheikh Shuraim',
-    reciter: 'Sheikh Shuraim',
-    youtubeUrl: 'https://www.youtube.com/watch?v=tXG1nFz-ozE',
-    embedUrl: 'https://www.youtube-nocookie.com/embed/tXG1nFz-ozE',
-  },
-  {
-    id: 'ahmad-bin-taleb-marking-recitation',
-    title: 'Récitation marquante de Sheikh Ahmad bin Taleb',
-    reciter: 'Sheikh Ahmad bin Taleb',
-    youtubeUrl: 'https://www.youtube.com/watch?v=QcjIp5cl5Fo',
-    embedUrl: 'https://www.youtube-nocookie.com/embed/QcjIp5cl5Fo',
-  },
-  {
-    id: 'abdul-razzaq-boukar-marking-recitation',
-    title: 'Récitation marquante de Sheikh Abdul Razzaq Boukar',
-    reciter: 'Sheikh Abdul Razzaq Boukar',
-    youtubeUrl: 'https://www.youtube.com/watch?v=ofWia2Vm6Fc',
-    embedUrl: 'https://www.youtube-nocookie.com/embed/ofWia2Vm6Fc',
-  },
-  {
-    id: 'yasser-al-dossary-marking-recitation',
-    title: 'Récitation marquante de Sheikh Yasser Al-Dossary',
-    reciter: 'Sheikh Yasser Al-Dossary',
-    youtubeUrl: 'https://www.youtube.com/watch?v=WUaCahSbDMI',
-    embedUrl: 'https://www.youtube-nocookie.com/embed/WUaCahSbDMI',
-  },
-] as const;
 
 // Dictionary of phonetic synonyms & aliases for the most famous reciters
 const RECITER_ALIASES: Record<number, string[]> = {
@@ -476,99 +442,6 @@ const HomeFeaturedReciter: React.FC<HomeFeaturedReciterProps> = ({
   );
 };
 
-const MakkahMomentCard: React.FC<((typeof MAKKAH_MOMENTS)[number] & { featured?: boolean })> = ({
-  title,
-  reciter,
-  youtubeUrl,
-  embedUrl,
-  featured = false,
-}) => {
-  const [expanded, setExpanded] = useState(false);
-  return (
-    <article className={`overflow-hidden rounded-[1.6rem] border border-[#30455c]/55 bg-[linear-gradient(180deg,rgba(17,29,45,0.92),rgba(10,18,29,0.96))] ${
-      featured ? 'shadow-[0_24px_60px_-30px_rgba(0,0,0,0.55)]' : ''
-    }`}>
-      <button
-        type="button"
-        onClick={() => setExpanded((prev) => !prev)}
-        className="block w-full text-left"
-        aria-expanded={expanded}
-      >
-        <div className={`border-b border-[#30455c]/45 px-4 py-4 sm:px-5 ${featured ? 'sm:px-6 sm:py-5' : ''}`}>
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#8ea1b3]">
-                {featured ? 'À la une' : 'Moment marquant'}
-              </p>
-              <h3 className={`mt-1 font-black text-[#f6f8fb] ${featured ? 'text-lg sm:text-[1.35rem]' : 'text-base'}`}>
-                {title}
-              </h3>
-              <p className={`mt-1 font-semibold text-[#e6d5c2] ${featured ? 'text-sm' : 'text-xs'}`}>{reciter}</p>
-              {featured && (
-                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#b4c0ce]">
-                  Une récitation mise en avant pour ouvrir la sélection.
-                </p>
-              )}
-            </div>
-            <span className="flex flex-col items-center gap-2 shrink-0">
-              <span className={`flex items-center justify-center rounded-2xl bg-[#20334a] text-[#e2d0ba] ${featured ? 'h-12 w-12' : 'h-11 w-11'}`}>
-                <Play className={`ml-0.5 fill-current ${featured ? 'h-5 w-5' : 'h-4.5 w-4.5'}`} />
-              </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#d0d9e3]">
-                {expanded ? 'Réduire' : 'Ouvrir'}
-                <ChevronDown className={`h-3.5 w-3.5 text-[#e2d0ba] transition-transform ${expanded ? 'rotate-180' : ''}`} />
-              </span>
-            </span>
-          </div>
-        </div>
-      </button>
-
-      {expanded && (
-        <div className={`px-4 py-4 sm:px-5 ${featured ? 'sm:px-6 sm:pb-6' : ''}`}>
-          <div className="overflow-hidden rounded-[1.2rem] border border-[#30455c]/45 bg-[#0a1420]">
-            <div className="aspect-video w-full">
-              <iframe
-                src={embedUrl}
-                title={title}
-                className="h-full w-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerPolicy="strict-origin-when-cross-origin"
-                allowFullScreen
-              />
-            </div>
-          </div>
-
-          <div className="mt-3 rounded-[1.2rem] border border-[#30455c]/45 bg-[#0f1928]/80 p-3.5 sm:p-4">
-            <div className="flex flex-col gap-2">
-              <h4 className="text-sm font-black text-[#f6f8fb]">{title}</h4>
-              <p className="text-xs font-semibold text-[#e6d5c2]">{reciter}</p>
-            </div>
-
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setExpanded(false)}
-                className="brand-button-secondary inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-[12px] font-bold transition-colors tap-feedback"
-              >
-                Réduire
-              </button>
-              <a
-                href={youtubeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="brand-button-primary inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-[12px] font-bold transition-colors"
-              >
-                Ouvrir sur YouTube
-                <ExternalLink className="h-3.5 w-3.5" />
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
-    </article>
-  );
-};
-
 /** One-line memo that scrolls when it overflows (mobile). */
 const MemoMarquee: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -735,7 +608,10 @@ const HomeQuizCta: React.FC<{ onOpen: () => void }> = ({ onOpen }) => {
           <Sparkles className="h-4.5 w-4.5" />
         </span>
         <span className="home-hero__quiz-text">
-          <span className="home-hero__quiz-title">Quiz Coran</span>
+          <span className="home-hero__quiz-title">
+            <span className="home-hero__shortcut-short">Quiz</span>
+            <span className="home-hero__shortcut-full">Quiz Coran</span>
+          </span>
           <span className="home-hero__quiz-meta">Devinez la sourate du verset</span>
         </span>
         <span className="home-hero__quiz-chevron" aria-hidden>
@@ -914,7 +790,10 @@ const HomeExploreFusionButton: React.FC<{
               <Headphones className="h-4 w-4" />
             </span>
             <span className="hero-explore-btn__body">
-              <span className="hero-explore-btn__title">Explorer les voix</span>
+              <span className="hero-explore-btn__title">
+              <span className="home-hero__shortcut-short">Voix</span>
+              <span className="home-hero__shortcut-full">Explorer les voix</span>
+            </span>
               <span className="hero-explore-btn__meta">
                 Récitateurs, sourates et découverte.
               </span>
@@ -945,6 +824,7 @@ const AppContent: React.FC = () => {
     playTrack,
   } = useAudio();
   const { user, loading: authLoading } = useAuth();
+  const { getProgress, streak } = useLibrary();
   const isOnline = useOnlineStatus();
 
   const [activeTab, setActiveTab] = useState<TabId>(() => getInitialTab());
@@ -977,13 +857,6 @@ const AppContent: React.FC = () => {
     setNavDesktopStyle(style);
     saveNavDesktopStyle(style);
   }, []);
-
-  // Moments = liens YouTube → inutile hors-ligne
-  useEffect(() => {
-    if (!isOnline && activeTab === 'moments') {
-      setActiveTab('listen');
-    }
-  }, [isOnline, activeTab]);
 
   const handleReciterFusionProgress = useCallback((progress: number) => {
     setReciterFusionProgress(progress);
@@ -1046,10 +919,6 @@ const AppContent: React.FC = () => {
         openMore(panelParam);
         return;
       }
-      if (tab === 'moments') {
-        setActiveTab('moments');
-        return;
-      }
       if (tab) {
         setActiveTab(mapLegacyTab(tab));
       }
@@ -1064,7 +933,7 @@ const AppContent: React.FC = () => {
         setMorePanel('about');
         setActiveTab('more');
       } else if (rawUrl.includes('tab=moments')) {
-        setActiveTab('moments');
+        setActiveTab('home');
       } else if (
         rawUrl.includes('tab=surahs') ||
         rawUrl.includes('tab=reciters') ||
@@ -1189,7 +1058,16 @@ const AppContent: React.FC = () => {
     setActiveTab('account');
   };
 
-  // Soft prompt once per session if logged out
+  useEffect(() => {
+    const onPrompt = () => {
+      if (!user && !authLoading) {
+        setShowAuthPrompt(true);
+        authPromptShownRef.current = true;
+      }
+    };
+    window.addEventListener(AUTH_PROMPT_EVENT, onPrompt);
+    return () => window.removeEventListener(AUTH_PROMPT_EVENT, onPrompt);
+  }, [user, authLoading]);
   useEffect(() => {
     if (authLoading || user || showLoadingHome || authPromptShownRef.current) return;
     try {
@@ -1316,11 +1194,10 @@ const AppContent: React.FC = () => {
     panel?: MorePanel,
     options?: { legalSub?: LegalSub }
   ) => {
-    const nextTab = tab === 'moments' && !isOnline ? 'listen' : tab;
-    setActiveTab(nextTab);
+    setActiveTab(tab);
     if (panel) setMorePanel(panel);
     if (options?.legalSub) setLegalSub(options.legalSub);
-    if (nextTab === 'listen') {
+    if (tab === 'listen') {
       setListenStep(activeReciter ? 'surahs' : 'reciters');
     }
   };
@@ -1405,11 +1282,6 @@ const AppContent: React.FC = () => {
   }, [activeReciter, isLoadingReciters]);
 
   const handleSetActiveTab = (tab: TabId) => {
-    if (tab === 'moments' && !isOnline) {
-      setActiveTab('listen');
-      setListenStep(activeReciter ? 'surahs' : 'reciters');
-      return;
-    }
     setActiveTab(tab);
     if (tab === 'listen') {
       setListenStep(activeReciter ? 'surahs' : 'reciters');
@@ -1525,6 +1397,11 @@ const AppContent: React.FC = () => {
                   </h2>
                   <p className="home-hero__lede home-hero__enter home-hero__enter--3">
                     Reprenez votre lecture, trouvez une belle voix.
+                    {user && streak > 0 ? (
+                      <span className="ml-2 inline-flex align-middle rounded-full border border-[#bfa078]/25 bg-[#e2d0ba]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#e2d0ba]">
+                        {streak} j
+                      </span>
+                    ) : null}
                   </p>
                 </header>
               </div>
@@ -1546,7 +1423,11 @@ const AppContent: React.FC = () => {
                       <span className="home-hero__cta-title">Continuer la lecture</span>
                       <span className="home-hero__cta-meta">
                         {currentTrack
-                          ? `${currentTrack.surah.name} · ${currentTrack.reciter.name}`
+                          ? `${currentTrack.surah.name}${
+                              getProgress(currentTrack.reciter.id, currentTrack.moshaf.id, currentTrack.surah.id)?.ayah != null
+                                ? ` · v. ${getProgress(currentTrack.reciter.id, currentTrack.moshaf.id, currentTrack.surah.id)!.ayah}`
+                                : ''
+                            } · ${currentTrack.reciter.name}`
                           : 'Choisissez une voix et lancez l’écoute'}
                       </span>
                     </span>
@@ -1555,6 +1436,7 @@ const AppContent: React.FC = () => {
                     </span>
                   </button>
 
+                  <div className="home-hero__shortcuts">
                   <HomeExploreFusionButton
                     enabled={exploreFusionEnabled}
                     reciters={reciters ?? []}
@@ -1580,6 +1462,7 @@ const AppContent: React.FC = () => {
                     </span>
                     <ArrowRight className="home-hero__learn-arrow h-4 w-4 shrink-0" aria-hidden />
                   </button>
+                  </div>
 
               <div className="home-fusion-feed">
             {!isLoadingReciters && (
@@ -2056,142 +1939,21 @@ const AppContent: React.FC = () => {
           </div>
         )}
 
-        {((activeTab === 'moments' && isOnline) || activeTab === 'favorites') && (
-          <div className="md:hidden pt-4 pb-1">
-            <div
-              className="flex gap-1 rounded-2xl border border-[#30455c]/50 bg-[#0f1928]/80 p-1"
-              role="tablist"
-              aria-label="Favoris et Moments"
-            >
-              <button
-                type="button"
-                role="tab"
-                aria-selected={activeTab === 'favorites'}
-                onClick={() => handleNavigate('favorites')}
-                className={`min-h-10 flex-1 rounded-xl px-2 py-2 text-[11px] font-bold transition-all tap-feedback ${
-                  activeTab === 'favorites'
-                    ? 'bg-[#e2d0ba]/14 text-[#e6d5c2]'
-                    : 'text-[#95a7ba] hover:text-[#e6edf5]'
-                }`}
-              >
-                Favoris
-              </button>
-              {isOnline && (
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={activeTab === 'moments'}
-                  onClick={() => handleNavigate('moments')}
-                  className={`min-h-10 flex-1 rounded-xl px-2 py-2 text-[11px] font-bold transition-all tap-feedback ${
-                    activeTab === 'moments'
-                      ? 'bg-[#e2d0ba]/14 text-[#e6d5c2]'
-                      : 'text-[#95a7ba] hover:text-[#e6edf5]'
-                  }`}
-                >
-                  Moments
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'moments' && isOnline && (
-          <div className="flex flex-col gap-5 pb-16 sm:pb-20 max-md:pt-2 md:pt-3">
-            <section className="relative overflow-hidden rounded-3xl border border-[#30455c]/55 bg-[linear-gradient(180deg,rgba(17,29,45,0.94),rgba(9,17,28,0.98))] p-5 sm:p-6">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(241,232,220,0.12),transparent_42%),radial-gradient(circle_at_85%_20%,rgba(121,144,161,0.14),transparent_28%)]" aria-hidden="true" />
-              <div className="relative z-10 flex flex-col gap-5">
-                <div className="max-w-2xl">
-                  <span className="brand-chip inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest">
-                    Moments
-                  </span>
-                  <h2 className="mt-3 text-xl font-black text-[#f6f8fb] sm:text-[1.75rem]">Récitations marquantes</h2>
-                  <p className="mt-2 text-sm leading-relaxed text-[#b4c0ce]">
-                    Une sélection mise en avant, puis d'autres récitations à ouvrir juste en dessous.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-                  <div className="rounded-2xl border border-[#30455c]/45 bg-[#101b2a]/78 px-3 py-3">
-                    <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8ea1b3]">Sélection</p>
-                    <p className="mt-1 text-lg font-black text-[#f6f8fb]">{MAKKAH_MOMENTS.length}</p>
-                  </div>
-                  <div className="rounded-2xl border border-[#30455c]/45 bg-[#101b2a]/78 px-3 py-3">
-                    <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8ea1b3]">À la une</p>
-                    <p className="mt-1 text-sm font-black text-[#f6f8fb]">1 vidéo</p>
-                  </div>
-                  <div className="rounded-2xl border border-[#30455c]/45 bg-[#101b2a]/78 px-3 py-3">
-                    <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8ea1b3]">Format</p>
-                    <p className="mt-1 text-sm font-black text-[#f6f8fb]">YouTube</p>
-                  </div>
-                  <div className="rounded-2xl border border-[#30455c]/45 bg-[#101b2a]/78 px-3 py-3">
-                    <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8ea1b3]">Accès</p>
-                    <p className="mt-1 text-sm font-black text-[#f6f8fb]">Direct</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section className="flex flex-col gap-3">
-              <div className="px-0.5">
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#8ea1b3]">À la une</p>
-                <h3 className="mt-1 text-lg font-black text-[#f6f8fb]">{MAKKAH_MOMENTS[0].reciter}</h3>
-              </div>
-              <MakkahMomentCard {...MAKKAH_MOMENTS[0]} featured />
-            </section>
-
-            <section className="flex flex-col gap-3">
-              <div className="px-0.5">
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#8ea1b3]">Sélection</p>
-                <h3 className="mt-1 text-lg font-black text-[#f6f8fb]">Autres récitations</h3>
-              </div>
-              <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-                {MAKKAH_MOMENTS.slice(1).map((moment) => (
-                  <MakkahMomentCard key={moment.id} {...moment} />
-                ))}
-              </div>
-            </section>
-          </div>
-        )}
-
-        {/* 2.2 Tab Favorites View */}
         {activeTab === 'favorites' && (
-          <div className="flex flex-col gap-5 pb-16 sm:pb-20 max-md:pt-2 md:pt-3">
-            <h2 className="text-lg font-bold text-[#f6f8fb] flex items-center gap-2">
-              <Heart className="w-5 h-5 text-red-500 fill-current" />
-              Vos Récitateurs Favoris
-            </h2>
-
-            {favoritedReciters.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-12 text-center glass-panel rounded-3xl gap-4">
-                <Heart className="w-12 h-12 text-[#46607b]" />
-                <div>
-                  <h3 className="font-semibold text-[#e6edf5]">Favoris Vides</h3>
-                  <p className="text-xs text-[#b4c0ce] max-w-xs mt-1">
-                    Appuyez sur l'icône de cœur sur la carte d'un récitateur dans l'espace Écouter pour l'ajouter ici.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setActiveTab('listen')}
-                  className="brand-button-primary px-5 py-2.5 rounded-xl font-semibold text-xs transition-colors tap-feedback"
-                >
-                  Aller vers Écouter
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-4">
-                {favoritedReciters.map((reciter) => (
-                  <ReciterCard
-                    key={reciter.id}
-                    reciter={reciter}
-                    isSelected={activeReciter?.id === reciter.id}
-                    onSelect={() => handleSelectReciter(reciter)}
-                    isFavorite={true}
-                    onToggleFavorite={(e) => toggleFavorite(reciter.id, e)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+          <Suspense fallback={<div className="shimmer-loader h-48 rounded-3xl border border-slate-900 max-md:mx-4" />}>
+            <LibraryPage
+              favoritedReciters={favoritedReciters}
+              activeReciterId={activeReciter?.id}
+              onSelectReciter={handleSelectReciter}
+              onToggleFavorite={toggleFavorite}
+              onExplore={() => {
+                setActiveTab('listen');
+                setListenStep('reciters');
+              }}
+              onResume={handleResumeListening}
+              onOpenLegal={() => openLegal('privacy')}
+            />
+          </Suspense>
         )}
 
         {/* 2.2a Tab Quiz (accès Accueil uniquement) */}
@@ -2256,7 +2018,7 @@ const AppContent: React.FC = () => {
                 <span className="min-w-0 flex-1">
                   <span className="block text-[13px] font-black text-[#f6f8fb]">Connexion</span>
                   <span className="mt-0.5 block text-[11px] leading-snug text-[#95a7ba]">
-                    {user ? 'Compte synchronisé — favoris & reprise' : 'Synchroniser favoris et reprise de lecture'}
+                    {user ? 'Compte synchronisé — favoris, signets & reprise' : 'Synchroniser favoris, signets et reprise'}
                   </span>
                 </span>
                 <ArrowRight className="h-4 w-4 shrink-0 text-[#bfa078]/80" />
@@ -2392,7 +2154,6 @@ const AppContent: React.FC = () => {
           setActiveTab={handleSetActiveTab}
           dockWithPlayer={Boolean(currentTrack) && activeTab !== 'account'}
           desktopStyle={navDesktopStyle}
-          showMoments={isOnline}
           onOpenQuiz={() => handleNavigate('quiz')}
           onOpenLearn={() => handleNavigate('learn')}
           reciterFusion={
@@ -2424,7 +2185,9 @@ function App() {
   return (
     <AuthProvider>
       <AudioProvider>
-        <AppContent />
+        <LibraryProvider>
+          <AppContent />
+        </LibraryProvider>
       </AudioProvider>
     </AuthProvider>
   );

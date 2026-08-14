@@ -35,10 +35,45 @@ export type SawraPlaybackRow = {
   moshaf_id: number;
   surah_id: number;
   position_seconds: number;
+  /** Conservative verse index — null when timings are unstable. */
+  ayah: number | null;
   updated_at: string;
   is_playing: boolean;
   device_id: string | null;
   device_label: string | null;
+};
+
+export type SawraAyahBookmarkRow = {
+  id: string;
+  user_id: string;
+  surah_id: number;
+  ayah: number;
+  reciter_id: number | null;
+  moshaf_id: number | null;
+  note: string;
+  snippet_ar: string;
+  snippet_fr: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SawraSurahProgressRow = {
+  user_id: string;
+  reciter_id: number;
+  moshaf_id: number;
+  surah_id: number;
+  position_seconds: number;
+  ayah: number | null;
+  updated_at: string;
+};
+
+export type SawraListenDayRow = {
+  user_id: string;
+  day: string;
+  seconds: number;
+  sessions: number;
+  tz_offset_minutes: number | null;
+  updated_at: string;
 };
 
 export type SawraFavoriteRow = {

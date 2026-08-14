@@ -4,7 +4,6 @@ import {
   Heart as HeartStatic,
   House as HouseStatic,
   Headphones as HeadphonesStatic,
-  Play as PlayStatic,
   Settings as SettingsStatic,
   User as UserStatic,
 } from '../icons/motion';
@@ -23,7 +22,6 @@ type NavMotionModule = typeof import('../icons/navMotion');
 const STATIC_ICONS = {
   home: HouseStatic as NavTabIcon,
   listen: HeadphonesStatic as NavTabIcon,
-  moments: PlayStatic as NavTabIcon,
   favorites: HeartStatic as NavTabIcon,
   account: UserStatic as NavTabIcon,
   more: SettingsStatic as NavTabIcon,
@@ -75,7 +73,6 @@ export function useNavMotionIcons() {
     icons: {
       home: (mod?.House as NavTabIcon | undefined) ?? STATIC_ICONS.home,
       listen: (mod?.Headphones as NavTabIcon | undefined) ?? STATIC_ICONS.listen,
-      moments: (mod?.Play as NavTabIcon | undefined) ?? STATIC_ICONS.moments,
       favorites: (mod?.Heart as NavTabIcon | undefined) ?? STATIC_ICONS.favorites,
       account: (mod?.User as NavTabIcon | undefined) ?? STATIC_ICONS.account,
       more: (mod?.Settings as NavTabIcon | undefined) ?? STATIC_ICONS.more,

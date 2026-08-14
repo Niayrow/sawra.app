@@ -8,6 +8,8 @@ import {
 } from '../lib/supabase';
 import { getLocalDeviceId, getLocalDeviceLabel } from '../lib/deviceId';
 import { SURAHS } from '../data/surahs';
+import { useActiveAyah } from '../hooks/useActiveAyah';
+import { resolveStableAyah } from '../utils/stableAyah';
 
 const FAVORITES_KEY = 'quran_streamer_favorites';
 const POLL_MS = 800;
@@ -83,7 +85,9 @@ export const CloudSync: React.FC<CloudSyncProps> = ({ favorites, setFavorites })
     playerV2Prefs,
     selectedSurahIds,
     hydrateCloudSettings,
+    isSeekingNow,
   } = useAudio();
+  const ayahSync = useActiveAyah({ enabled: Boolean(currentTrack) });
 
   const [settingsReady, setSettingsReady] = useState(false);
   const selectedSurahKey = [...selectedSurahIds].sort((a, b) => a - b).join(',');
@@ -153,6 +157,15 @@ export const CloudSync: React.FC<CloudSyncProps> = ({ favorites, setFavorites })
   playerV2PrefsRef.current = playerV2Prefs;
   const selectedSurahIdsRef = useRef(selectedSurahIds);
   selectedSurahIdsRef.current = selectedSurahIds;
+  const lastStableAyahRef = useRef<number | null>(null);
+  const ayahSyncRef = useRef(ayahSync);
+  ayahSyncRef.current = ayahSync;
+  const isSeekingRef = useRef(isSeekingNow);
+  isSeekingRef.current = isSeekingNow;
+
+  useEffect(() => {
+    lastStableAyahRef.current = null;
+  }, [currentTrack?.reciter.id, currentTrack?.surah.id, currentTrack?.moshaf.id]);
 
   const applyRemoteSettings = (row: SawraUserSettingsRow) => {
     if (!row || typeof row.user_id !== 'string') return;
@@ -269,6 +282,7 @@ export const CloudSync: React.FC<CloudSyncProps> = ({ favorites, setFavorites })
           moshafId: row.moshaf_id,
           surahId: row.surah_id,
           positionSeconds: Math.max(0, row.position_seconds || 0),
+          ayah: row.ayah ?? null,
           deviceId: row.device_id,
           deviceLabel: row.device_label,
           updatedAt: row.updated_at,
@@ -346,6 +360,22 @@ export const CloudSync: React.FC<CloudSyncProps> = ({ favorites, setFavorites })
       weOwnPlaybackRef.current = false;
     }
 
+    const sync = ayahSyncRef.current;
+    const seeking = isSeekingRef.current();
+    const stable = resolveStableAyah({
+      timings: sync.timings,
+      available: sync.available,
+      currentTime: position,
+      playbackStatus: playbackStatusRef.current,
+      isSeeking: seeking,
+      trackSurahId: track.surah.id,
+      timingsSurahId: track.surah.id,
+    });
+    if (stable != null) lastStableAyahRef.current = stable;
+    const ayah = (seeking || playbackStatusRef.current === 'buffering')
+      ? lastStableAyahRef.current
+      : stable;
+
     void upsertRef.current({
       reciterId: track.reciter.id,
       moshafId: track.moshaf.id,
@@ -354,6 +384,7 @@ export const CloudSync: React.FC<CloudSyncProps> = ({ favorites, setFavorites })
       isPlaying,
       deviceId: localDeviceId.current,
       deviceLabel: localDeviceLabel.current,
+      ayah,
     });
   };
 
@@ -373,6 +404,7 @@ export const CloudSync: React.FC<CloudSyncProps> = ({ favorites, setFavorites })
         fresh?.position_seconds ?? 0,
         session?.positionSeconds ?? 0
       );
+      const resumeAyah = fresh?.ayah ?? session?.ayah ?? null;
 
       const catalog = recitersRef.current.find((r) => r.id === reciterId);
       if (!catalog) return false;
@@ -398,6 +430,7 @@ export const CloudSync: React.FC<CloudSyncProps> = ({ favorites, setFavorites })
         isPlaying: true,
         deviceId: localDeviceId.current,
         deviceLabel: localDeviceLabel.current,
+        ayah: resumeAyah,
       });
       lastPushKey.current = `1:${reciterId}:${surahId}:${Math.floor(startAt)}`;
       lastPushAtRef.current = Date.now();
@@ -629,6 +662,25 @@ export const CloudSync: React.FC<CloudSyncProps> = ({ favorites, setFavorites })
     return () => window.clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, currentTrack?.reciter.id, currentTrack?.surah.id, playbackStatus]);
+
+  useEffect(() => {
+    const flush = () => {
+      if (!user || !currentTrackRef.current) return;
+      if (!weOwnPlaybackRef.current && playbackStatusRef.current !== 'playing') return;
+      lastPushKey.current = '';
+      pushPlayback(playbackStatusRef.current === 'playing');
+    };
+    const onHide = () => {
+      if (document.visibilityState === 'hidden') flush();
+    };
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', onHide);
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      document.removeEventListener('visibilitychange', onHide);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // Realtime + polling (playback + settings/loop)
   useEffect(() => {

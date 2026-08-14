@@ -19,15 +19,10 @@ const SEO_BY_VIEW: Record<string, SeoDoc> = {
     description:
       'Parcourez les récitateurs et sourates : Al-Afasy, Soudais, Minshawi et bien d’autres. Écoute gratuite du Coran, sans publicité, sur Sawra.',
   },
-  moments: {
-    title: 'Moments du Coran — Sélections audio | Sawra',
-    description:
-      'Découvrez des moments et sélections audio du Coran pour une écoute rapide, gratuite et sans publicité.',
-  },
   favorites: {
-    title: 'Favoris Coran — Vos récitateurs | Sawra',
+    title: 'Bibliothèque Coran — Signets, historique, voix | Sawra',
     description:
-      'Retrouvez vos récitateurs et sourates favoris. Sync multi-appareils disponible avec un compte Sawra / GoMuslimLife.',
+      'Retrouvez vos versets signés, votre historique d’écoute et vos récitateurs favoris. Sync multi-appareils avec un compte Sawra / GoMuslimLife.',
   },
   account: {
     title: 'Compte Sawra — Sync favoris et reprise',

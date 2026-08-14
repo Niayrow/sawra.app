@@ -2,10 +2,11 @@ import React from 'react';
 import {
   Compass, Cloud, HardDrive, Headphones, Shield, Sparkles, Trash2, Wifi,
   MonitorSmartphone, ListMusic, Smartphone, ExternalLink, History, BookOpen, FileText,
+  Bookmark,
 } from '../icons/motion';
 import { useAudio } from '../context/AudioContext';
 
-export const APP_VERSION = '1.5.0';
+export const APP_VERSION = '1.6.0';
 
 type LegalPanelId = 'sources' | 'privacy' | 'terms';
 
@@ -19,6 +20,19 @@ const UPDATE_HISTORY: Array<{
   title: string;
   items: string[];
 }> = [
+  {
+    version: '1.6.0',
+    date: '14 août 2026',
+    title: 'Bibliothèque personnelle, reprise & streak',
+    items: [
+      'Signets de versets précis avec notes personnelles, depuis le lecteur.',
+      'Reprise ciblée par sourate (verset affiché seulement s’il est sûr) et takeover multi-appareils plus fluide.',
+      'Historique d’écoute (compte) : temps total, calendrier 7 jours et streak enregistrés en direct dans le cloud (≥ 1 min / jour, fuseau de l’appareil).',
+      'Onglet Bibliothèque (signets, historique, voix) — merge invité → compte idempotent.',
+      'Retrait de l’onglet Moments (vidéos YouTube) — les anciens liens reviennent à l’accueil.',
+      'Suppression du compte et des données depuis Connexion (droit d’effacement).',
+    ],
+  },
   {
     version: '1.5.0',
     date: '13 août 2026',
@@ -104,9 +118,14 @@ export const AboutPanel: React.FC<AboutPanelProps> = ({ onOpenLegal }) => {
       body: 'Catalogue de récitateurs via mp3quran.net, lecteur personnalisable, reprise automatique et contrôles média système.',
     },
     {
+      icon: Bookmark,
+      title: 'Bibliothèque personnelle',
+      body: 'Signets de versets et notes. Historique et streak avec un compte, enregistrés dans le cloud.',
+    },
+    {
       icon: MonitorSmartphone,
       title: 'Multi-appareils (compte requis)',
-      body: 'Avec un compte GoMuslimLife : favoris, reprise et position synchronisés. Sans compte, tout reste sur cet appareil.',
+      body: 'Avec un compte GoMuslimLife : favoris, signets, historique, reprise et position synchronisés. Sans compte, tout reste sur cet appareil.',
     },
     {
       icon: ListMusic,
@@ -121,7 +140,7 @@ export const AboutPanel: React.FC<AboutPanelProps> = ({ onOpenLegal }) => {
     {
       icon: Cloud,
       title: 'Compte GoMuslimLife',
-      body: 'Un compte pour Sawra et GoMuslimLife.com : favoris, reprise et préférences — pas de pub ni d’historique commercialisé.',
+      body: 'Un compte pour Sawra et GoMuslimLife.com : favoris, signets, historique, reprise et préférences — pas de pub ni d’historique commercialisé.',
     },
     {
       icon: Smartphone,
@@ -131,7 +150,7 @@ export const AboutPanel: React.FC<AboutPanelProps> = ({ onOpenLegal }) => {
     {
       icon: Shield,
       title: 'Données & confidentialité',
-      body: 'Sans compte : stockage local uniquement. Avec compte : sync ciblée (favoris, reprise, préférences). Détails dans Confidentialité.',
+      body: 'Sans compte : stockage local uniquement. Avec compte : sync ciblée (favoris, signets, historique, reprise, préférences). Détails dans Confidentialité.',
     },
   ];
 
@@ -161,7 +180,7 @@ export const AboutPanel: React.FC<AboutPanelProps> = ({ onOpenLegal }) => {
             <span className="brand-chip inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider">
               v{APP_VERSION}
             </span>
-            <span className="text-[11px] text-[#95a7ba]">Dernière maj · 9 août 2026</span>
+            <span className="text-[11px] text-[#95a7ba]">Dernière maj · 14 août 2026</span>
           </div>
           <a
             href="https://gomuslimlife.com"

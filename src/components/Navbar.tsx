@@ -10,7 +10,7 @@ import { NavPracticeMenu } from './NavPracticeMenu';
 import { MobileAppHeader } from './MobileAppHeader';
 import { MobilePracticeSheet } from './MobilePracticeSheet';
 
-type NavTabId = 'home' | 'listen' | 'moments' | 'favorites' | 'account' | 'more';
+type NavTabId = 'home' | 'listen' | 'favorites' | 'account' | 'more';
 
 export interface ReciterNavFusionProps {
   progress: number;
@@ -31,8 +31,6 @@ interface NavbarProps {
   dockWithPlayer?: boolean;
   /** Desktop only: floating dock (V1) or full-width classic bar (V2) */
   desktopStyle?: NavDesktopStyle;
-  /** Hide Moments (YouTube) when offline */
-  showMoments?: boolean;
   reciterFusion?: ReciterNavFusionProps | null;
   exploreFusion?: ExploreNavFusionProps | null;
   onOpenQuiz?: () => void;
@@ -74,7 +72,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   setActiveTab,
   dockWithPlayer = false,
   desktopStyle = 'dock',
-  showMoments = true,
   reciterFusion = null,
   exploreFusion = null,
   onOpenQuiz,
@@ -92,28 +89,21 @@ export const Navbar: React.FC<NavbarProps> = ({
   const desktopTabs: Array<{ id: Exclude<NavTabId, 'more'>; label: string; icon: NavTabIcon }> = [
     { id: 'home', label: 'Accueil', icon: icons.home },
     { id: 'listen', label: 'Écouter', icon: icons.listen },
-    ...(showMoments
-      ? [{ id: 'moments' as const, label: 'Moments', icon: icons.moments }]
-      : []),
-    { id: 'favorites', label: 'Favoris', icon: icons.favorites },
+    { id: 'favorites', label: 'Bibliothèque', icon: icons.favorites },
     ...(!isSignedIn
       ? [{ id: 'account' as const, label: 'Connexion', icon: icons.account }]
       : []),
   ];
 
-  /** Mobile: Accueil · Écouter · Favoris · Pratiquer (Options est dans le header) */
+  /** Mobile: Accueil · Écouter · Bibliothèque · Pratiquer (Options est dans le header) */
   const mobileTabs: Array<{
-    id: Exclude<NavTabId, 'more' | 'moments' | 'account'>;
+    id: Exclude<NavTabId, 'more' | 'account'>;
     label: string;
     icon: NavTabIcon;
   }> = [
     { id: 'home', label: 'Accueil', icon: icons.home },
     { id: 'listen', label: 'Écouter', icon: icons.listen },
-    {
-      id: 'favorites',
-      label: activeTab === 'moments' && showMoments ? 'Moments' : 'Favoris',
-      icon: activeTab === 'moments' && showMoments ? icons.moments : icons.favorites,
-    },
+    { id: 'favorites', label: 'Bibliothèque', icon: icons.favorites },
   ];
 
   const renderTab = (
@@ -214,7 +204,6 @@ export const Navbar: React.FC<NavbarProps> = ({
         <NavbarDesktopClassic
           activeTab={activeTab}
           setActiveTab={setActiveTab}
-          showMoments={showMoments}
           reciterFusion={reciterFusion}
           exploreFusion={exploreFusion}
           icons={icons}
@@ -245,14 +234,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex h-full flex-col">
           <div className="flex h-full items-stretch justify-between gap-0 md:hidden">
             {mobileTabs.map((tab) =>
-              renderTab(
-                tab.id,
-                tab.label,
-                tab.icon,
-                tab.id === 'favorites'
-                  ? { alsoActive: showMoments ? ['moments'] : [] }
-                  : undefined,
-              ),
+              renderTab(tab.id, tab.label, tab.icon),
             )}
             {canPractice ? (
               <button

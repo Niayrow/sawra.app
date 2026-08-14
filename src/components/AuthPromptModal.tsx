@@ -61,8 +61,8 @@ export const AuthPromptModal: React.FC<AuthPromptModalProps> = ({
           </div>
 
           <p className="mt-4 text-sm leading-relaxed text-[#c8d1db]">
-            Connectez-vous pour sauvegarder vos récitateurs préférés et reprendre
-            l&apos;écoute exactement où vous vous êtes arrêté, sur tous vos appareils.
+            Connectez-vous pour sauvegarder vos récitateurs préférés, votre historique d’écoute
+            et reprendre exactement où vous vous êtes arrêté, sur tous vos appareils.
           </p>
 
           <ul className="mt-4 space-y-2.5">

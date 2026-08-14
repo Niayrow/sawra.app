@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { BookOpen, RefreshCw, Settings, X } from '../icons/motion';
+import { BookOpen, Bookmark, RefreshCw, Settings, X } from '../icons/motion';
 import { useAudio } from '../context/AudioContext';
+import { snippetFromAyah, useLibrary } from '../context/LibraryContext';
+import { AyahNoteSheet } from './AyahNoteSheet';
 import { getTimingForAyah, useAyahTiming } from '../hooks/useAyahTiming';
 import { useActiveAyahForSurah } from '../hooks/useActiveAyah';
 import { useQuranText } from '../hooks/useQuranText';
@@ -72,6 +74,8 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
   anchor,
 }) => {
   const { seekTo } = useAudio();
+  const { getBookmark, toggleBookmark, saveBookmarkNote, removeBookmark } = useLibrary();
+  const [noteAyah, setNoteAyah] = useState<number | null>(null);
   const { ayahs, loading, error, retry } = useQuranText(open ? surah.id : null);
   const [prefs, setPrefs] = useReaderPrefs();
   const [showAyahPicker, setShowAyahPicker] = useState(false);
@@ -660,11 +664,46 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
                     <div className="quran-ayah-card__glow" aria-hidden />
                     <div className="quran-ayah-card__rail" aria-hidden />
 
-                    <div className="relative z-10 mb-3">
+                    <div className="relative z-10 mb-3 flex items-center justify-between gap-2">
                       <span className="quran-ayah-badge" aria-label={`Verset ${ayah.number}`}>
                         <span className="quran-ayah-badge__ring" aria-hidden />
                         <span className="relative z-10 tabular-nums">{ayah.number}</span>
                       </span>
+                      <button
+                        type="button"
+                        data-ayah-bookmark
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const existing = getBookmark(surah.id, ayah.number);
+                          if (existing) {
+                            setNoteAyah(ayah.number);
+                            return;
+                          }
+                          toggleBookmark({
+                            surahId: surah.id,
+                            ayah: ayah.number,
+                            reciterId: reciter.id,
+                            moshafId: moshaf.id,
+                            ...snippetFromAyah(ayah),
+                          });
+                        }}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        className={`flex h-8 w-8 items-center justify-center rounded-full border tap-feedback ${
+                          getBookmark(surah.id, ayah.number)
+                            ? 'border-[#bfa078]/45 bg-[#e2d0ba]/15 text-[#e2d0ba]'
+                            : 'border-[#46607b]/45 bg-[#0a1420]/80 text-[#aab7c5] hover:text-[#e2d0ba]'
+                        }`}
+                        aria-label={
+                          getBookmark(surah.id, ayah.number)
+                            ? `Note du verset ${ayah.number}`
+                            : `Signer le verset ${ayah.number}`
+                        }
+                        aria-pressed={Boolean(getBookmark(surah.id, ayah.number))}
+                      >
+                        <Bookmark
+                          className={`h-3.5 w-3.5 ${getBookmark(surah.id, ayah.number) ? 'fill-current' : ''}`}
+                        />
+                      </button>
                     </div>
 
                     {prefs.showArabic && (
@@ -709,6 +748,19 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
       surah={surah}
       moshaf={moshaf}
       reciter={reciter}
+    />
+    <AyahNoteSheet
+      open={noteAyah != null}
+      bookmark={noteAyah != null ? getBookmark(surah.id, noteAyah) ?? null : null}
+      onClose={() => setNoteAyah(null)}
+      onSave={(note) => {
+        if (noteAyah == null) return;
+        saveBookmarkNote(surah.id, noteAyah, note);
+      }}
+      onDelete={() => {
+        if (noteAyah == null) return;
+        removeBookmark(surah.id, noteAyah);
+      }}
     />
     </>
   );

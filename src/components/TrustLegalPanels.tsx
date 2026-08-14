@@ -116,9 +116,12 @@ export const PrivacyPanel: React.FC = () => (
 
     <Section icon={Database} title="Sans compte (stockage local)">
       <p>
-        <Em>Favoris</Em>, thème du lecteur, volume, vitesse, téléchargements audio et reprise locale
-        sont enregistrés dans le navigateur (<Strong>localStorage</Strong> / <Strong>Cache Storage</Strong>).{' '}
-        <Strong>Rien n’est envoyé</Strong> à un serveur pour ces éléments.
+        <Em>Favoris</Em>, <Em>signets de versets</Em>, notes, thème du lecteur, volume, vitesse,
+        téléchargements audio et reprise locale sont enregistrés dans le navigateur (
+        <Strong>localStorage</Strong> / <Strong>Cache Storage</Strong>).{' '}
+        L’<Em>historique d’écoute</Em> (temps total, calendrier, streak) n’est disponible{' '}
+        <Strong>qu’avec un compte</Strong>. <Strong>Rien n’est envoyé</Strong> à un serveur tant que vous
+        n’êtes pas connecté.
       </p>
       <p>
         Ces données restent sur l’appareil jusqu’à ce que vous les effaciez (vider le{' '}
@@ -128,13 +131,21 @@ export const PrivacyPanel: React.FC = () => (
 
     <Section icon={Cloud} title="Avec un compte GoMuslimLife">
       <p>
-        Si vous vous connectez, nous synchronisons : <Em>favoris</Em>, <Em>reprise de lecture</Em>, préférences
+        Si vous vous connectez, nous synchronisons : <Em>favoris</Em>, <Em>signets et notes</Em>,{' '}
+        <Em>reprise de lecture</Em> (y compris par sourate), <Em>historique / streak</Em>, préférences
         du lecteur et sélection de boucle de sourates. <Strong>Pas de publicité</Strong>, pas de revente
         d’historique d’écoute.
       </p>
       <p>
-        L’authentification et le stockage cloud passent par <Strong>Supabase</Strong>. Vous pouvez supprimer
-        votre session à tout moment depuis l’onglet <Em>Compte</Em>.
+        L’authentification et le stockage cloud passent par <Strong>Supabase</Strong>. Vous pouvez vous
+        déconnecter à tout moment depuis l’onglet <Em>Compte</Em>. Vous pouvez aussi{' '}
+        <Strong>supprimer votre compte et toutes vos données</Strong> (droit d’effacement) depuis cet
+        écran — le compte associé GoMuslimLife est alors fermé définitivement.
+      </p>
+      <p>
+        Les jours d’écoute suivent le <Em>fuseau de l’appareil au moment de l’écoute</Em>. Un voyage
+        (changement de fuseau) n’est pas recalculé a posteriori : un saut de calendrier peut interrompre
+        le streak — c’est attendu.
       </p>
     </Section>
 
@@ -171,7 +182,8 @@ export const TermsPanel: React.FC = () => (
       <p>
         Sawra est un lecteur coranique <Strong>gratuit</Strong> (web / <Em>PWA</Em>, applications natives en préparation).
         Il permet d’écouter des récitations en <Em>streaming</Em>, de télécharger des sourates pour
-        une écoute <Strong>hors-ligne locale</Strong>, et — avec un compte — de synchroniser favoris et reprise.
+        une écoute <Strong>hors-ligne locale</Strong>, et — avec un compte — de synchroniser favoris,
+        signets, historique et reprise.
       </p>
     </Section>
 

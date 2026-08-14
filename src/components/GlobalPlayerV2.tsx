@@ -18,6 +18,7 @@ import { AUDIO_EFFECT_PRESETS, effectsNeedProcessing } from '../audio/effectsTyp
 import { ReciterPortrait } from './ReciterPortrait';
 import { SURAHS } from '../data/surahs';
 import { SurahReaderSheet, usePlayerBarAnchor, READER_MOTION_MS } from './SurahReaderSheet';
+import { OPEN_READER_EVENT } from '../utils/appEvents';
 import { useReaderPrefs } from './reader/readerPrefs';
 import { AyahSyncBadge } from './AyahSyncBadge';
 import { useActiveAyah } from '../hooks/useActiveAyah';
@@ -172,6 +173,14 @@ export const GlobalPlayerV2: React.FC<{
     if (isReaderOpen) beginCloseReader();
     else openReader();
   };
+
+  useEffect(() => {
+    const onOpen = () => {
+      if (currentTrack) openReader();
+    };
+    window.addEventListener(OPEN_READER_EVENT, onOpen);
+    return () => window.removeEventListener(OPEN_READER_EVENT, onOpen);
+  }, [currentTrack]);
 
   /** Chrome join only while fully open — restores during close (no late snap) */
   const readerDockJoined =
@@ -557,6 +566,8 @@ export const GlobalPlayerV2: React.FC<{
       : reciters.find((r) => r.id === remoteSession.reciterId)?.name
     : null;
   const remoteTrackLabel = [remoteSurahName, remoteReciterName].filter(Boolean).join(' · ');
+  const remoteAyahLabel =
+    remoteSession?.ayah != null ? ` · v. ${remoteSession.ayah}` : '';
 
   return (
     <>
@@ -601,6 +612,7 @@ export const GlobalPlayerV2: React.FC<{
             <div className="min-w-0 flex-1 leading-tight">
               <p className="text-[11px] md:text-xs font-semibold text-[#f6f8fb] truncate">
                 {remoteTrackLabel || 'Autre appareil'}
+                {remoteAyahLabel}
                 <span className="font-mono text-[#e6d5c2] tabular-nums font-medium">
                   {' · '}{formatTime(liveRemotePos)}
                 </span>
@@ -1101,6 +1113,7 @@ export const GlobalPlayerV2: React.FC<{
               <div className="min-w-0 flex-1 leading-tight">
                 <p className="text-xs font-semibold text-[#f6f8fb] truncate">
                   {remoteTrackLabel || 'Autre appareil'}
+                  {remoteAyahLabel}
                   <span className="font-mono text-[#e6d5c2] tabular-nums font-medium">
                     {' · '}{formatTime(liveRemotePos)}
                   </span>

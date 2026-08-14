@@ -70,4 +70,4 @@ export function useAyahTiming(
   return state;
 }
 
-export { findAyahAt, getTimingForAyah } from '../utils/ayahTiming';
+export { findAyahAt, getTimingForAyah, getAyahProgress } from '../utils/ayahTiming';

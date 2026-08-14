@@ -3,6 +3,9 @@ import type { Reciter } from '../types';
 /** Brand plate behind every cutout portrait (layered in ReciterPortrait). */
 export const RECITER_BACKGROUND = '/reciters/background.webp';
 
+/** High-res brand plate for theater / large displays. */
+export const RECITER_BACKGROUND_HD = '/reciters/background.png';
+
 /**
  * Local cutout portraits in /public/reciters (WebP + alpha).
  * IDs without a local file fall back to getGeneratedReciterAvatar.
@@ -50,8 +53,77 @@ export const RECITER_IMAGES: Record<number, string> = {
   16: '/reciters/kouchi.webp', // Laayoun El Kouchi
 };
 
+/** Full-size PNG cutouts for large displays (radio theater, etc.). */
+export const RECITER_IMAGES_HD: Record<number, string> = {
+  123: '/reciters/alafasy.png',
+  54: '/reciters/sudais.png',
+  102: '/reciters/maher.png',
+  92: '/reciters/dossary.png',
+  30: '/reciters/sghamdi.png',
+  31: '/reciters/shuraim.png',
+  51: '/reciters/basit.png',
+  112: '/reciters/minshawi.png',
+  118: '/reciters/husary.png',
+  4: '/reciters/shatri.png',
+  5: '/reciters/ajmi.png',
+  89: '/reciters/arrefay.png',
+  86: '/reciters/qatami.png',
+  12: '/reciters/abkar.png',
+  81: '/reciters/abbad.png',
+  60: '/reciters/basfer.png',
+  225: '/reciters/ossi.png',
+  111: '/reciters/jibreel.png',
+  221: '/reciters/kurdi.png',
+  272: '/reciters/kameny.png',
+  107: '/reciters/luhaidan.png',
+  245: '/reciters/salimi.png',
+  254: '/reciters/turki.png',
+  20: '/reciters/jalil.png',
+  1: '/reciters/akhdar.png',
+  62: '/reciters/juhany.png',
+  253: '/reciters/islam_sobhi.png',
+  137: '/reciters/humaid.png',
+  152: '/reciters/salama.png',
+  84: '/reciters/Alkabi.png',
+  217: '/reciters/bandar.png',
+  76: '/reciters/jaber.png',
+  43: '/reciters/Budair.png',
+  74: '/reciters/Houdaifi.png',
+  109: '/reciters/Ayyoub.png',
+  125: '/reciters/Ismail.png',
+  121: '/reciters/Albanna.png',
+  160: '/reciters/Al-Kalbani.png',
+  16: '/reciters/Kouchi.png',
+};
+
+/** Known native width (px) for low-res PNG cutouts — theater disc never upscales past this. */
+export const RECITER_HD_NATIVE_WIDTH: Partial<Record<number, number>> = {
+  4: 384,
+  30: 384,
+  62: 384,
+  102: 384,
+  112: 288,
+  221: 384,
+  225: 384,
+  245: 384,
+};
+
+export const getReciterHdNativeWidth = (reciterId: number): number | null =>
+  RECITER_HD_NATIVE_WIDTH[reciterId] ?? null;
+
 export const hasLocalReciterImage = (reciterId: number) =>
   Object.prototype.hasOwnProperty.call(RECITER_IMAGES, reciterId);
+
+export const hasReciterHdImage = (reciterId: number): boolean => {
+  const hd = RECITER_IMAGES_HD[reciterId];
+  return Boolean(hd && hd.endsWith('.png'));
+};
+
+export const getReciterHdImage = (reciter: Reciter): string | null => {
+  const hd = RECITER_IMAGES_HD[reciter.id];
+  if (hd?.endsWith('.png')) return hd;
+  return null;
+};
 
 const AVATAR_PALETTES = [
   ['#07111d', '#162538', '#e2d0ba', '#7990a1'],

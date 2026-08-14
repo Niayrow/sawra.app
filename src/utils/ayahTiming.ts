@@ -198,3 +198,15 @@ export function getTimingForAyah(
 ): AyahTiming | undefined {
   return timings.find((t) => t.ayah === ayah);
 }
+
+/** Progress within the current ayah segment (0–1), or null if outside timed range. */
+export function getAyahProgress(timings: AyahTiming[], timeSec: number): number | null {
+  const ayah = findAyahAt(timings, timeSec);
+  if (ayah == null) return null;
+  const timing = getTimingForAyah(timings, ayah);
+  if (!timing) return null;
+  const span = timing.endMs - timing.startMs;
+  if (span <= 0) return 0;
+  const ms = Math.max(0, timeSec * 1000);
+  return Math.max(0, Math.min(1, (ms - timing.startMs) / span));
+}

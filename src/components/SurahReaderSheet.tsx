@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { BookOpen, RefreshCw, Settings, X } from '../icons/motion';
 import { useAudio } from '../context/AudioContext';
-import { findAyahAt, getTimingForAyah, useAyahTiming } from '../hooks/useAyahTiming';
+import { getTimingForAyah, useAyahTiming } from '../hooks/useAyahTiming';
+import { useActiveAyahForSurah } from '../hooks/useActiveAyah';
 import { useQuranText } from '../hooks/useQuranText';
-import type { Moshaf, Surah } from '../types';
+import type { Moshaf, Reciter, Surah } from '../types';
+import { AyahPickerSheet } from './AyahPickerSheet';
 import {
   READER_FONT_SCALES,
   useReaderPrefs,
@@ -39,6 +41,7 @@ type SurahReaderSheetProps = {
   closing: boolean;
   surah: Surah;
   moshaf: Moshaf;
+  reciter: Reciter;
   /** Ask parent to start closing (backdrop, Escape, X) */
   onRequestClose: () => void;
   /** Called after close animation finishes */
@@ -63,21 +66,29 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
   closing,
   surah,
   moshaf,
+  reciter,
   onRequestClose,
   onCloseComplete,
   anchor,
 }) => {
-  const { currentTime, seekTo } = useAudio();
+  const { seekTo } = useAudio();
   const { ayahs, loading, error, retry } = useQuranText(open ? surah.id : null);
   const [prefs, setPrefs] = useReaderPrefs();
+  const [showAyahPicker, setShowAyahPicker] = useState(false);
   const syncEnabled = open && !closing && prefs.syncHighlight;
+  const timingEnabled = open && !closing;
   const { available: syncAvailable, timings } = useAyahTiming(
     moshaf,
     open ? surah.id : null,
-    syncEnabled,
+    timingEnabled,
   );
-  const activeAyah =
-    syncEnabled && syncAvailable ? findAyahAt(timings, currentTime) : null;
+  const { activeAyah, totalAyahs, ayahProgress } = useActiveAyahForSurah(
+    moshaf,
+    surah,
+    timingEnabled && syncAvailable,
+  );
+  const highlightedAyah =
+    syncEnabled && syncAvailable ? activeAyah : null;
 
   const [showOptions, setShowOptions] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -116,9 +127,9 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
   }, [open]);
 
   useEffect(() => {
-    if (!open || activeAyah == null) return;
+    if (!open || highlightedAyah == null) return;
     if (performance.now() < userScrollUntilRef.current) return;
-    const node = ayahRefs.current.get(activeAyah);
+    const node = ayahRefs.current.get(highlightedAyah);
     if (!node) return;
     programmaticScrollRef.current = true;
     node.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -126,17 +137,17 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
       programmaticScrollRef.current = false;
     }, 450);
     return () => window.clearTimeout(t);
-  }, [activeAyah, open]);
+  }, [highlightedAyah, open]);
 
   const onAyahClick = useCallback(
     (ayahNumber: number) => {
-      if (!syncEnabled || !syncAvailable) return;
+      if (!syncAvailable) return;
       const timing = getTimingForAyah(timings, ayahNumber);
       if (!timing) return;
       userScrollUntilRef.current = 0;
       seekTo(timing.startMs / 1000);
     },
-    [seekTo, syncAvailable, syncEnabled, timings],
+    [seekTo, syncAvailable, timings],
   );
 
   useEffect(() => {
@@ -333,6 +344,7 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
   };
 
   return (
+    <>
     <div
       className="pointer-events-none fixed inset-0 z-[49]"
       role="dialog"
@@ -415,9 +427,48 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
                       {ayahs.length} versets
                     </>
                   ) : null}
+                  {syncAvailable && activeAyah != null && totalAyahs > 0 ? (
+                    <>
+                      <span className="text-[#5f7388]"> · </span>
+                      <span className="tabular-nums text-[#bfa078]">
+                        Verset {activeAyah} / {totalAyahs}
+                      </span>
+                    </>
+                  ) : null}
                 </p>
+                {syncAvailable && ayahProgress != null && (
+                  <div
+                    className="mt-1.5 h-0.5 w-full max-w-[8rem] overflow-hidden rounded-full bg-[#162538]"
+                    role="progressbar"
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={Math.round(ayahProgress * 100)}
+                    aria-label={`Progression du verset ${activeAyah}`}
+                  >
+                    <div
+                      className="h-full rounded-full bg-[#bfa078] transition-[width] duration-150 ease-linear"
+                      style={{ width: `${Math.round(ayahProgress * 100)}%` }}
+                    />
+                  </div>
+                )}
               </div>
               <div className="flex shrink-0 items-center gap-1.5">
+                {syncAvailable && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowAyahPicker(true);
+                    }}
+                    onPointerDown={(e) => e.stopPropagation()}
+                    disabled={closing}
+                    className="flex h-8 items-center justify-center rounded-full border border-[#46607b]/45 bg-[#0a1420]/80 px-2.5 text-[10px] font-bold text-[#aab7c5] hover:border-[#bfa078]/35 hover:text-[#f6f8fb] disabled:opacity-50"
+                    aria-label="Aller au verset"
+                    title="Aller au verset"
+                  >
+                    #{activeAyah ?? '…'}
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={(e) => {
@@ -579,8 +630,8 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
           {!loading && !error && ayahs.length > 0 && (
             <ol className="quran-ayah-list space-y-4 pb-3">
               {ayahs.map((ayah) => {
-                const isActive = activeAyah === ayah.number;
-                const canSeek = syncEnabled && syncAvailable;
+                const isActive = highlightedAyah === ayah.number;
+                const canSeek = syncAvailable;
                 return (
                   <li
                     key={ayah.key}
@@ -651,6 +702,15 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
         </div>
       </div>
     </div>
+
+    <AyahPickerSheet
+      open={showAyahPicker}
+      onClose={() => setShowAyahPicker(false)}
+      surah={surah}
+      moshaf={moshaf}
+      reciter={reciter}
+    />
+    </>
   );
 };
 

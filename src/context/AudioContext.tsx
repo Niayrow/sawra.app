@@ -28,6 +28,11 @@ import {
   saveAudioEffects,
   type AudioEffectsSettings,
 } from '../audio/effectsTypes';
+import {
+  fetchAyahTimings,
+  getTimingForAyah,
+  resolveTimingReadId,
+} from '../utils/ayahTiming';
 
 export type RemotePlaybackSession = {
   reciterId: number;
@@ -122,6 +127,8 @@ interface AudioContextType {
   setActiveMoshaf: (moshaf: Moshaf | null) => void;
   setActiveSurah: (surah: Surah | null) => void;
   playTrack: (reciter: Reciter, moshaf: Moshaf, surah: Surah, startAt?: number) => void;
+  playFromAyah: (reciter: Reciter, moshaf: Moshaf, surah: Surah, ayah: number) => Promise<void>;
+  seekToAyah: (ayah: number) => Promise<void>;
   hydratePlaybackState: (payload: {
     reciterId: number;
     moshafId: number;
@@ -135,6 +142,7 @@ interface AudioContextType {
   setVolume: (vol: number) => void;
   setPlaybackSpeed: (speed: number) => void;
   setRepeatMode: (mode: 'none' | 'one' | 'all') => void;
+  setCustomPlaylistOrder: (order: number[] | null) => void;
   setSleepTimer: (time: number | null) => void;
   setPlayerTheme: (theme: string) => void;
   playNextTrack: () => void;
@@ -329,9 +337,23 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const effectsEngineRef = useRef<AudioEffectsEngine | null>(null);
   const audioEffectsRef = useRef(audioEffects);
   const selectedSurahIdsRef = useRef<Set<number>>(selectedSurahIds);
+  const customPlaylistOrderRef = useRef<number[] | null>(null);
   useEffect(() => {
     selectedSurahIdsRef.current = selectedSurahIds;
   }, [selectedSurahIds]);
+
+  const sortPlaylistByCustomOrder = <T extends { id: number }>(playlist: T[]): T[] => {
+    const order = customPlaylistOrderRef.current;
+    if (!order?.length) return playlist;
+    const rank = new Map(order.map((id, i) => [id, i]));
+    return [...playlist].sort(
+      (a, b) => (rank.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (rank.get(b.id) ?? Number.MAX_SAFE_INTEGER),
+    );
+  };
+
+  const setCustomPlaylistOrder = useCallback((order: number[] | null) => {
+    customPlaylistOrderRef.current = order?.length ? [...order] : null;
+  }, []);
 
   useEffect(() => {
     audioEffectsRef.current = audioEffects;
@@ -1126,6 +1148,38 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  const resolveAyahStartSec = async (
+    moshaf: Moshaf,
+    surah: Surah,
+    ayah: number,
+  ): Promise<number | null> => {
+    const readId = await resolveTimingReadId(moshaf);
+    if (readId == null) return null;
+    const timings = await fetchAyahTimings(readId, surah.id);
+    const timing = getTimingForAyah(timings, ayah);
+    if (!timing) return null;
+    return timing.startMs / 1000;
+  };
+
+  const playFromAyah = async (
+    reciter: Reciter,
+    moshaf: Moshaf,
+    surah: Surah,
+    ayah: number,
+  ) => {
+    const startSec = await resolveAyahStartSec(moshaf, surah, ayah);
+    if (startSec == null) return;
+    await playTrack(reciter, moshaf, surah, startSec);
+  };
+
+  const seekToAyah = async (ayah: number) => {
+    const track = currentTrack;
+    if (!track) return;
+    const startSec = await resolveAyahStartSec(track.moshaf, track.surah, ayah);
+    if (startSec == null) return;
+    seekTo(startSec);
+  };
+
   const setVolume = (vol: number) => {
     const safeVol = Math.max(0, Math.min(1, vol));
     setVolumeState(safeVol);
@@ -1289,9 +1343,11 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     // Use the checked selection when non-empty, otherwise fall back to all
     const selectedIds = selectedSurahIdsRef.current;
-    const playlist = selectedIds.size > 0
+    let playlist = selectedIds.size > 0
       ? allAvailable.filter(s => selectedIds.has(s.id))
       : allAvailable;
+
+    playlist = sortPlaylistByCustomOrder(playlist);
 
     if (playlist.length === 0) return;
 
@@ -1320,9 +1376,11 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (allAvailable.length === 0) return;
 
     const selectedIds = selectedSurahIdsRef.current;
-    const playlist = selectedIds.size > 0
+    let playlist = selectedIds.size > 0
       ? allAvailable.filter(s => selectedIds.has(s.id))
       : allAvailable;
+
+    playlist = sortPlaylistByCustomOrder(playlist);
 
     if (playlist.length === 0) return;
 
@@ -1377,6 +1435,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setActiveMoshaf,
       setActiveSurah,
       playTrack,
+      playFromAyah,
+      seekToAyah,
       hydratePlaybackState,
       togglePlay,
       pause,
@@ -1385,6 +1445,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setVolume,
       setPlaybackSpeed,
       setRepeatMode,
+      setCustomPlaylistOrder,
       setSleepTimer,
       setPlayerTheme,
       playNextTrack,

@@ -36,6 +36,7 @@ export {
   Clock,
   Gauge,
   Maximize2,
+  Minimize2,
   MonitorSmartphone,
   Volume2,
   VolumeX,
@@ -71,6 +72,8 @@ export {
   AlertCircle,
   Waves,
   AudioLines,
+  Radio,
+  Shuffle,
 } from 'lucide-react';
 
 export type AppIcon = ComponentType<

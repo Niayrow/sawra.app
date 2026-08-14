@@ -20,6 +20,9 @@ import { SURAHS } from '../data/surahs';
 import { SurahReaderSheet, usePlayerBarAnchor, READER_MOTION_MS } from './SurahReaderSheet';
 import { useReaderPrefs } from './reader/readerPrefs';
 import { AyahSyncBadge } from './AyahSyncBadge';
+import { useActiveAyah } from '../hooks/useActiveAyah';
+import { AyahPickerSheet } from './AyahPickerSheet';
+import { AyahProgressIndicator } from './AyahProgressIndicator';
 
 const formatTime = (time: number) => {
   if (!Number.isFinite(time) || time < 0) return '–:––';
@@ -141,6 +144,7 @@ export const GlobalPlayerV2: React.FC<{
   const [showPersonalize, setShowPersonalize] = useState(false);
   const [showEffects, setShowEffects] = useState(false);
   const [showVolumePopover, setShowVolumePopover] = useState(false);
+  const [showAyahPicker, setShowAyahPicker] = useState(false);
 
   const openReader = () => {
     if (isReaderClosing) return;
@@ -239,6 +243,13 @@ export const GlobalPlayerV2: React.FC<{
   );
   const hasCover = Boolean(currentTrack);
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
+  const {
+    available: ayahSyncAvailable,
+    activeAyah,
+    totalAyahs,
+    ayahProgress,
+  } = useActiveAyah({ enabled: Boolean(currentTrack) });
+  const openAyahPicker = () => setShowAyahPicker(true);
   const speedOptions = [0.75, 0.9, 1, 1.25, 1.5, 1.75, 2];
 
   const onMiniBarTouchStart = (e: React.TouchEvent) => {
@@ -796,24 +807,35 @@ export const GlobalPlayerV2: React.FC<{
             </button>
           </div>
           {!remoteSession && (
-            <div className="flex w-full items-center gap-2 text-[10px] font-mono font-semibold text-[#95a7ba]">
-              <span className="w-9 shrink-0 text-right tabular-nums text-[#e6d5c2]">{formatTime(currentTime)}</span>
-              <input
-                type="range"
-                min={0}
-                max={duration || 100}
-                step={0.1}
-                value={currentTime}
-                onChange={(e) => seekTo(parseFloat(e.target.value))}
-                className="min-w-0 flex-1 h-1.5 rounded-full appearance-none cursor-pointer bg-[#162538]"
-                style={{ background: theme.sliderBackground(progressPercent), accentColor: theme.sliderAccentColor }}
-                aria-label="Position de lecture"
-                aria-valuemin={0}
-                aria-valuemax={Math.floor(duration || 0)}
-                aria-valuenow={Math.floor(currentTime)}
-                aria-valuetext={`${formatTime(currentTime)} sur ${formatDuration(duration)}`}
+            <div className="flex w-full flex-col gap-1">
+              <div className="flex w-full items-center gap-2 text-[10px] font-mono font-semibold text-[#95a7ba]">
+                <span className="w-9 shrink-0 text-right tabular-nums text-[#e6d5c2]">{formatTime(currentTime)}</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={duration || 100}
+                  step={0.1}
+                  value={currentTime}
+                  onChange={(e) => seekTo(parseFloat(e.target.value))}
+                  className="min-w-0 flex-1 h-1.5 rounded-full appearance-none cursor-pointer bg-[#162538]"
+                  style={{ background: theme.sliderBackground(progressPercent), accentColor: theme.sliderAccentColor }}
+                  aria-label="Position de lecture"
+                  aria-valuemin={0}
+                  aria-valuemax={Math.floor(duration || 0)}
+                  aria-valuenow={Math.floor(currentTime)}
+                  aria-valuetext={`${formatTime(currentTime)} sur ${formatDuration(duration)}`}
+                />
+                <span className="w-9 shrink-0 tabular-nums">{formatDuration(duration)}</span>
+              </div>
+              <AyahProgressIndicator
+                available={ayahSyncAvailable}
+                activeAyah={activeAyah}
+                totalAyahs={totalAyahs}
+                ayahProgress={ayahProgress}
+                onOpenPicker={openAyahPicker}
+                accentColor={theme.sliderAccentColor}
+                className="px-9"
               />
-              <span className="w-9 shrink-0 tabular-nums">{formatDuration(duration)}</span>
             </div>
           )}
         </div>
@@ -998,30 +1020,41 @@ export const GlobalPlayerV2: React.FC<{
           </button>
 
           {!remoteSession ? (
-            <div className="flex min-w-0 flex-1 items-center gap-2">
-              <span className="w-9 shrink-0 text-right text-[11px] font-mono font-semibold tabular-nums text-[#e6d5c2]" aria-live="polite">
-                {formatTime(currentTime)}
-              </span>
-              <input
-                type="range"
-                min={0}
-                max={duration || 100}
-                step={0.1}
-                value={currentTime}
-                onChange={(e) => seekTo(parseFloat(e.target.value))}
-                onClick={(e) => e.stopPropagation()}
-                onPointerDown={(e) => e.stopPropagation()}
-                className="min-w-0 flex-1 h-1.5 rounded-full appearance-none cursor-pointer bg-[#162538]"
-                style={{ background: theme.sliderBackground(progressPercent), accentColor: theme.sliderAccentColor }}
-                aria-label="Position de lecture"
-                aria-valuemin={0}
-                aria-valuemax={Math.floor(duration || 0)}
-                aria-valuenow={Math.floor(currentTime)}
-                aria-valuetext={`${formatTime(currentTime)} sur ${formatDuration(duration)}`}
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="w-9 shrink-0 text-right text-[11px] font-mono font-semibold tabular-nums text-[#e6d5c2]" aria-live="polite">
+                  {formatTime(currentTime)}
+                </span>
+                <input
+                  type="range"
+                  min={0}
+                  max={duration || 100}
+                  step={0.1}
+                  value={currentTime}
+                  onChange={(e) => seekTo(parseFloat(e.target.value))}
+                  onClick={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  className="min-w-0 flex-1 h-1.5 rounded-full appearance-none cursor-pointer bg-[#162538]"
+                  style={{ background: theme.sliderBackground(progressPercent), accentColor: theme.sliderAccentColor }}
+                  aria-label="Position de lecture"
+                  aria-valuemin={0}
+                  aria-valuemax={Math.floor(duration || 0)}
+                  aria-valuenow={Math.floor(currentTime)}
+                  aria-valuetext={`${formatTime(currentTime)} sur ${formatDuration(duration)}`}
+                />
+                <span className="w-9 shrink-0 text-[11px] font-mono font-semibold tabular-nums text-[#95a7ba]">
+                  {formatDuration(duration)}
+                </span>
+              </div>
+              <AyahProgressIndicator
+                available={ayahSyncAvailable}
+                activeAyah={activeAyah}
+                totalAyahs={totalAyahs}
+                ayahProgress={ayahProgress}
+                onOpenPicker={openAyahPicker}
+                accentColor={theme.sliderAccentColor}
+                className="px-9"
               />
-              <span className="w-9 shrink-0 text-[11px] font-mono font-semibold tabular-nums text-[#95a7ba]">
-                {formatDuration(duration)}
-              </span>
             </div>
           ) : (
             <p className="min-w-0 flex-1 truncate text-[11px] text-[#95a7ba]">
@@ -1142,6 +1175,15 @@ export const GlobalPlayerV2: React.FC<{
                 <span>{formatTime(currentTime)}</span>
                 <span>{formatDuration(duration)}</span>
               </div>
+              <AyahProgressIndicator
+                available={ayahSyncAvailable}
+                activeAyah={activeAyah}
+                totalAyahs={totalAyahs}
+                ayahProgress={ayahProgress}
+                onOpenPicker={openAyahPicker}
+                accentColor={theme.sliderAccentColor}
+                className="mt-3"
+              />
             </div>
 
             <div className="flex items-center justify-center gap-4 mb-6">
@@ -1830,9 +1872,18 @@ export const GlobalPlayerV2: React.FC<{
         closing={isReaderClosing}
         surah={currentTrack.surah}
         moshaf={currentTrack.moshaf}
+        reciter={currentTrack.reciter}
         onRequestClose={beginCloseReader}
         onCloseComplete={finishCloseReader}
         anchor={playerBarAnchor}
+      />
+
+      <AyahPickerSheet
+        open={showAyahPicker}
+        onClose={() => setShowAyahPicker(false)}
+        surah={currentTrack.surah}
+        moshaf={currentTrack.moshaf}
+        reciter={currentTrack.reciter}
       />
     </>
   );

@@ -69,6 +69,11 @@ const SEO_BY_VIEW: Record<string, SeoDoc> = {
     description:
       'Entraînez-vous verset par verset : écoutez, récitez à voix haute, puis révélez le texte. Apprentissage gratuit du Coran sur Sawra.',
   },
+  radio: {
+    title: 'Radio Coran — Stations en continu | Sawra',
+    description:
+      'Écoutez le Coran en continu avec des stations curatées : Juz Amma, sourates du cœur, nuit paisible et plus. Gratuit, sans publicité.',
+  },
 };
 
 const setMetaContent = (selector: string, content: string, attr = 'content') => {

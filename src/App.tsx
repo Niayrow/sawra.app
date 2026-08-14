@@ -15,6 +15,7 @@ import { ReciterPortrait } from './components/ReciterPortrait';
 import { hasLocalReciterImage } from './utils/images';
 import { getReciterCategory, type ReciterCategoryId } from './data/reciterCategories';
 import { ReciterCategoryGrid, ReciterCategoryModal } from './components/ReciterCategoryModal';
+import { ListenRadioCta } from './components/ListenRadioCta';
 import { ListenReciterHeader } from './components/ListenReciterHeader';
 import { BatchDownloadToast } from './components/BatchDownloadToast';
 import { NavDesktopStyleToggle } from './components/NavDesktopStyleToggle';
@@ -45,7 +46,8 @@ const PrivacyPanel = lazy(() => import('./components/TrustLegalPanels').then((mo
 const TermsPanel = lazy(() => import('./components/TrustLegalPanels').then((module) => ({ default: module.TermsPanel })));
 const QuizPage = lazy(() => import('./components/QuizPage').then((module) => ({ default: module.QuizPage })));
 const LearnPage = lazy(() => import('./components/LearnPage').then((module) => ({ default: module.LearnPage })));
-const TAB_IDS = ['home', 'listen', 'moments', 'favorites', 'account', 'more', 'quiz', 'learn'] as const;
+const RadioPage = lazy(() => import('./components/RadioPage').then((module) => ({ default: module.RadioPage })));
+const TAB_IDS = ['home', 'listen', 'moments', 'favorites', 'account', 'more', 'quiz', 'learn', 'radio'] as const;
 type TabId = typeof TAB_IDS[number];
 type MorePanel = 'downloads' | 'legal' | 'priorities' | 'compare' | 'about' | 'moments';
 type LegalSub = 'sources' | 'privacy' | 'terms';
@@ -110,6 +112,8 @@ const mapLegacyTab = (tab: string | null): TabId => {
       return 'quiz';
     case 'learn':
       return 'learn';
+    case 'radio':
+      return 'radio';
     case 'favorites':
       return 'favorites';
     case 'account':
@@ -944,6 +948,11 @@ const AppContent: React.FC = () => {
   const isOnline = useOnlineStatus();
 
   const [activeTab, setActiveTab] = useState<TabId>(() => getInitialTab());
+  const [radioTheaterOpen, setRadioTheaterOpen] = useState(false);
+
+  useEffect(() => {
+    if (activeTab !== 'radio') setRadioTheaterOpen(false);
+  }, [activeTab]);
   const [morePanel, setMorePanel] = useState<MorePanel>(() => getInitialMorePanel());
   const [legalSub, setLegalSub] = useState<LegalSub>(() => getInitialLegalSub());
   const [listenStep, setListenStep] = useState<ListenStep>('reciters');
@@ -1416,12 +1425,12 @@ const AppContent: React.FC = () => {
     <div
       data-nav-desktop={navDesktopStyle}
       data-hide-player={
-        activeTab === 'account' || activeTab === 'quiz' || activeTab === 'learn'
+        activeTab === 'account' || activeTab === 'quiz' || activeTab === 'learn' || radioTheaterOpen
           ? 'true'
           : undefined
       }
       data-hide-nav={
-        activeTab === 'quiz' || activeTab === 'learn' ? 'true' : undefined
+        activeTab === 'quiz' || activeTab === 'learn' || radioTheaterOpen ? 'true' : undefined
       }
       className={`flex-1 flex flex-col px-4 max-w-lg mx-auto w-full mobile-shell-padding mobile-app-shell max-md:px-0 ${
       activeTab === 'quiz' || activeTab === 'learn'
@@ -1799,6 +1808,8 @@ const AppContent: React.FC = () => {
 
             {listenStep === 'reciters' && (
               <div className="flex flex-col gap-5">
+                <ListenRadioCta onOpen={() => handleNavigate('radio')} />
+
                 {!isLoadingReciters && (
                   <ReciterCategoryGrid
                     reciters={reciters}
@@ -2203,6 +2214,15 @@ const AppContent: React.FC = () => {
           </Suspense>
         )}
 
+        {activeTab === 'radio' && (
+          <Suspense fallback={<div className="shimmer-loader h-48 rounded-3xl border border-slate-900 max-md:mx-4" />}>
+            <RadioPage
+              onBack={() => handleNavigate('home')}
+              onTheaterChange={setRadioTheaterOpen}
+            />
+          </Suspense>
+        )}
+
         {/* 2.2b Tab Connexion */}
         {activeTab === 'account' && (
           <div className="flex flex-col justify-center gap-5 max-md:min-h-[calc(100dvh-5.1rem-env(safe-area-inset-bottom,0px))] max-md:py-4 md:min-h-[min(70vh,40rem)] md:pt-10 md:pb-12 md:max-w-lg md:mx-auto md:w-full">
@@ -2354,7 +2374,7 @@ const AppContent: React.FC = () => {
       )}
 
       {/* 3. Global Audio Player Sheet */}
-      {currentTrack && activeTab !== 'account' && activeTab !== 'quiz' && activeTab !== 'learn' && (
+      {currentTrack && activeTab !== 'account' && activeTab !== 'quiz' && activeTab !== 'learn' && !radioTheaterOpen && (
         <Suspense fallback={null}>
           <GlobalPlayerV2
             desktopChrome={navDesktopStyle}
@@ -2366,9 +2386,9 @@ const AppContent: React.FC = () => {
       <BatchDownloadToast />
 
       {/* 4. Floating Navbar — hidden on quiz / learn pages */}
-      {activeTab !== 'quiz' && activeTab !== 'learn' && (
+      {activeTab !== 'quiz' && activeTab !== 'learn' && !radioTheaterOpen && (
         <Navbar
-          activeTab={activeTab}
+          activeTab={activeTab === 'radio' ? 'home' : activeTab}
           setActiveTab={handleSetActiveTab}
           dockWithPlayer={Boolean(currentTrack) && activeTab !== 'account'}
           desktopStyle={navDesktopStyle}

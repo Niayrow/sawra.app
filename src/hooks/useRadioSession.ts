@@ -4,8 +4,16 @@ import { SURAHS } from '../data/surahs';
 import { RADIO_STATION_BY_ID, type RadioStation } from '../data/radioStations';
 import type { Moshaf, Reciter, Surah } from '../types';
 import { buildRadioQueue } from '../utils/radioQueue';
+import {
+  buildCustomRadioSlots,
+  CUSTOM_RADIO_GRADIENT,
+  CUSTOM_RADIO_ID,
+  normalizeCustomRadio,
+  type CustomRadioConfig,
+} from '../utils/customRadio';
 
 const STORAGE_KEY = 'quran_streamer_radio_station';
+const CUSTOM_STORAGE_KEY = 'quran_streamer_custom_radio';
 
 function readStoredStationId(): string | null {
   try {
@@ -19,6 +27,25 @@ function writeStoredStationId(id: string | null) {
   try {
     if (id) localStorage.setItem(STORAGE_KEY, id);
     else localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+function readStoredCustom(): CustomRadioConfig | null {
+  try {
+    const raw = localStorage.getItem(CUSTOM_STORAGE_KEY);
+    if (!raw) return null;
+    return normalizeCustomRadio(JSON.parse(raw) as CustomRadioConfig);
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredCustom(config: CustomRadioConfig | null) {
+  try {
+    if (config) localStorage.setItem(CUSTOM_STORAGE_KEY, JSON.stringify(config));
+    else localStorage.removeItem(CUSTOM_STORAGE_KEY);
   } catch {
     /* ignore */
   }
@@ -42,14 +69,31 @@ function resolveSurahs(moshaf: Moshaf, ids: number[]): Surah[] {
     .filter((s): s is Surah => Boolean(s));
 }
 
+function customAsStation(config: CustomRadioConfig): RadioStation {
+  return {
+    id: CUSTOM_RADIO_ID,
+    name: config.name,
+    tagline: `${config.reciterIds.length} voix · ${config.surahIds.length} sourates`,
+    description: 'Radio personnalisée créée sur Sawra.',
+    reciterId: config.reciterIds[0],
+    surahIds: config.surahIds,
+    shuffle: config.shuffle,
+    gradient: CUSTOM_RADIO_GRADIENT,
+    mood: 'classique',
+  };
+}
+
 export type UseRadioSessionResult = {
   activeStationId: string | null;
   activeStation: RadioStation | null;
+  customConfig: CustomRadioConfig | null;
   isPlayingStation: boolean;
   starting: boolean;
   error: string | null;
   startStation: (stationId: string) => Promise<void>;
+  startCustomStation: (config: CustomRadioConfig) => Promise<void>;
   stopStation: () => void;
+  deleteCustomStation: () => void;
   toggleStation: (stationId: string) => Promise<void>;
 };
 
@@ -64,6 +108,7 @@ export function useRadioSession(): UseRadioSessionResult {
     setSelectedSurahIds,
     setRepeatMode,
     setCustomPlaylistOrder,
+    setRadioSlotQueue,
     setActiveReciter,
     setActiveMoshaf,
   } = useAudio();
@@ -71,24 +116,35 @@ export function useRadioSession(): UseRadioSessionResult {
   const [activeStationId, setActiveStationId] = useState<string | null>(() =>
     readStoredStationId(),
   );
+  const [customConfig, setCustomConfig] = useState<CustomRadioConfig | null>(() =>
+    readStoredCustom(),
+  );
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const activeStation = useMemo(
-    () => (activeStationId ? RADIO_STATION_BY_ID.get(activeStationId) ?? null : null),
-    [activeStationId],
-  );
+  const activeStation = useMemo(() => {
+    if (!activeStationId) return null;
+    if (activeStationId === CUSTOM_RADIO_ID && customConfig) {
+      return customAsStation(customConfig);
+    }
+    return RADIO_STATION_BY_ID.get(activeStationId) ?? null;
+  }, [activeStationId, customConfig]);
 
   const isPlayingStation = Boolean(
     activeStation &&
       currentTrack &&
       playbackStatus === 'playing' &&
-      currentTrack.reciter.id === activeStation.reciterId,
+      (activeStationId === CUSTOM_RADIO_ID ||
+        currentTrack.reciter.id === activeStation.reciterId),
   );
 
   useEffect(() => {
     writeStoredStationId(activeStationId);
   }, [activeStationId]);
+
+  useEffect(() => {
+    writeStoredCustom(customConfig);
+  }, [customConfig]);
 
   const startStation = useCallback(
     async (stationId: string) => {
@@ -118,11 +174,13 @@ export function useRadioSession(): UseRadioSessionResult {
           return;
         }
 
+        setRadioSlotQueue(null);
         setActiveReciter(reciter);
         setActiveMoshaf(moshaf);
         setRepeatMode('all');
         setSelectedSurahIds(new Set(surahs.map((s) => s.id)));
         setCustomPlaylistOrder(surahs.map((s) => s.id));
+        setCustomConfig(null);
         setActiveStationId(stationId);
 
         await playTrack(reciter, moshaf, surahs[0]);
@@ -136,6 +194,65 @@ export function useRadioSession(): UseRadioSessionResult {
       setActiveMoshaf,
       setActiveReciter,
       setCustomPlaylistOrder,
+      setRadioSlotQueue,
+      setRepeatMode,
+      setSelectedSurahIds,
+    ],
+  );
+
+  const startCustomStation = useCallback(
+    async (raw: CustomRadioConfig) => {
+      const config = normalizeCustomRadio(raw);
+      if (!config) {
+        setError('Choisissez au moins une voix et une sourate.');
+        return;
+      }
+
+      setError(null);
+      setStarting(true);
+
+      try {
+        const canPlay = (reciterId: number, surahId: number) => {
+          const reciter = reciters.find((r) => r.id === reciterId);
+          if (!reciter) return false;
+          const moshaf = getRadioMoshaf(reciter);
+          if (!moshaf) return false;
+          return resolveSurahs(moshaf, [surahId]).length > 0;
+        };
+
+        const playable = buildCustomRadioSlots(config, canPlay);
+
+        if (!playable.length) {
+          setError('Aucune combinaison récitateur / sourate disponible.');
+          return;
+        }
+
+        const first = playable[0];
+        const reciter = reciters.find((r) => r.id === first.reciterId)!;
+        const moshaf = getRadioMoshaf(reciter)!;
+        const surah = SURAHS.find((s) => s.id === first.surahId)!;
+
+        setRadioSlotQueue(playable);
+        setActiveReciter(reciter);
+        setActiveMoshaf(moshaf);
+        setRepeatMode('all');
+        setSelectedSurahIds(new Set(playable.map((s) => s.surahId)));
+        setCustomPlaylistOrder(playable.map((s) => s.surahId));
+        setCustomConfig(config);
+        setActiveStationId(CUSTOM_RADIO_ID);
+
+        await playTrack(reciter, moshaf, surah);
+      } finally {
+        setStarting(false);
+      }
+    },
+    [
+      reciters,
+      playTrack,
+      setActiveMoshaf,
+      setActiveReciter,
+      setCustomPlaylistOrder,
+      setRadioSlotQueue,
       setRepeatMode,
       setSelectedSurahIds,
     ],
@@ -144,8 +261,20 @@ export function useRadioSession(): UseRadioSessionResult {
   const stopStation = useCallback(() => {
     setActiveStationId(null);
     setCustomPlaylistOrder(null);
+    setRadioSlotQueue(null);
     pause();
-  }, [pause, setCustomPlaylistOrder]);
+  }, [pause, setCustomPlaylistOrder, setRadioSlotQueue]);
+
+  const deleteCustomStation = useCallback(() => {
+    if (activeStationId === CUSTOM_RADIO_ID) {
+      setActiveStationId(null);
+      setCustomPlaylistOrder(null);
+      setRadioSlotQueue(null);
+      pause();
+    }
+    setCustomConfig(null);
+    writeStoredCustom(null);
+  }, [activeStationId, pause, setCustomPlaylistOrder, setRadioSlotQueue]);
 
   const toggleStation = useCallback(
     async (stationId: string) => {
@@ -157,19 +286,34 @@ export function useRadioSession(): UseRadioSessionResult {
         }
         return;
       }
+      if (stationId === CUSTOM_RADIO_ID && customConfig) {
+        await startCustomStation(customConfig);
+        return;
+      }
       await startStation(stationId);
     },
-    [activeStationId, pause, play, playbackStatus, startStation],
+    [
+      activeStationId,
+      customConfig,
+      pause,
+      play,
+      playbackStatus,
+      startCustomStation,
+      startStation,
+    ],
   );
 
   return {
     activeStationId,
     activeStation,
+    customConfig,
     isPlayingStation,
     starting,
     error,
     startStation,
+    startCustomStation,
     stopStation,
+    deleteCustomStation,
     toggleStation,
   };
 }

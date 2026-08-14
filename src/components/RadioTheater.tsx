@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   ChevronDown,
+  Copy,
   Maximize2,
   Minimize2,
   Pause,
@@ -20,6 +21,8 @@ import {
   getReciterImage,
   RECITER_BACKGROUND_HD,
 } from '../utils/images';
+import { copyTextToClipboard } from '../utils/clipboard';
+import { capturePostHogEvent } from '../utils/posthog';
 
 const APP_LOGO = '/icons/sansfond.webp';
 
@@ -43,6 +46,8 @@ type RadioTheaterProps = {
   onStop: () => void;
   onTogglePlay: () => void;
   starting: boolean;
+  /** Share URL for custom radios — shows a copy button when set. */
+  shareUrl?: string | null;
 };
 
 const TheaterWaveform: React.FC<{ active: boolean; large?: boolean }> = ({ active, large }) => (
@@ -109,6 +114,7 @@ export const RadioTheater: React.FC<RadioTheaterProps> = ({
   onStop,
   onTogglePlay,
   starting,
+  shareUrl = null,
 }) => {
   const {
     currentTrack,
@@ -128,18 +134,21 @@ export const RadioTheater: React.FC<RadioTheaterProps> = ({
   const [controlsVisible, setControlsVisible] = useState(true);
   const hideTimerRef = useRef<number | null>(null);
   const [portraitNativeW, setPortraitNativeW] = useState<number | null>(null);
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   const isPlaying = playbackStatus === 'playing';
-  const reciterName = reciter?.name ?? currentTrack?.reciter.name ?? 'Récitateur';
+  /** Prefer the voice actually playing — custom radios rotate reciters per surah. */
+  const liveReciter = currentTrack?.reciter ?? reciter;
+  const reciterName = liveReciter?.name ?? 'Récitateur';
   const discCapPx =
     portraitNativeW ??
-    (reciter ? getReciterHdNativeWidth(reciter.id) : null);
+    (liveReciter ? getReciterHdNativeWidth(liveReciter.id) : null);
 
   useEffect(() => {
     if (!open) return;
     setPortraitNativeW(null);
-  }, [open, reciter?.id]);
+  }, [open, liveReciter?.id]);
 
   useEffect(() => {
     if (!open) return;
@@ -202,6 +211,14 @@ export const RadioTheater: React.FC<RadioTheaterProps> = ({
     }
   };
 
+  const handleCopyLink = async () => {
+    if (!shareUrl) return;
+    const ok = await copyTextToClipboard(shareUrl);
+    setCopyFeedback(ok ? 'Lien copié' : 'Impossible de copier');
+    if (ok) capturePostHogEvent('custom_radio_copy_link', { from: 'theater' });
+    window.setTimeout(() => setCopyFeedback(null), 2200);
+  };
+
   if (!open) return null;
 
   return createPortal(
@@ -262,18 +279,31 @@ export const RadioTheater: React.FC<RadioTheaterProps> = ({
           </span>
         </div>
 
-        <button
-          type="button"
-          className="radio-theater__tool radio-theater__tool--fs tap-feedback"
-          onClick={() => void toggleFullscreen()}
-          aria-label={isFullscreen ? 'Quitter le plein écran' : 'Plein écran pour écran externe'}
-        >
-          {isFullscreen ? (
-            <Minimize2 className="h-4 w-4" />
-          ) : (
-            <Maximize2 className="h-4 w-4" />
-          )}
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          {shareUrl ? (
+            <button
+              type="button"
+              className="radio-theater__tool tap-feedback"
+              onClick={() => void handleCopyLink()}
+              aria-label="Copier le lien de partage"
+              title={copyFeedback ?? 'Copier le lien'}
+            >
+              <Copy className="h-4 w-4" />
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className="radio-theater__tool radio-theater__tool--fs tap-feedback"
+            onClick={() => void toggleFullscreen()}
+            aria-label={isFullscreen ? 'Quitter le plein écran' : 'Plein écran pour écran externe'}
+          >
+            {isFullscreen ? (
+              <Minimize2 className="h-4 w-4" />
+            ) : (
+              <Maximize2 className="h-4 w-4" />
+            )}
+          </button>
+        </div>
       </header>
 
       <main className="radio-theater__stage">
@@ -310,9 +340,9 @@ export const RadioTheater: React.FC<RadioTheaterProps> = ({
             <div className="radio-theater__disc">
               <div className="radio-theater__disc-glow" aria-hidden />
               <div className="radio-theater__disc-inner">
-                {reciter ? (
+                {liveReciter ? (
                   <TheaterPortrait
-                    reciter={reciter}
+                    reciter={liveReciter}
                     name={reciterName}
                     onNativeWidth={setPortraitNativeW}
                   />
@@ -413,6 +443,16 @@ export const RadioTheater: React.FC<RadioTheaterProps> = ({
           >
             Arrêter
           </button>
+          {shareUrl ? (
+            <button
+              type="button"
+              className="radio-theater__ctrl radio-theater__ctrl--ghost tap-feedback"
+              onClick={() => void handleCopyLink()}
+            >
+              <Copy className="h-4 w-4" aria-hidden />
+              {copyFeedback ?? 'Copier le lien'}
+            </button>
+          ) : null}
         </div>
       </footer>
 

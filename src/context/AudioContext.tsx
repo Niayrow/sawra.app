@@ -146,6 +146,8 @@ interface AudioContextType {
   setPlaybackSpeed: (speed: number) => void;
   setRepeatMode: (mode: 'none' | 'one' | 'all') => void;
   setCustomPlaylistOrder: (order: number[] | null) => void;
+  /** Multi-reciter radio queue (surah + voice pairs). Clears on null. */
+  setRadioSlotQueue: (slots: Array<{ reciterId: number; surahId: number }> | null) => void;
   setSleepTimer: (time: number | null) => void;
   setPlayerTheme: (theme: string) => void;
   playNextTrack: () => void;
@@ -341,6 +343,12 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const audioEffectsRef = useRef(audioEffects);
   const selectedSurahIdsRef = useRef<Set<number>>(selectedSurahIds);
   const customPlaylistOrderRef = useRef<number[] | null>(null);
+  const radioSlotQueueRef = useRef<Array<{ reciterId: number; surahId: number }> | null>(null);
+  const radioSlotIndexRef = useRef(0);
+  const recitersRef = useRef(reciters);
+  useEffect(() => {
+    recitersRef.current = reciters;
+  }, [reciters]);
   useEffect(() => {
     selectedSurahIdsRef.current = selectedSurahIds;
   }, [selectedSurahIds]);
@@ -356,6 +364,13 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const setCustomPlaylistOrder = useCallback((order: number[] | null) => {
     customPlaylistOrderRef.current = order?.length ? [...order] : null;
+  }, []);
+
+  const setRadioSlotQueue = useCallback((slots: Array<{ reciterId: number; surahId: number }> | null) => {
+    radioSlotQueueRef.current = slots?.length ? slots.map((s) => ({ ...s })) : null;
+    radioSlotIndexRef.current = 0;
+    if (!slots?.length) return;
+    customPlaylistOrderRef.current = slots.map((s) => s.surahId);
   }, []);
 
   useEffect(() => {
@@ -1359,7 +1374,48 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Next and Previous tracks playlist manager
   function playNextTrack() {
     if (!currentTrack) return;
-    
+
+    const slots = radioSlotQueueRef.current;
+    if (slots?.length) {
+      // Resync cursor with the track actually playing (surah + voice).
+      const at = radioSlotIndexRef.current;
+      const atSlot = slots[at];
+      if (
+        !atSlot ||
+        atSlot.surahId !== currentTrack.surah.id ||
+        atSlot.reciterId !== currentTrack.reciter.id
+      ) {
+        const found = slots.findIndex(
+          (s) => s.surahId === currentTrack.surah.id && s.reciterId === currentTrack.reciter.id,
+        );
+        if (found >= 0) radioSlotIndexRef.current = found;
+      }
+
+      const list = recitersRef.current;
+      for (let step = 1; step <= slots.length; step++) {
+        let nextIndex = radioSlotIndexRef.current + step;
+        if (nextIndex >= slots.length) {
+          if (repeatModeRef.current === 'none') {
+            setPlaybackStatus('paused');
+            if (audioRef.current) audioRef.current.pause();
+            return;
+          }
+          nextIndex = nextIndex % slots.length;
+        }
+        const slot = slots[nextIndex];
+        const reciter = list.find((r) => r.id === slot.reciterId);
+        if (!reciter) continue;
+        const moshaf =
+          reciter.moshaf.find((m) => /hafs/i.test(m.name)) ?? reciter.moshaf[0] ?? null;
+        const surah = SURAHS.find((s) => s.id === slot.surahId);
+        if (!moshaf || !surah) continue;
+        radioSlotIndexRef.current = nextIndex;
+        void playTrack(reciter, moshaf, surah);
+        return;
+      }
+      return;
+    }
+
     const allAvailable = getAvailableSurahs(currentTrack.reciter, currentTrack.moshaf);
     if (allAvailable.length === 0) return;
 
@@ -1393,7 +1449,40 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   function playPrevTrack() {
     if (!currentTrack) return;
-    
+
+    const slots = radioSlotQueueRef.current;
+    if (slots?.length) {
+      const at = radioSlotIndexRef.current;
+      const atSlot = slots[at];
+      if (
+        !atSlot ||
+        atSlot.surahId !== currentTrack.surah.id ||
+        atSlot.reciterId !== currentTrack.reciter.id
+      ) {
+        const found = slots.findIndex(
+          (s) => s.surahId === currentTrack.surah.id && s.reciterId === currentTrack.reciter.id,
+        );
+        if (found >= 0) radioSlotIndexRef.current = found;
+      }
+
+      const list = recitersRef.current;
+      for (let step = 1; step <= slots.length; step++) {
+        let prevIndex = radioSlotIndexRef.current - step;
+        while (prevIndex < 0) prevIndex += slots.length;
+        const slot = slots[prevIndex];
+        const reciter = list.find((r) => r.id === slot.reciterId);
+        if (!reciter) continue;
+        const moshaf =
+          reciter.moshaf.find((m) => /hafs/i.test(m.name)) ?? reciter.moshaf[0] ?? null;
+        const surah = SURAHS.find((s) => s.id === slot.surahId);
+        if (!moshaf || !surah) continue;
+        radioSlotIndexRef.current = prevIndex;
+        void playTrack(reciter, moshaf, surah);
+        return;
+      }
+      return;
+    }
+
     const allAvailable = getAvailableSurahs(currentTrack.reciter, currentTrack.moshaf);
     if (allAvailable.length === 0) return;
 
@@ -1469,6 +1558,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setPlaybackSpeed,
       setRepeatMode,
       setCustomPlaylistOrder,
+      setRadioSlotQueue,
       setSleepTimer,
       setPlayerTheme,
       playNextTrack,

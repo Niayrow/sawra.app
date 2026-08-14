@@ -74,6 +74,9 @@ export {
   AudioLines,
   Radio,
   Shuffle,
+  Plus,
+  Link2,
+  Copy,
 } from 'lucide-react';
 
 export type AppIcon = ComponentType<

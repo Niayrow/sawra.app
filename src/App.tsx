@@ -705,7 +705,7 @@ const AppContent: React.FC = () => {
     playTrack,
   } = useAudio();
   const { user, loading: authLoading } = useAuth();
-  const { getProgress, streak } = useLibrary();
+  const { getProgress } = useLibrary();
   const isOnline = useOnlineStatus();
 
   const pathname = usePathname() || '/';
@@ -1323,11 +1323,6 @@ const AppContent: React.FC = () => {
                   </h2>
                   <p className="home-hero__lede home-hero__enter home-hero__enter--3">
                     Reprenez votre lecture, trouvez une belle voix.
-                    {user && streak > 0 ? (
-                      <span className="ml-2 inline-flex align-middle rounded-full border border-[#bfa078]/25 bg-[#e2d0ba]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#e2d0ba]">
-                        {streak} j
-                      </span>
-                    ) : null}
                   </p>
                 </header>
               </div>

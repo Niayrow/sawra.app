@@ -24,21 +24,21 @@
       "name": "Écouter le Coran",
       "short_name": "Écouter",
       "description": "Ouvrir la recherche de récitateurs",
-      "url": "/?tab=listen",
+      "url": "/ecouter",
       "icons": [{ "src": "/icons/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Comparer A/B",
       "short_name": "Comparer",
       "description": "Comparer deux récitateurs sur la même sourate",
-      "url": "/?tab=more&panel=compare",
+      "url": "/comparer",
       "icons": [{ "src": "/icons/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Favoris",
       "short_name": "Favoris",
       "description": "Retrouver vos récitateurs favoris",
-      "url": "/?tab=favorites",
+      "url": "/bibliotheque",
       "icons": [{ "src": "/icons/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ],

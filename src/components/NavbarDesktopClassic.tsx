@@ -16,7 +16,7 @@ type NavIconMap = {
 };
 
 interface NavbarDesktopClassicProps {
-  activeTab: NavTabId;
+  activeTab: NavTabId | 'none';
   setActiveTab: (tab: NavTabId) => void;
   reciterFusion?: ReciterNavFusionProps | null;
   exploreFusion?: ExploreNavFusionProps | null;

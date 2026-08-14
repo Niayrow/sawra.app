@@ -11,6 +11,7 @@ import { MobileAppHeader } from './MobileAppHeader';
 import { MobilePracticeSheet } from './MobilePracticeSheet';
 
 type NavTabId = 'home' | 'listen' | 'favorites' | 'account' | 'more';
+type NavbarActiveTab = NavTabId | 'none';
 
 export interface ReciterNavFusionProps {
   progress: number;
@@ -25,7 +26,7 @@ export interface ExploreNavFusionProps {
 }
 
 interface NavbarProps {
-  activeTab: NavTabId;
+  activeTab: NavbarActiveTab;
   setActiveTab: (tab: NavTabId) => void;
   /** When true on mobile, navbar visually docks with the player bar */
   dockWithPlayer?: boolean;
@@ -113,7 +114,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     options?: { alsoActive?: NavTabId[] },
   ) => {
     const isActive =
-      activeTab === id || Boolean(options?.alsoActive?.includes(activeTab));
+      activeTab === id || Boolean(options?.alsoActive?.includes(id) && activeTab !== 'none' && options.alsoActive.includes(activeTab as NavTabId));
 
     return (
       <button
@@ -122,7 +123,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         onClick={() => {
           setPracticeOpen(false);
           if (activeTab === id) return;
-          if (options?.alsoActive?.includes(activeTab)) return;
+          if (options?.alsoActive?.includes(activeTab as NavTabId)) return;
           setActiveTab(id);
         }}
         data-motion-icon-group={motionReady ? '' : undefined}

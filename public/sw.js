@@ -1,17 +1,20 @@
-const CACHE_VERSION = 'sawra-pwa-v114-20260809';
+const CACHE_VERSION = 'sawra-pwa-v116-next-20260814';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const OFFLINE_URL = '/offline.html';
 
 const APP_SHELL_ASSETS = [
   '/',
-  '/index.html',
-  OFFLINE_URL,
+  '/ecouter',
+  '/bibliotheque',
+  '/quiz',
+  '/apprendre',
+  '/radio',
+  '/offline.html',
   '/site.webmanifest',
   '/favicon.ico',
   '/fonts/outfit-latin.woff2',
   '/fonts/outfit-latin-ext.woff2',
-  '/icons/favicon-16x16.png',
   '/icons/favicon-32x32.png',
   '/icons/apple-touch-icon.png',
   '/icons/android-chrome-192x192.png',
@@ -124,11 +127,11 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          putRuntimeCache('/index.html', response.clone());
+          putRuntimeCache('/', response.clone());
           return response;
         })
         .catch(async () => (
-          await caches.match('/index.html') ||
+          await caches.match('/') ||
           await caches.match(OFFLINE_URL)
         ))
     );

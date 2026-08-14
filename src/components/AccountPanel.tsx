@@ -2,13 +2,62 @@ import React, { useState } from 'react';
 import {
   LogIn, LogOut, UserPlus, Mail, Lock, User, ShieldCheck, Cloud,
   Heart, MonitorSmartphone, SlidersHorizontal, ExternalLink, Eye, EyeOff,
-  Trash2, AlertTriangle,
+  Trash2, AlertTriangle, ArrowRight,
 } from '../icons/motion';
 import { useAuth } from '../context/AuthContext';
 
 type AuthMode = 'signin' | 'signup';
 
-export const AccountPanel: React.FC = () => {
+const DISCOVER_LINKS: Array<{ label: string; href: string; hint: string }> = [
+  { label: 'Options', href: '/options', hint: 'Navbar flottante ou pleine' },
+  { label: 'À propos', href: '/a-propos', hint: 'Version, FAQ et nouveautés' },
+  { label: 'Comparer', href: '/comparer', hint: 'Plusieurs récitateurs côte à côte' },
+  { label: 'Téléchargements', href: '/telechargements', hint: 'Sourates hors ligne' },
+  { label: 'Sources & légal', href: '/informations/sources', hint: 'Licences, confidentialité, conditions' },
+];
+
+type AccountPanelProps = {
+  onNavigate?: (href: string) => void;
+};
+
+const DiscoverLinks: React.FC<{ onNavigate?: (href: string) => void }> = ({ onNavigate }) => (
+  <section className="rounded-[1.5rem] border border-[#30455c]/50 bg-[#0f1928]/70 p-4">
+    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#8ea1b3]">Pages</p>
+    <p className="mt-1 text-sm font-bold text-[#f6f8fb]">Découvrir Sawra</p>
+    <ul className="mt-3 flex flex-col gap-1.5">
+      {DISCOVER_LINKS.map((item) => (
+        <li key={item.href}>
+          <a
+            href={item.href}
+            onClick={(event) => {
+              if (
+                event.metaKey ||
+                event.ctrlKey ||
+                event.shiftKey ||
+                event.altKey ||
+                event.button !== 0
+              ) {
+                return;
+              }
+              if (!onNavigate) return;
+              event.preventDefault();
+              onNavigate(item.href);
+            }}
+            className="flex min-h-11 items-center gap-3 rounded-2xl border border-transparent px-3 py-2.5 transition-colors hover:border-[#30455c]/70 hover:bg-[#162538]/70 tap-feedback"
+          >
+            <span className="min-w-0 flex-1">
+              <span className="block text-[13px] font-bold text-[#e6edf5]">{item.label}</span>
+              <span className="mt-0.5 block text-[11px] text-[#95a7ba]">{item.hint}</span>
+            </span>
+            <ArrowRight className="h-4 w-4 shrink-0 text-[#bfa078]/80" aria-hidden />
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+);
+
+export const AccountPanel: React.FC<AccountPanelProps> = ({ onNavigate }) => {
   const {
     configured,
     loading,
@@ -34,7 +83,7 @@ export const AccountPanel: React.FC = () => {
   const [formKey, setFormKey] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deleteEmail, setDeleteEmail] = useState('');
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   const switchMode = (next: AuthMode) => {
     if (next === mode) return;
@@ -49,8 +98,8 @@ export const AccountPanel: React.FC = () => {
       <div className="rounded-3xl border border-[#bfa078]/20 bg-[#e2d0ba]/6 p-5">
         <h3 className="font-bold text-[#f6f8fb]">Compte cloud indisponible</h3>
         <p className="mt-2 text-sm text-[#b4c0ce]">
-          Ajoutez <code className="text-[#e6d5c2]">VITE_SUPABASE_URL</code> et{' '}
-          <code className="text-[#e6d5c2]">VITE_SUPABASE_ANON_KEY</code> dans{' '}
+          Ajoutez <code className="text-[#e6d5c2]">NEXT_PUBLIC_SUPABASE_URL</code> et{' '}
+          <code className="text-[#e6d5c2]">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> dans{' '}
           <code className="text-[#d0d9e3]">.env.local</code> puis relancez le serveur.
         </p>
       </div>
@@ -244,7 +293,7 @@ export const AccountPanel: React.FC = () => {
               type="button"
               onClick={() => {
                 setDeleteOpen(true);
-                setDeleteEmail('');
+                setDeleteConfirmText('');
                 setInfo(null);
                 clearAuthError();
               }}
@@ -254,21 +303,31 @@ export const AccountPanel: React.FC = () => {
               Supprimer toutes mes données et mon compte
             </button>
           ) : (
-            <div className="mt-4 flex flex-col gap-3">
+            <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-rose-400/25 bg-[#0c1522]/55 p-3.5 sm:p-4">
               <p className="text-[12px] leading-relaxed text-[#c8d1db]">
-                Action irréversible. Tapez votre e-mail{' '}
-                <span className="font-semibold text-[#f6f8fb]">{user.email}</span> pour confirmer.
+                Cette action est <span className="font-bold text-rose-200">définitive</span>. Vos
+                favoris, signets, historique, reprise et préférences Sawra seront effacés, et le
+                compte GoMuslimLife associé sera fermé.
               </p>
-              <label className="sr-only" htmlFor="account-delete-confirm">
-                Confirmer l’e-mail
+              <p className="text-[12px] leading-relaxed text-[#95a7ba]">
+                Pour confirmer, tapez{' '}
+                <span className="rounded-md border border-rose-400/30 bg-rose-500/10 px-1.5 py-0.5 font-mono text-[12px] font-bold text-rose-100">
+                  supprimer
+                </span>{' '}
+                dans le champ ci-dessous, puis validez.
+              </p>
+              <label className="block text-[11px] font-bold uppercase tracking-[0.14em] text-[#8ea1b3]" htmlFor="account-delete-confirm">
+                Confirmation
               </label>
               <input
                 id="account-delete-confirm"
-                type="email"
+                type="text"
                 autoComplete="off"
-                value={deleteEmail}
-                onChange={(e) => setDeleteEmail(e.target.value)}
-                placeholder="votre@email.com"
+                autoCapitalize="none"
+                spellCheck={false}
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder='Écrivez « supprimer »'
                 className="w-full rounded-xl border border-rose-400/25 bg-[#0c1522]/80 py-2.5 px-3 text-sm text-[#f6f8fb] placeholder:text-[#6f8499] focus:border-rose-400/50 focus:outline-none focus:ring-2 focus:ring-rose-400/20"
               />
               {info && (
@@ -279,7 +338,7 @@ export const AccountPanel: React.FC = () => {
               <div className="flex flex-col gap-2 sm:flex-row">
                 <button
                   type="button"
-                  disabled={busy || deleteEmail.trim().toLowerCase() !== (user.email || '').toLowerCase()}
+                  disabled={busy || deleteConfirmText.trim().toLowerCase() !== 'supprimer'}
                   onClick={() => {
                     void (async () => {
                       setBusy(true);
@@ -295,14 +354,15 @@ export const AccountPanel: React.FC = () => {
                   className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-rose-500 px-4 text-[12px] font-bold text-white disabled:opacity-45 tap-feedback"
                 >
                   <Trash2 className="h-4 w-4" />
-                  {busy ? 'Suppression…' : 'Confirmer la suppression'}
+                  {busy ? 'Suppression…' : 'Valider la suppression'}
                 </button>
                 <button
                   type="button"
                   disabled={busy}
                   onClick={() => {
                     setDeleteOpen(false);
-                    setDeleteEmail('');
+                    setDeleteConfirmText('');
+                    setInfo(null);
                   }}
                   className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-[#46607b]/50 bg-[#162538]/70 px-4 text-[12px] font-bold text-[#d0d9e3] tap-feedback"
                 >
@@ -312,6 +372,8 @@ export const AccountPanel: React.FC = () => {
             </div>
           )}
         </section>
+
+        <DiscoverLinks onNavigate={onNavigate} />
       </div>
     );
   }
@@ -344,6 +406,7 @@ export const AccountPanel: React.FC = () => {
   const isSignIn = mode === 'signin';
 
   return (
+    <div className="flex flex-col gap-4 pb-2">
     <div className="auth-card relative overflow-hidden rounded-[1.75rem] border border-[#30455c]/50 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.65)]">
       <div
         className="absolute inset-0 bg-[linear-gradient(155deg,#0f1a28_0%,#162538_48%,#0a121c_100%)]"
@@ -543,6 +606,9 @@ export const AccountPanel: React.FC = () => {
           )}
         </p>
       </div>
+    </div>
+
+      <DiscoverLinks onNavigate={onNavigate} />
     </div>
   );
 };

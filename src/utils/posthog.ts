@@ -1,14 +1,15 @@
 import posthog from 'posthog-js';
+import { isDev, publicEnv } from '../lib/env';
 
 let initialized = false;
 
 export const initPostHog = () => {
-  const key = import.meta.env.VITE_POSTHOG_KEY;
-  const host = import.meta.env.VITE_POSTHOG_HOST;
+  const key = publicEnv.posthogKey;
+  const host = publicEnv.posthogHost;
 
   if (!key || !host) {
-    if (import.meta.env.DEV) {
-      const variable = !key ? 'VITE_POSTHOG_KEY' : 'VITE_POSTHOG_HOST';
+    if (isDev) {
+      const variable = !key ? 'NEXT_PUBLIC_POSTHOG_KEY' : 'NEXT_PUBLIC_POSTHOG_HOST';
       throw new Error(
         `${variable} variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once ${variable} is configured`,
       );

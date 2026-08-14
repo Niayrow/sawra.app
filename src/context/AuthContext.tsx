@@ -146,7 +146,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let mounted = true;
     let unsubscribe: (() => void) | undefined;
     let booted = false;
-    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    let timeoutId: number | undefined;
 
     // Don't block the shell on auth — restore session after first interaction.
     setLoading(false);
@@ -373,10 +373,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const setFavoriteReciter = useCallback(async (reciterId: number, liked: boolean) => {
     if (!supabase || !userIdRef.current) return;
     if (liked) {
-      const { error } = await supabase.from('sawra_favorite_reciters').upsert({
-        user_id: userIdRef.current,
-        reciter_id: reciterId,
-      });
+      const { error } = await supabase.from('sawra_favorite_reciters').upsert(
+        {
+          user_id: userIdRef.current,
+          reciter_id: reciterId,
+        },
+        { onConflict: 'user_id,reciter_id', ignoreDuplicates: true },
+      );
       if (error) console.warn('favorite upsert failed', error.message);
       return;
     }
@@ -398,7 +401,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         missingOnRemote.map((reciter_id) => ({
           user_id: userIdRef.current!,
           reciter_id,
-        }))
+        })),
+        { onConflict: 'user_id,reciter_id', ignoreDuplicates: true },
       );
       if (error) console.warn('favorites merge upsert failed', error.message);
     }

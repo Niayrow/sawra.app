@@ -5,8 +5,9 @@ import {
   Bookmark, ChevronDown,
 } from '../icons/motion';
 import { useAudio } from '../context/AudioContext';
+import { APP_VERSION } from '../utils/legalMeta';
 
-export const APP_VERSION = '1.6.0';
+export { APP_VERSION };
 
 const FAQ_ITEMS: Array<{ question: string; answer: string }> = [
   {
@@ -68,6 +69,17 @@ const UPDATE_HISTORY: Array<{
   title: string;
   items: string[];
 }> = [
+  {
+    version: '1.7.0',
+    date: '14 août 2026',
+    title: 'Next.js, SEO par URL & Options dédiées',
+    items: [
+      'Migration web vers Next.js : métadonnées HTML, sitemap et robots par route (/ecouter, /quiz…).',
+      'Page Options dédiée (navbar flottante / pleine) ; À propos, Comparer, Téléchargements et Légal en pages distinctes.',
+      'Footer constellation + confirmation de suppression de compte (taper « supprimer »).',
+      'Politique Sources / Confidentialité / Conditions alignées sur v1.7.',
+    ],
+  },
   {
     version: '1.6.0',
     date: '14 août 2026',

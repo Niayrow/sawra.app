@@ -9,6 +9,8 @@ lerna-debug.log*
 
 node_modules
 dist
+out
+.next
 dist-ssr
 *.local
 
@@ -32,3 +34,6 @@ public/reciters/_original/
 android/keystore.properties
 android/upload-keystore.jks
 android/KEYSTORE_CREDENTIALS.txt
+
+.vercel
+.env*

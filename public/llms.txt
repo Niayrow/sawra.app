@@ -7,32 +7,36 @@ Sawra permet d’écouter le Coran en ligne avec de grands récitateurs (sources
 ## Pages principales
 
 - [Accueil Sawra](https://sawra.app/): Lecteur Coran en ligne, gratuit et sans publicité
-- [Écouter](https://sawra.app/?tab=listen): Récitateurs et sourates en streaming
-- [Bibliothèque](https://sawra.app/?tab=favorites): Signets de versets, historique d’écoute et streak (compte requis)
-- [Quiz Coran](https://sawra.app/?tab=quiz): Devinez la sourate à partir d’un verset
-- [Apprendre](https://sawra.app/?tab=learn): Flou, écoute et révélation verset par verset
-- [Radio Coran](https://sawra.app/?tab=radio): Stations en continu
-- [À propos](https://sawra.app/?tab=more&panel=about): Changelog v1.6 et fonctionnalités
-- [Comparer récitateurs](https://sawra.app/?tab=more&panel=compare): Comparaison de voix sur une sourate
+- [Écouter](https://sawra.app/ecouter): Récitateurs et sourates en streaming
+- [Bibliothèque](https://sawra.app/bibliotheque): Signets de versets, historique d’écoute et streak (compte requis)
+- [Quiz Coran](https://sawra.app/quiz): Devinez la sourate à partir d’un verset
+- [Apprendre](https://sawra.app/apprendre): Flou, écoute et révélation verset par verset
+- [Radio Coran](https://sawra.app/radio): Stations en continu
+- [À propos](https://sawra.app/a-propos): Changelog v1.7 et fonctionnalités
+- [Comparer récitateurs](https://sawra.app/comparer): Comparaison de voix sur une sourate
+- [Options](https://sawra.app/options): Navbar flottante ou pleine (ordinateur)
 
 ## Informations légales
 
-- [Politique de confidentialité](https://sawra.app/privacy/): Données locales, compte, historique, suppression
-- [Conditions d’utilisation](https://sawra.app/terms/): Règles d’usage du service
-- [Sources & licences](https://sawra.app/sources/): Provenance audio mp3quran.net
+- [Politique de confidentialité](https://sawra.app/privacy): Données locales, compte, analytics, suppression
+- [Conditions d’utilisation](https://sawra.app/terms): Règles d’usage du service
+- [Sources & licences](https://sawra.app/sources): Provenance audio mp3quran.net + métadonnées
+- [Informations (app)](https://sawra.app/informations/sources): Sources, confidentialité et conditions dans l’app
 
 ## Produit
 
 - [Sawra — écouter le Coran](https://sawra.app/): Streaming audio, téléchargements hors-ligne, Bibliothèque, Quiz, Apprendre, PWA
 - [GoMuslimLife](https://gomuslimlife.com/): Compte partagé pour synchroniser favoris, signets, historique et reprise entre appareils
 
-## Fonctionnalités v1.6
+## Fonctionnalités v1.7
 
+- Site Next.js avec métadonnées SEO par URL
+- Pages distinctes : Options, À propos, Comparer, Téléchargements, Légal
 - Signets de versets avec notes personnelles
 - Historique d’écoute et streak (compte requis, sync cloud)
 - Quiz Coran et page Apprendre
 - Radio Coran en continu
-- Suppression du compte et des données (droit d’effacement)
+- Suppression du compte (confirmation « supprimer »)
 - Retrait de l’onglet Moments (vidéos YouTube)
 
 ## Optional

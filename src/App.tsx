@@ -1,17 +1,18 @@
+'use client';
+
 import React, { useEffect, useState, useMemo, lazy, Suspense, useDeferredValue, useCallback, useRef } from 'react';
-import { useAudio, AudioProvider } from './context/AudioContext';
-import { AuthProvider } from './context/AuthContext';
-import { LibraryProvider, useLibrary } from './context/LibraryContext';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAudio } from './context/AudioContext';
+import { useLibrary } from './context/LibraryContext';
 import { AUTH_PROMPT_EVENT } from './utils/appEvents';
 import { ReciterCard } from './components/ReciterCard';
 import { AyahSyncBadge, useTimingCatalogReady } from './components/AyahSyncBadge';
 import { Navbar } from './components/Navbar';
-import { 
+import {
   Search, Heart, AlertTriangle, Headphones, Play, ArrowRight,
-  Download, ExternalLink, History, Share, User, BookOpen,
+  Download, History, BookOpen,
   Sparkles,
 } from './icons/motion';
-import type { AppIcon } from './icons/motion';
 import type { Moshaf, Reciter, Surah } from './types';
 import { ReciterPortrait } from './components/ReciterPortrait';
 import { hasLocalReciterImage } from './utils/images';
@@ -22,6 +23,7 @@ import { ListenReciterHeader } from './components/ListenReciterHeader';
 import { BatchDownloadToast } from './components/BatchDownloadToast';
 import { NavDesktopStyleToggle } from './components/NavDesktopStyleToggle';
 import { DownloadedSurahsPage } from './components/DownloadedSurahsPage';
+import { HomeFooter } from './components/HomeFooter';
 import { CloudSync } from './components/CloudSync';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { AuthPromptModal } from './components/AuthPromptModal';
@@ -35,8 +37,17 @@ import {
   saveNavDesktopStyle,
   type NavDesktopStyle,
 } from './utils/navDesktopStyle';
-import { applyDocumentSeo, resolveSeoForView } from './utils/seo';
 import { capturePostHogEvent, capturePostHogPageview } from './utils/posthog';
+import {
+  isLegalSub,
+  mapLegacyTab,
+  parseLocation,
+  pathForView,
+  resolveMoreNavigation,
+  type LegalSub,
+  type MorePanel,
+  type TabId,
+} from './utils/routes';
 
 const SurahList = lazy(() => import('./components/SurahList').then((module) => ({ default: module.SurahList })));
 const GlobalPlayerV2 = lazy(() => import('./components/GlobalPlayerV2').then((module) => ({ default: module.GlobalPlayerV2 })));
@@ -51,118 +62,9 @@ const QuizPage = lazy(() => import('./components/QuizPage').then((module) => ({ 
 const LearnPage = lazy(() => import('./components/LearnPage').then((module) => ({ default: module.LearnPage })));
 const RadioPage = lazy(() => import('./components/RadioPage').then((module) => ({ default: module.RadioPage })));
 const LibraryPage = lazy(() => import('./components/LibraryPage').then((module) => ({ default: module.LibraryPage })));
-const TAB_IDS = ['home', 'listen', 'favorites', 'account', 'more', 'quiz', 'learn', 'radio'] as const;
-type TabId = typeof TAB_IDS[number];
-type MorePanel = 'downloads' | 'legal' | 'priorities' | 'compare' | 'about';
-type LegalSub = 'sources' | 'privacy' | 'terms';
 type ListenStep = 'reciters' | 'surahs';
 
-const PRODUCT_PRIORITIES: Array<{
-  id: string;
-  title: string;
-  summary: string;
-  detail: string;
-  icon: AppIcon;
-}> = [
-  {
-    id: 'native',
-    title: 'Apps natives & liste d’attente',
-    summary: 'Préparer App Store / Google Play tout en renforçant l’installation PWA « écran d’accueil ».',
-    detail: 'La PWA fonctionne déjà ; les stores arriveront ensuite avec une inscription claire.',
-    icon: Share,
-  },
-];
-
-const MORE_PANEL_IDS: MorePanel[] = ['downloads', 'legal', 'priorities', 'compare', 'about'];
-const LEGAL_SUB_IDS: LegalSub[] = ['sources', 'privacy', 'terms'];
-
-const isMorePanel = (value: string | null): value is MorePanel =>
-  Boolean(value && MORE_PANEL_IDS.includes(value as MorePanel));
-
-const isLegalSub = (value: string | null): value is LegalSub =>
-  Boolean(value && LEGAL_SUB_IDS.includes(value as LegalSub));
-
-/** Normalize legacy panel query values (downloads, sources, …) into top-level + sub. */
-const resolveMoreNavigation = (
-  raw: string | null
-): { panel: MorePanel; legalSub?: LegalSub } => {
-  if (raw === 'downloads') return { panel: 'downloads' };
-  if (raw === 'sources' || raw === 'privacy' || raw === 'terms') {
-    return { panel: 'legal', legalSub: raw };
-  }
-  if (isMorePanel(raw)) return { panel: raw };
-  return { panel: 'downloads' };
-};
-
-const mapLegacyTab = (tab: string | null): TabId => {
-  switch (tab) {
-    case 'listen':
-    case 'reciters':
-    case 'surahs':
-      return 'listen';
-    case 'moments':
-      return 'home';
-    case 'ayah':
-    case 'everyayah':
-      return 'home';
-    case 'quiz':
-      return 'quiz';
-    case 'learn':
-      return 'learn';
-    case 'radio':
-      return 'radio';
-    case 'favorites':
-      return 'favorites';
-    case 'account':
-    case 'profile':
-      return 'account';
-    case 'more':
-    case 'compare':
-    case 'about':
-    case 'sources':
-    case 'privacy':
-    case 'terms':
-    case 'legal':
-    case 'downloads':
-      return 'more';
-    case 'home':
-    default:
-      return 'home';
-  }
-};
-
-const getInitialTab = (): TabId => {
-  if (typeof window === 'undefined') return 'home';
-  const tab = new URLSearchParams(window.location.search).get('tab');
-  return mapLegacyTab(tab);
-};
-
-const getInitialMorePanel = (): MorePanel => {
-  if (typeof window === 'undefined') return 'downloads';
-  const params = new URLSearchParams(window.location.search);
-  const section = params.get('section');
-  if (section === 'downloads') return 'downloads';
-  const fromPanel = resolveMoreNavigation(params.get('panel'));
-  if (params.get('panel') === 'account' || params.get('panel') === 'profile') {
-    return 'downloads';
-  }
-  if (params.get('panel')) return fromPanel.panel;
-  const tab = params.get('tab');
-  if (tab === 'account' || tab === 'profile') return 'downloads';
-  return resolveMoreNavigation(tab).panel;
-};
-
-const getInitialLegalSub = (): LegalSub => {
-  if (typeof window === 'undefined') return 'sources';
-  const params = new URLSearchParams(window.location.search);
-  const section = params.get('section');
-  if (isLegalSub(section)) return section;
-  const raw = params.get('panel') || params.get('tab');
-  return resolveMoreNavigation(raw).legalSub ?? 'sources';
-};
-
 const FEATURED_RECITER_IDS = [123, 54, 20, 86, 102, 92, 30, 31];
-const GOMUSLIMLIFE_URL = 'https://gomuslimlife.com';
 
 // Dictionary of phonetic synonyms & aliases for the most famous reciters
 const RECITER_ALIASES: Record<number, string[]> = {
@@ -372,28 +274,6 @@ const RecitersLoadingSkeleton: React.FC = () => (
     {[0, 1, 2, 3, 4].map((item) => (
       <div key={item} className="shimmer-loader h-[88px] rounded-2xl border border-slate-900" />
     ))}
-  </div>
-);
-
-interface ProductPriorityCardProps {
-  title: string;
-  summary: string;
-  detail: string;
-  icon: AppIcon;
-}
-
-const ProductPriorityCard: React.FC<ProductPriorityCardProps> = ({ title, summary, detail, icon: Icon }) => (
-  <div className="brand-card rounded-2xl p-4">
-    <div className="flex items-start gap-3">
-      <span className="brand-chip mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl">
-        <Icon className="h-4.5 w-4.5" />
-      </span>
-      <div>
-        <h3 className="text-sm font-black text-[#f6f8fb]">{title}</h3>
-        <p className="mt-1 text-xs leading-relaxed text-[#d0d9e3]">{summary}</p>
-        <p className="mt-2 text-[11px] leading-relaxed text-[#95a7ba]">{detail}</p>
-      </div>
-    </div>
   </div>
 );
 
@@ -828,14 +708,17 @@ const AppContent: React.FC = () => {
   const { getProgress, streak } = useLibrary();
   const isOnline = useOnlineStatus();
 
-  const [activeTab, setActiveTab] = useState<TabId>(() => getInitialTab());
+  const pathname = usePathname() || '/';
+  const router = useRouter();
+  const parsedPath = useMemo(() => parseLocation(pathname, ''), [pathname]);
+  const [activeTab, setActiveTab] = useState<TabId>(() => parsedPath.tab);
   const [radioTheaterOpen, setRadioTheaterOpen] = useState(false);
 
   useEffect(() => {
     if (activeTab !== 'radio') setRadioTheaterOpen(false);
   }, [activeTab]);
-  const [morePanel, setMorePanel] = useState<MorePanel>(() => getInitialMorePanel());
-  const [legalSub, setLegalSub] = useState<LegalSub>(() => getInitialLegalSub());
+  const [morePanel, setMorePanel] = useState<MorePanel>(() => parsedPath.morePanel);
+  const [legalSub, setLegalSub] = useState<LegalSub>(() => parsedPath.legalSub);
   const [listenStep, setListenStep] = useState<ListenStep>('reciters');
   const [categoryModalId, setCategoryModalId] = useState<ReciterCategoryId | null>(null);
   const [reciterSearch, setReciterSearch] = useState<string>('');
@@ -882,6 +765,26 @@ const AppContent: React.FC = () => {
   const applyDeepLink = useCallback((rawUrl: string) => {
     try {
       const url = new URL(rawUrl, window.location.origin);
+      const parsed = parseLocation(url.pathname, url.search);
+
+      if (url.protocol === 'sawra:' || url.pathname.includes('/surah')) {
+        setActiveTab('listen');
+        return;
+      }
+
+      // Path or legacy query resolved to a known view
+      if (
+        url.pathname !== '/' ||
+        url.searchParams.has('tab') ||
+        url.searchParams.has('panel') ||
+        parsed.tab !== 'home'
+      ) {
+        setActiveTab(parsed.tab);
+        setMorePanel(parsed.morePanel);
+        setLegalSub(parsed.legalSub);
+        return;
+      }
+
       const tab = url.searchParams.get('tab');
       const panelParam = url.searchParams.get('panel');
       const sectionParam = url.searchParams.get('section');
@@ -923,14 +826,11 @@ const AppContent: React.FC = () => {
       if (tab) {
         setActiveTab(mapLegacyTab(tab));
       }
-      if (url.protocol === 'sawra:' || url.pathname.includes('/surah')) {
-        setActiveTab('listen');
-      }
     } catch {
-      if (rawUrl.includes('tab=compare')) {
+      if (rawUrl.includes('tab=compare') || rawUrl.includes('/comparer')) {
         setMorePanel('compare');
         setActiveTab('more');
-      } else if (rawUrl.includes('tab=about')) {
+      } else if (rawUrl.includes('tab=about') || rawUrl.includes('/a-propos')) {
         setMorePanel('about');
         setActiveTab('more');
       } else if (rawUrl.includes('tab=moments')) {
@@ -939,6 +839,7 @@ const AppContent: React.FC = () => {
         rawUrl.includes('tab=surahs') ||
         rawUrl.includes('tab=reciters') ||
         rawUrl.includes('tab=listen') ||
+        rawUrl.includes('/ecouter') ||
         rawUrl.includes('sawra://surah')
       ) {
         setActiveTab('listen');
@@ -960,7 +861,7 @@ const AppContent: React.FC = () => {
         });
         removeListener = () => { void handle.remove(); };
       } catch {
-        // Web/PWA: URL query params only.
+        // Web/PWA: path-based URLs only.
       }
     };
 
@@ -968,28 +869,24 @@ const AppContent: React.FC = () => {
     return () => removeListener?.();
   }, [applyDeepLink]);
 
+  // URL → état (retour navigateur, liens externes). Ne pas dépendre de activeTab
+  // sinon on écrase une navigation utilisateur avant le replace.
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    params.set('tab', activeTab);
-    if (activeTab === 'more') {
-      params.set('panel', morePanel);
-      if (morePanel === 'legal') {
-        params.set('section', legalSub);
-      } else {
-        params.delete('section');
-      }
-    } else {
-      params.delete('panel');
-      params.delete('section');
-    }
-    const nextUrl = `${window.location.pathname}?${params.toString()}${window.location.hash}`;
-    window.history.replaceState({}, '', nextUrl);
-  }, [activeTab, morePanel, legalSub]);
+    setActiveTab(parsedPath.tab);
+    setMorePanel(parsedPath.morePanel);
+    setLegalSub(parsedPath.legalSub);
+  }, [pathname, parsedPath]);
 
+  // État → URL (clics navbar / onglets). pathname lu au moment de l’effet, hors deps.
   useEffect(() => {
-    applyDocumentSeo(resolveSeoForView(activeTab, morePanel, legalSub));
-  }, [activeTab, morePanel, legalSub]);
+    const nextPath = pathForView(activeTab, morePanel, legalSub);
+    const current = pathname.replace(/\/+$/, '') || '/';
+    const normalizedNext = nextPath.replace(/\/+$/, '') || '/';
+    if (current !== normalizedNext) {
+      router.replace(nextPath, { scroll: false });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sync état→URL uniquement
+  }, [activeTab, morePanel, legalSub, router]);
 
   useEffect(() => {
     capturePostHogPageview();
@@ -1293,10 +1190,29 @@ const AppContent: React.FC = () => {
 
   const handleSetActiveTab = (tab: TabId) => {
     setActiveTab(tab);
+    if (tab === 'more') {
+      setMorePanel('priorities');
+    }
     if (tab === 'listen') {
       setListenStep(activeReciter ? 'surahs' : 'reciters');
     }
   };
+
+  const navigateToPath = useCallback((href: string) => {
+    const parsed = parseLocation(href, '');
+    setActiveTab(parsed.tab);
+    setMorePanel(parsed.morePanel);
+    setLegalSub(parsed.legalSub);
+  }, []);
+
+  const navActiveTab =
+    activeTab === 'radio' || activeTab === 'quiz' || activeTab === 'learn'
+      ? ('home' as const)
+      : activeTab === 'more' && morePanel === 'priorities'
+        ? ('more' as const)
+        : activeTab === 'more'
+          ? ('none' as const)
+          : activeTab;
 
   if (showLoadingHome) {
     // Keep the HTML #boot-splash as the LCP element; React stays empty until ready.
@@ -1548,123 +1464,7 @@ const AppContent: React.FC = () => {
               </section>
             )}
 
-            <footer className="overflow-hidden rounded-[1.5rem] border border-[#30455c]/45 bg-[linear-gradient(165deg,rgba(16,27,42,0.92),rgba(8,15,24,0.96))]">
-              <div className="flex flex-col gap-4 px-4 py-4 sm:px-5 sm:py-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8ea1b3]">
-                      Sawra
-                    </p>
-                    <p className="mt-1 text-sm font-bold text-[#f6f8fb]">
-                      Le Coran, simplement.
-                    </p>
-                    <p className="mt-1 text-[11px] leading-relaxed text-[#95a7ba]">
-                      PWA dispo · Apps stores bientôt en liste d’attente
-                    </p>
-                  </div>
-                  <img
-                    src="/icons/sansfond.webp"
-                    alt=""
-                    width="40"
-                    height="40"
-                    loading="lazy"
-                    decoding="async"
-                    className="h-10 w-10 shrink-0 object-contain opacity-90"
-                    draggable={false}
-                    aria-hidden
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    const isStandalone =
-                      window.matchMedia('(display-mode: standalone)').matches ||
-                      // @ts-expect-error iOS Safari
-                      Boolean(window.navigator.standalone);
-                    if (isStandalone) {
-                      alert('Sawra est déjà installé sur cet appareil.');
-                      return;
-                    }
-                    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-                    alert(
-                      isIos
-                        ? 'Sur iPhone/iPad : ouvrez Safari → Partager → « Sur l’écran d’accueil ».'
-                        : 'Sur Android/Chrome : menu ⋮ → « Installer l’application » ou « Ajouter à l’écran d’accueil ».'
-                    );
-                  }}
-                  className="inline-flex w-full min-h-11 items-center justify-center gap-2 rounded-full border border-[#bfa078]/30 bg-[#e2d0ba]/12 px-4 py-2.5 text-[12px] font-bold text-[#e6d5c2] transition-colors hover:bg-[#e2d0ba]/18 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] tap-feedback"
-                >
-                  <Share className="h-3.5 w-3.5" aria-hidden />
-                  Ajouter à l’écran d’accueil
-                </button>
-
-                <nav
-                  aria-label="Liens utiles"
-                  className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 text-[11px]"
-                >
-                  {[
-                    { label: 'Écouter', href: '/?tab=listen' },
-                    { label: 'Bibliothèque', href: '/?tab=favorites' },
-                    { label: 'Quiz', href: '/?tab=quiz' },
-                    { label: 'Apprendre', href: '/?tab=learn' },
-                    { label: 'À propos', href: '/?tab=more&panel=about' },
-                    { label: 'Sources', href: '/sources/' },
-                    { label: 'Confidentialité', href: '/privacy/' },
-                    { label: 'Conditions', href: '/terms/' },
-                  ].map((item, index) => (
-                    <React.Fragment key={item.label}>
-                      {index > 0 && (
-                        <span className="px-1.5 text-[#46607b]" aria-hidden>
-                          ·
-                        </span>
-                      )}
-                      <a
-                        href={item.href}
-                        className="min-h-9 px-1 text-[#aab7c5] transition-colors hover:text-[#e6d5c2] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078]"
-                      >
-                        {item.label}
-                      </a>
-                    </React.Fragment>
-                  ))}
-                  <span className="px-1.5 text-[#46607b]" aria-hidden>
-                    ·
-                  </span>
-                  <a
-                    href={GOMUSLIMLIFE_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex min-h-9 items-center gap-1 px-1 text-[#aab7c5] transition-colors hover:text-[#e6d5c2] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078]"
-                  >
-                    GoMuslimLife
-                    <ExternalLink className="h-3 w-3 opacity-50" aria-hidden />
-                  </a>
-                </nav>
-              </div>
-
-              <div className="flex flex-col items-center gap-2 border-t border-[#30455c]/40 bg-[#07111d]/35 px-4 py-3.5 text-center sm:px-5">
-                <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#6d8298]">
-                  Sawra · {new Date().getFullYear()}
-                </p>
-                <a
-                  href="https://sofianeweb.fr"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group inline-flex items-center gap-1.5 rounded-full border border-[#30455c]/45 bg-[#0c1522]/70 px-3 py-1.5 text-[11px] text-[#95a7ba] transition-all duration-300 hover:border-[#bfa078]/35 hover:bg-[#162538]/80 hover:text-[#e6edf5] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078]"
-                >
-                  <span>Imaginé &amp; façonné par</span>
-                  <span className="font-bold text-[#e6d5c2] transition-colors group-hover:text-[#e2d0ba]">
-                    sofianeweb.fr
-                  </span>
-                  <span
-                    className="inline-block text-[#bfa078] transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                    aria-hidden
-                  >
-                    ↗
-                  </span>
-                </a>
-              </div>
-            </footer>
+            <HomeFooter onNavigate={navigateToPath} />
 
             {exploreFusionEnabled && exploreFusionSpacerPx > 0 && (
               <div
@@ -2003,134 +1803,112 @@ const AppContent: React.FC = () => {
         {activeTab === 'account' && (
           <div className="flex flex-col justify-center gap-5 max-md:min-h-[calc(100dvh-5.1rem-env(safe-area-inset-bottom,0px))] max-md:py-4 md:min-h-[min(70vh,40rem)] md:pt-10 md:pb-12 md:max-w-lg md:mx-auto md:w-full">
             <Suspense fallback={<div className="shimmer-loader h-48 rounded-3xl border border-slate-900" />}>
-              <AccountPanel />
+              <AccountPanel onNavigate={navigateToPath} />
             </Suspense>
           </div>
         )}
 
-        {/* 2.3 Tab More View */}
-        {activeTab === 'more' && (
-          <div className="flex flex-col gap-5 max-md:pt-4 md:pt-3">
+        {/* Pages distinctes (Options / À propos / Comparer / Téléchargements / Légal) */}
+        {activeTab === 'more' && morePanel === 'priorities' && (
+          <div className="flex flex-col gap-5 max-md:pt-4 md:pt-3 md:max-w-xl md:mx-auto md:w-full">
             <section className="glass-panel rounded-3xl border border-[#30455c]/60 p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <span className="brand-chip-cool inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest">
-                    Plus
-                  </span>
-                  <h2 className="mt-3 text-lg font-black text-[#f6f8fb]">Fonctions avancées et informations</h2>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => handleNavigate('account')}
-                className="mt-5 flex w-full items-center gap-3 rounded-2xl border border-[#bfa078]/30 bg-[#e2d0ba]/[0.08] px-4 py-3.5 text-left transition-colors hover:bg-[#e2d0ba]/[0.14] tap-feedback md:hidden"
-              >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#20334a] text-[#e6d5c2]">
-                  <User className="h-5 w-5" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[13px] font-black text-[#f6f8fb]">Connexion</span>
-                  <span className="mt-0.5 block text-[11px] leading-snug text-[#95a7ba]">
-                    {user ? 'Compte synchronisé — favoris, signets & reprise' : 'Synchroniser favoris, signets et reprise'}
-                  </span>
-                </span>
-                <ArrowRight className="h-4 w-4 shrink-0 text-[#bfa078]/80" />
-              </button>
-
+              <span className="brand-chip-cool inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+                Options
+              </span>
+              <h2 className="mt-3 text-lg font-black text-[#f6f8fb]">Préférences d’interface</h2>
+              <p className="mt-1.5 text-[12px] leading-relaxed text-[#95a7ba]">
+                Choisissez le style de la barre de navigation et de la barre de lecture sur ordinateur.
+              </p>
               <NavDesktopStyleToggle
                 value={navDesktopStyle}
                 onChange={handleNavDesktopStyleChange}
               />
-
-              <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-                {([
-                  { id: 'downloads' as const, label: 'Téléchargées' },
-                  { id: 'legal' as const, label: 'Légal' },
-                  { id: 'priorities' as const, label: 'Priorités' },
-                  { id: 'compare' as const, label: 'Comparer' },
-                  { id: 'about' as const, label: 'À propos' },
-                ]).map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setMorePanel(item.id)}
-                    aria-pressed={morePanel === item.id}
-                    className={`min-h-11 rounded-2xl border px-3 py-3 text-xs font-bold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] ${
-                      morePanel === item.id
-                        ? 'border-[#bfa078]/35 bg-[#e2d0ba]/12 text-[#e6d5c2]'
-                        : 'border-[#30455c] bg-[#111d2d]/72 text-[#b4c0ce] hover:text-[#f6f8fb]'
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
             </section>
+          </div>
+        )}
 
-            {morePanel === 'downloads' && (
-              <DownloadedSurahsPage
-                entries={downloadedEntries}
-                onOpenReciter={(selected) => handleSelectReciter(selected)}
-              />
-            )}
+        {activeTab === 'more' && morePanel === 'downloads' && (
+          <div className="flex flex-col gap-5 max-md:pt-4 md:pt-3">
+            <section className="glass-panel rounded-3xl border border-[#30455c]/60 px-5 py-4">
+              <span className="brand-chip-cool inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+                Téléchargements
+              </span>
+              <h2 className="mt-3 text-lg font-black text-[#f6f8fb]">Sourates téléchargées</h2>
+              <p className="mt-1 text-[12px] leading-relaxed text-[#95a7ba]">
+                Écoute hors ligne des sourates déjà enregistrées sur cet appareil.
+              </p>
+            </section>
+            <DownloadedSurahsPage
+              entries={downloadedEntries}
+              onOpenReciter={(selected) => handleSelectReciter(selected)}
+            />
+          </div>
+        )}
 
-            {morePanel === 'legal' && (
-              <div className="flex flex-col gap-4">
-                <div
-                  className="flex gap-1 rounded-2xl border border-[#30455c]/50 bg-[#0f1928]/80 p-1"
-                  role="tablist"
-                  aria-label="Informations légales"
+        {activeTab === 'more' && morePanel === 'legal' && (
+          <div className="flex flex-col gap-4 max-md:pt-4 md:pt-3">
+            <section className="glass-panel rounded-3xl border border-[#30455c]/60 px-5 py-4">
+              <span className="brand-chip-cool inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+                Informations
+              </span>
+              <h2 className="mt-3 text-lg font-black text-[#f6f8fb]">Sources &amp; légal</h2>
+            </section>
+            <div
+              className="flex gap-1 rounded-2xl border border-[#30455c]/50 bg-[#0f1928]/80 p-1"
+              role="tablist"
+              aria-label="Informations légales"
+            >
+              {([
+                { id: 'sources' as const, label: 'Sources' },
+                { id: 'privacy' as const, label: 'Confidentialité' },
+                { id: 'terms' as const, label: 'Conditions' },
+              ]).map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={legalSub === item.id}
+                  onClick={() => setLegalSub(item.id)}
+                  className={`min-h-10 flex-1 rounded-xl px-2 py-2 text-[11px] sm:text-xs font-bold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] ${
+                    legalSub === item.id
+                      ? 'bg-[#e2d0ba]/14 text-[#e6d5c2]'
+                      : 'text-[#95a7ba] hover:text-[#e6edf5]'
+                  }`}
                 >
-                  {([
-                    { id: 'sources' as const, label: 'Sources' },
-                    { id: 'privacy' as const, label: 'Confidentialité' },
-                    { id: 'terms' as const, label: 'Conditions' },
-                  ]).map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      role="tab"
-                      aria-selected={legalSub === item.id}
-                      onClick={() => setLegalSub(item.id)}
-                      className={`min-h-10 flex-1 rounded-xl px-2 py-2 text-[11px] sm:text-xs font-bold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] ${
-                        legalSub === item.id
-                          ? 'bg-[#e2d0ba]/14 text-[#e6d5c2]'
-                          : 'text-[#95a7ba] hover:text-[#e6edf5]'
-                      }`}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
-                </div>
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <Suspense fallback={<div className="shimmer-loader h-40 rounded-2xl border border-slate-900" />}>
+              {legalSub === 'sources' && <SourcesPanel />}
+              {legalSub === 'privacy' && <PrivacyPanel />}
+              {legalSub === 'terms' && <TermsPanel />}
+            </Suspense>
+          </div>
+        )}
 
-                <Suspense fallback={<div className="shimmer-loader h-40 rounded-2xl border border-slate-900" />}>
-                  {legalSub === 'sources' && <SourcesPanel />}
-                  {legalSub === 'privacy' && <PrivacyPanel />}
-                  {legalSub === 'terms' && <TermsPanel />}
-                </Suspense>
-              </div>
-            )}
+        {activeTab === 'more' && morePanel === 'compare' && (
+          <div className="flex flex-col gap-5 max-md:pt-4 md:pt-3">
+            <section className="glass-panel rounded-3xl border border-[#30455c]/60 px-5 py-4">
+              <span className="brand-chip-cool inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+                Comparer
+              </span>
+              <h2 className="mt-3 text-lg font-black text-[#f6f8fb]">Comparer des récitateurs</h2>
+              <p className="mt-1 text-[12px] leading-relaxed text-[#95a7ba]">
+                Écoutez la même sourate avec plusieurs voix côte à côte.
+              </p>
+            </section>
+            <Suspense fallback={<div className="shimmer-loader h-40 rounded-2xl border border-slate-900" />}>
+              <ReciterCompare />
+            </Suspense>
+          </div>
+        )}
 
-            {morePanel === 'priorities' && (
-              <div className="grid grid-cols-1 gap-3">
-                {PRODUCT_PRIORITIES.map((priority) => (
-                  <ProductPriorityCard key={priority.id} {...priority} />
-                ))}
-              </div>
-            )}
-
-            {morePanel === 'compare' && (
-              <Suspense fallback={<div className="shimmer-loader h-40 rounded-2xl border border-slate-900" />}>
-                <ReciterCompare />
-              </Suspense>
-            )}
-
-            {morePanel === 'about' && (
-              <Suspense fallback={<div className="shimmer-loader h-40 rounded-2xl border border-slate-900" />}>
-                <AboutPanel onOpenLegal={openLegal} />
-              </Suspense>
-            )}
+        {activeTab === 'more' && morePanel === 'about' && (
+          <div className="flex flex-col gap-5 max-md:pt-4 md:pt-3">
+            <Suspense fallback={<div className="shimmer-loader h-40 rounded-2xl border border-slate-900" />}>
+              <AboutPanel onOpenLegal={openLegal} />
+            </Suspense>
           </div>
         )}
         </div>
@@ -2164,7 +1942,7 @@ const AppContent: React.FC = () => {
       {/* 4. Floating Navbar — hidden on quiz / learn pages */}
       {activeTab !== 'quiz' && activeTab !== 'learn' && !radioTheaterOpen && (
         <Navbar
-          activeTab={activeTab === 'radio' ? 'home' : activeTab}
+          activeTab={navActiveTab}
           setActiveTab={handleSetActiveTab}
           dockWithPlayer={Boolean(currentTrack) && activeTab !== 'account'}
           desktopStyle={navDesktopStyle}
@@ -2196,15 +1974,7 @@ const AppContent: React.FC = () => {
 };
 
 function App() {
-  return (
-    <AuthProvider>
-      <AudioProvider>
-        <LibraryProvider>
-          <AppContent />
-        </LibraryProvider>
-      </AudioProvider>
-    </AuthProvider>
-  );
+  return <AppContent />;
 }
 
 export default App;

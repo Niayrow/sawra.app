@@ -1,11 +1,16 @@
 import { RECITER_BACKGROUND, RECITER_IMAGES } from './images';
 import { RECITER_CATEGORIES } from '../data/reciterCategories';
+import { isProd } from '../lib/env';
 
 const PRECACHE_META_KEY = 'sawra.app-shell-precache';
 
 const STATIC_SHELL = [
   '/',
-  '/index.html',
+  '/ecouter',
+  '/bibliotheque',
+  '/quiz',
+  '/apprendre',
+  '/radio',
   '/offline.html',
   '/site.webmanifest',
   '/favicon.ico',
@@ -26,15 +31,16 @@ type PrecacheMeta = {
 };
 
 /**
- * Build fingerprint from current hashed JS/CSS entrypoints.
- * Changes automatically on each Vite deploy — no manual bump needed.
+ * Build fingerprint from current hashed JS/CSS entrypoints (`/_next/static/...`).
+ * Changes automatically on each deploy — no manual bump needed.
  */
 const getAppBuildId = (): string => {
   const parts: string[] = [];
 
-  document.querySelectorAll<HTMLScriptElement>('script[type="module"][src]').forEach((el) => {
+  document.querySelectorAll<HTMLScriptElement>('script[src]').forEach((el) => {
     try {
-      parts.push(new URL(el.src).pathname);
+      const path = new URL(el.src).pathname;
+      if (path.includes('/_next/') || path.endsWith('.js')) parts.push(path);
     } catch {
       /* ignore */
     }
@@ -173,7 +179,7 @@ const fetchMissingWithConcurrency = async (urls: string[], concurrency = 4) => {
  * on every launch until the next deploy.
  */
 export const precacheAppShellInBackground = (): void => {
-  if (!import.meta.env.PROD) return;
+  if (!isProd) return;
   if (typeof window === 'undefined') return;
   if (!navigator.onLine) return;
   if (!('caches' in window) || !('serviceWorker' in navigator)) return;

@@ -2,6 +2,7 @@ import React from 'react';
 import {
   BookOpen, Cloud, Database, ExternalLink, FileText, HardDrive, Scale, Shield, WifiOff,
 } from '../icons/motion';
+import { LEGAL_UPDATED_LABEL } from '../utils/legalMeta';
 
 /** Mot important — accent cuivre */
 const Em: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -36,7 +37,7 @@ const PanelHeader: React.FC<{ title: string; subtitle: string }> = ({ title, sub
     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#bfa078]">Informations</p>
     <h2 className="mt-2 text-[1.35rem] font-black tracking-tight text-[#f6f8fb]">{title}</h2>
     <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-[#aab7c5]">{subtitle}</p>
-    <p className="mt-3 text-xs text-[#8295aa]">Dernière mise à jour · 30 juil. 2026</p>
+    <p className="mt-3 text-xs text-[#8295aa]">{LEGAL_UPDATED_LABEL}</p>
   </header>
 );
 
@@ -56,7 +57,7 @@ export const SourcesPanel: React.FC = () => (
   <article className="flex flex-col gap-8 pb-10">
     <PanelHeader
       title="Sources & licences"
-      subtitle="Provenance des enregistrements audio, statut des fichiers et conditions d’usage."
+      subtitle="Provenance des enregistrements audio, métadonnées, sync versets et conditions d’usage."
     />
 
     <Section icon={BookOpen} title="Source audio principale">
@@ -67,11 +68,15 @@ export const SourcesPanel: React.FC = () => (
       </p>
       <p>
         Sawra <Strong>n’héberge pas</Strong> les fichiers MP3 : le lecteur charge l’URL fournie par le catalogue
-        (ex. <code className="rounded bg-[#132031]/80 px-1.5 py-0.5 font-mono text-[12px] font-bold text-[#e6d5c2]">serverN.mp3quran.net</code>).
+        (ex.{' '}
+        <code className="rounded bg-[#132031]/80 px-1.5 py-0.5 font-mono text-[12px] font-bold text-[#e6d5c2]">
+          serverN.mp3quran.net
+        </code>
+        ).
       </p>
     </Section>
 
-    <Section icon={HardDrive} title="Statut des enregistrements">
+    <Section icon={HardDrive} title="Statut des enregistrements & métadonnées">
       <p>
         <Strong>Streaming en ligne</Strong>
         {' — '}Nécessite une <Em>connexion</Em>. Qualité et disponibilité dépendent des serveurs source.
@@ -79,12 +84,15 @@ export const SourcesPanel: React.FC = () => (
       <p>
         <Strong>Téléchargement local</Strong>
         {' — '}Une sourate n’est <Strong>hors-ligne</Strong> que si vous l’avez explicitement{' '}
-        <Em>téléchargée</Em>. Le fichier reste dans le <Em>cache</Em> du navigateur / de l’appareil.
+        <Em>téléchargée</Em>. Le fichier reste dans le <Em>cache</Em> du navigateur / de l’appareil
+        (service worker & Cache Storage).
       </p>
       <p>
-        <Strong>Catalogue & métadonnées</Strong>
-        {' — '}Noms de récitateurs, moshaf et listes de sourates viennent de l’API ; un{' '}
-        <Em>jeu de secours local</Em> peut s’afficher si le réseau est indisponible.
+        <Strong>Catalogue, texte & sync versets</Strong>
+        {' — '}Noms de récitateurs, moshaf et listes de sourates viennent de l’API mp3quran ; les timings /
+        texte arabes pour la lecture verset par verset s’appuient aussi sur des sources publiques associées
+        (dont <Em>api.quran.com</Em> lorsque disponible). Un <Em>jeu de secours local</Em> peut s’afficher
+        si le réseau est indisponible.
       </p>
     </Section>
 
@@ -95,8 +103,8 @@ export const SourcesPanel: React.FC = () => (
         <Strong>personnelle et non commerciale</Strong>.
       </p>
       <p>
-        Toute <Strong>redistribution</Strong>, extraction ou <Em>usage commercial</Em> des fichiers audio doit respecter
-        les droits des récitateurs et les règles de la source. En cas de doute, consultez
+        Toute <Strong>redistribution</Strong>, extraction ou <Em>usage commercial</Em> des fichiers audio doit
+        respecter les droits des récitateurs et les règles de la source. En cas de doute, consultez
         directement <LinkOut href="https://www.mp3quran.net">mp3quran.net</LinkOut>.
       </p>
       <p>
@@ -111,17 +119,20 @@ export const PrivacyPanel: React.FC = () => (
   <article className="flex flex-col gap-8 pb-10">
     <PanelHeader
       title="Confidentialité"
-      subtitle="Ce que Sawra stocke, ce qui reste sur votre appareil, et ce qui part sur le cloud."
+      subtitle="Ce que Sawra stocke localement, ce qui est synchronisé avec un compte, et les analytics."
     />
 
     <Section icon={Database} title="Sans compte (stockage local)">
       <p>
         <Em>Favoris</Em>, <Em>signets de versets</Em>, notes, thème du lecteur, volume, vitesse,
-        téléchargements audio et reprise locale sont enregistrés dans le navigateur (
-        <Strong>localStorage</Strong> / <Strong>Cache Storage</Strong>).{' '}
+        téléchargements audio, reprise locale et <Em>préférences d’interface</Em> (ex. navbar flottante /
+        pleine sur ordinateur) sont enregistrés dans le navigateur (
+        <Strong>localStorage</Strong> / <Strong>Cache Storage</Strong>).
+      </p>
+      <p>
         L’<Em>historique d’écoute</Em> (temps total, calendrier, streak) n’est disponible{' '}
-        <Strong>qu’avec un compte</Strong>. <Strong>Rien n’est envoyé</Strong> à un serveur tant que vous
-        n’êtes pas connecté.
+        <Strong>qu’avec un compte</Strong>. <Strong>Rien n’est envoyé</Strong> à un serveur de sync tant que
+        vous n’êtes pas connecté.
       </p>
       <p>
         Ces données restent sur l’appareil jusqu’à ce que vous les effaciez (vider le{' '}
@@ -137,10 +148,11 @@ export const PrivacyPanel: React.FC = () => (
         d’historique d’écoute.
       </p>
       <p>
-        L’authentification et le stockage cloud passent par <Strong>Supabase</Strong>. Vous pouvez vous
-        déconnecter à tout moment depuis l’onglet <Em>Compte</Em>. Vous pouvez aussi{' '}
-        <Strong>supprimer votre compte et toutes vos données</Strong> (droit d’effacement) depuis cet
-        écran — le compte associé GoMuslimLife est alors fermé définitivement.
+        L’authentification et le stockage cloud passent par <Strong>Supabase</Strong> (projet partagé
+        GoMuslimLife). Vous pouvez vous déconnecter à tout moment depuis <Em>Compte</Em>. Vous pouvez aussi{' '}
+        <Strong>supprimer votre compte et toutes vos données</Strong> (droit d’effacement) : confirmation
+        explicite en tapant <Em>supprimer</Em>, puis validation — le compte associé GoMuslimLife est alors
+        fermé définitivement.
       </p>
       <p>
         Les jours d’écoute suivent le <Em>fuseau de l’appareil au moment de l’écoute</Em>. Un voyage
@@ -149,11 +161,16 @@ export const PrivacyPanel: React.FC = () => (
       </p>
     </Section>
 
-    <Section icon={Shield} title="Mesures techniques & analytics">
+    <Section icon={Shield} title="Hébergement, PWA & analytics">
       <p>
-        En production, des métriques <Em>anonymes</Em> de performance (
+        Le site <Em>sawra.app</Em> est servi via <Strong>Next.js</Strong> (pages avec métadonnées HTML par URL)
+        sur <Strong>Vercel</Strong>. L’expérience mobile peut aussi passer par une <Em>PWA</Em> (service worker)
+        et une coque native Capacitor (Android / iOS) qui charge l’app web.
+      </p>
+      <p>
+        En production, des métriques de performance (
         <Strong>Vercel Analytics</Strong> / Speed Insights) et d’usage produit (
-        <Strong>PostHog</Strong>) peuvent être collectées pour améliorer la stabilité —{' '}
+        <Strong>PostHog</Strong>, région UE) peuvent être collectées pour améliorer la stabilité —{' '}
         <Strong>sans publicité ciblée</Strong>.
       </p>
       <p>
@@ -181,10 +198,11 @@ export const TermsPanel: React.FC = () => (
 
     <Section icon={FileText} title="Service proposé">
       <p>
-        Sawra est un lecteur coranique <Strong>gratuit</Strong> (web / <Em>PWA</Em>, applications natives en préparation).
-        Il permet d’écouter des récitations en <Em>streaming</Em>, de télécharger des sourates pour
-        une écoute <Strong>hors-ligne locale</Strong>, et — avec un compte — de synchroniser favoris,
-        signets, historique et reprise.
+        Sawra est un lecteur coranique <Strong>gratuit</Strong> (web Next.js / <Em>PWA</Em>, applications
+        natives Capacitor en préparation). Il permet d’écouter des récitations en <Em>streaming</Em>, de
+        télécharger des sourates pour une écoute <Strong>hors-ligne locale</Strong>, d’utiliser la{' '}
+        <Em>Bibliothèque</Em>, le <Em>Quiz</Em>, <Em>Apprendre</Em> et la <Em>Radio</Em>, et — avec un compte —
+        de synchroniser favoris, signets, historique et reprise.
       </p>
     </Section>
 
@@ -194,18 +212,22 @@ export const TermsPanel: React.FC = () => (
         <li>Pas de contournement des sources audio ni d’<Em>extraction massive</Em> des fichiers.</li>
         <li>Pas d’<Strong>usage commercial</Strong> des enregistrements sans accord des ayants droit.</li>
         <li>Respect des lois applicables et du caractère <Em>sacré</Em> du contenu.</li>
+        <li>
+          Pas d’abus technique (surcharge des API, scraping agressif, contournement des protections).
+        </li>
       </ul>
     </Section>
 
     <Section icon={HardDrive} title="Limites techniques">
       <p>
         La disponibilité du streaming dépend des serveurs tiers (<Em>mp3quran.net</Em>). Le mode
-        hors-ligne ne couvre que les sourates que vous avez <Strong>téléchargées</Strong>. La sync multi-appareils
-        nécessite un <Strong>compte</Strong> et une <Em>connexion</Em>.
+        hors-ligne ne couvre que les sourates que vous avez <Strong>téléchargées</Strong>. La sync
+        multi-appareils nécessite un <Strong>compte</Strong> et une <Em>connexion</Em>.
       </p>
       <p>
-        Sawra est fourni <Strong>« en l’état »</Strong> : nous faisons de notre mieux pour la qualité, sans
-        garantie d’absence d’interruption.
+        Certaines options d’interface (ex. style de navbar sur ordinateur) ne s’appliquent que sur les
+        écrans concernés. Sawra est fourni <Strong>« en l’état »</Strong> : nous faisons de notre mieux pour
+        la qualité, sans garantie d’absence d’interruption.
       </p>
     </Section>
 

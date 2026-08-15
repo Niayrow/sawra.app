@@ -18,8 +18,11 @@ export const LEARN_WINDOW_SIZE_MAX = 50;
 /** How many consecutive ayahs to play — free choice (clamped). */
 export type LearnWindowSize = number;
 
-export const LEARN_REPEAT_COUNTS = [1, 2, 3, 5] as const;
+export const LEARN_REPEAT_COUNTS = [1, 2, 3, 5, 0] as const;
+/** `0` = répétitions infinies jusqu’à action manuelle. */
 export type LearnRepeatCount = (typeof LEARN_REPEAT_COUNTS)[number];
+
+export const isLearnRepeatInfinite = (n: LearnRepeatCount | number): boolean => n === 0;
 
 export function clampLearnWindowSize(n: number, maxAvailable = LEARN_WINDOW_SIZE_MAX): LearnWindowSize {
   const max = Math.max(LEARN_WINDOW_SIZE_MIN, Math.min(LEARN_WINDOW_SIZE_MAX, maxAvailable));
@@ -34,6 +37,12 @@ export type LearnAyahWindow = {
   startMs: number;
   endMs: number;
   audioUrl: string;
+  /** Présent en mode Ayat al-Kursi (morceaux du verset 255). */
+  segmentIndex?: number;
+  segmentCount?: number;
+  phraseAr?: string;
+  phraseFr?: string;
+  phrasePhonetic?: string;
 };
 
 export type LearnConfig = {
@@ -42,6 +51,8 @@ export type LearnConfig = {
   surah: Surah;
   windowSize: LearnWindowSize;
   repeats: LearnRepeatCount;
+  /** Session dédiée Ayat al-Kursi découpée en phrases. */
+  kursiMode?: boolean;
 };
 
 export { QUIZ_RECITER_IDS as LEARN_RECITER_IDS };

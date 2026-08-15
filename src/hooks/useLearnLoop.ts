@@ -14,6 +14,7 @@ import {
   type LearnRepeatCount,
   type LearnWindowSize,
 } from '../utils/learnSession';
+import { buildKursiSegments, findKursiTiming } from '../utils/ayatAlKursi';
 import type { AyahTiming } from '../utils/ayahTiming';
 import type { LearnSpeed } from '../utils/learnPrefs';
 
@@ -57,6 +58,7 @@ export function useLearnLoop({
   const configRef = useRef<LearnConfig | null>(null);
   const timingsRef = useRef<AyahTiming[]>([]);
   const ayahWindowRef = useRef<LearnAyahWindow | null>(null);
+  const segmentsRef = useRef<LearnAyahWindow[] | null>(null);
   const autoAdvanceRef = useRef(initialAutoAdvance);
 
   useEffect(() => {
@@ -91,7 +93,23 @@ export function useLearnLoop({
     setReciterSwitching(false);
     awaitEndedRef.current = false;
     returnPhaseRef.current = null;
+    segmentsRef.current = null;
   }, [clip]);
+
+  const openSegment = useCallback(
+    (segment: LearnAyahWindow, opts?: { autoListen?: boolean }) => {
+      setAyahWindow(segment);
+      setRepIndex(0);
+      awaitEndedRef.current = false;
+      returnPhaseRef.current = null;
+      clip.stop();
+      if (!opts?.autoListen) {
+        setPhase('idle_surah');
+      }
+      return segment;
+    },
+    [clip],
+  );
 
   const openWindow = useCallback(
     (
@@ -100,6 +118,15 @@ export function useLearnLoop({
       startAyah: number,
       opts?: { autoListen?: boolean },
     ) => {
+      if (cfg.kursiMode && segmentsRef.current?.length) {
+        const segs = segmentsRef.current;
+        const bySeg =
+          segs.find((s) => s.segmentIndex === startAyah) ??
+          segs.find((s) => s.startAyah === startAyah) ??
+          segs[0];
+        return openSegment(bySeg, opts);
+      }
+
       const win = buildAyahWindow(
         allTimings,
         startAyah,
@@ -122,7 +149,17 @@ export function useLearnLoop({
       }
       return win;
     },
-    [clip],
+    [clip, openSegment],
+  );
+
+  const openKursiSegment = useCallback(
+    (index: number, opts?: { autoListen?: boolean }) => {
+      const segs = segmentsRef.current;
+      if (!segs?.length) return null;
+      const i = Math.max(0, Math.min(segs.length - 1, index));
+      return openSegment(segs[i], opts);
+    },
+    [openSegment],
   );
 
   const playClip = useCallback(
@@ -146,7 +183,7 @@ export function useLearnLoop({
   );
 
   const start = useCallback(
-    async (cfg: LearnConfig) => {
+    async (cfg: LearnConfig, opts?: { startAyah?: number }) => {
       abortRef.current?.abort();
       const ac = new AbortController();
       abortRef.current = ac;
@@ -168,7 +205,28 @@ export function useLearnLoop({
           return;
         }
         setTimings(loaded);
-        const first = firstAyahNumber(loaded);
+
+        if (cfg.kursiMode) {
+          const kursiTiming = findKursiTiming(loaded);
+          if (!kursiTiming) {
+            setError('Timing d’Ayat al-Kursi (2:255) introuvable pour cette voix.');
+            setPhase('error');
+            segmentsRef.current = null;
+            return;
+          }
+          const segments = buildKursiSegments(kursiTiming, cfg.moshaf, cfg.surah);
+          segmentsRef.current = segments;
+          openKursiSegment(0);
+          return;
+        }
+
+        segmentsRef.current = null;
+        const requested =
+          opts?.startAyah != null &&
+          loaded.some((t) => t.ayah === opts.startAyah && t.ayah > 0)
+            ? opts.startAyah
+            : null;
+        const first = requested ?? firstAyahNumber(loaded);
         if (first == null) {
           setError('Aucun verset disponible.');
           setPhase('error');
@@ -183,7 +241,7 @@ export function useLearnLoop({
         setPhase('error');
       }
     },
-    [clip, openWindow],
+    [clip, openKursiSegment, openWindow],
   );
 
   /** Change voice mid-session — keeps surah, position and reveal state. */
@@ -218,6 +276,27 @@ export function useLearnLoop({
         }
         setConfig(nextCfg);
         setTimings(loaded);
+
+        if (nextCfg.kursiMode) {
+          const kursiTiming = findKursiTiming(loaded);
+          if (!kursiTiming) {
+            setError('Timing d’Ayat al-Kursi (2:255) introuvable pour cette voix.');
+            setReciterSwitching(false);
+            return;
+          }
+          const segments = buildKursiSegments(kursiTiming, moshaf, cfg.surah);
+          segmentsRef.current = segments;
+          const keepIdx = win.segmentIndex ?? 0;
+          const rebuilt = openKursiSegment(keepIdx);
+          setReciterSwitching(false);
+          if (rebuilt) {
+            returnPhaseRef.current = null;
+            void playClip(0, rebuilt);
+          }
+          return;
+        }
+
+        segmentsRef.current = null;
         const hasStart = loaded.some((t) => t.ayah === win.startAyah && t.ayah > 0);
         const start = hasStart ? win.startAyah : firstAyahNumber(loaded);
         if (start == null) {
@@ -239,7 +318,7 @@ export function useLearnLoop({
         setReciterSwitching(false);
       }
     },
-    [clip, openWindow, playClip],
+    [clip, openKursiSegment, openWindow, playClip],
   );
 
   const listen = useCallback(() => {
@@ -286,6 +365,27 @@ export function useLearnLoop({
       setPhase('ready');
       return;
     }
+
+    if (cfg.kursiMode && segmentsRef.current?.length) {
+      const cur = win.segmentIndex ?? 0;
+      const nextIdx = cur + 1;
+      if (nextIdx >= segmentsRef.current.length) {
+        clip.unload();
+        setPhase('done');
+        return;
+      }
+      if (autoAdvanceRef.current) {
+        const nextWin = openKursiSegment(nextIdx, { autoListen: true });
+        if (nextWin) {
+          returnPhaseRef.current = null;
+          void playClip(0, nextWin);
+        }
+        return;
+      }
+      setPhase('ready');
+      return;
+    }
+
     const next = nextStartAyah(all, win.endAyah);
     if (next == null) {
       clip.unload();
@@ -297,7 +397,7 @@ export function useLearnLoop({
       return;
     }
     setPhase('ready');
-  }, [clip, goToAyah]);
+  }, [clip, goToAyah, openKursiSegment, playClip]);
 
   useEffect(() => {
     if (phase !== 'listening') return;
@@ -315,7 +415,7 @@ export function useLearnLoop({
 
     const nextRep = repIndex + 1;
     const target = targetRepeatsRef.current;
-    if (nextRep < target) {
+    if (target === 0 || nextRep < target) {
       void playClip(nextRep);
       return;
     }
@@ -327,6 +427,23 @@ export function useLearnLoop({
     const win = ayahWindowRef.current;
     const all = timingsRef.current;
     if (!cfg || !win) return;
+
+    if (cfg.kursiMode && segmentsRef.current?.length) {
+      const cur = win.segmentIndex ?? 0;
+      const nextIdx = cur + 1;
+      if (nextIdx >= segmentsRef.current.length) {
+        clip.unload();
+        setPhase('done');
+        return;
+      }
+      const nextWin = openKursiSegment(nextIdx, { autoListen: true });
+      if (nextWin) {
+        returnPhaseRef.current = null;
+        void playClip(0, nextWin);
+      }
+      return;
+    }
+
     const next = nextStartAyah(all, win.endAyah);
     if (next == null) {
       clip.unload();
@@ -334,17 +451,29 @@ export function useLearnLoop({
       return;
     }
     goToAyah(next, true);
-  }, [clip, goToAyah]);
+  }, [clip, goToAyah, openKursiSegment, playClip]);
 
   const goPrev = useCallback(() => {
     const cfg = configRef.current;
     const win = ayahWindowRef.current;
     const all = timingsRef.current;
     if (!cfg || !win) return;
+
+    if (cfg.kursiMode && segmentsRef.current?.length) {
+      const cur = win.segmentIndex ?? 0;
+      if (cur <= 0) return;
+      const prevWin = openKursiSegment(cur - 1, { autoListen: true });
+      if (prevWin) {
+        returnPhaseRef.current = null;
+        void playClip(0, prevWin);
+      }
+      return;
+    }
+
     const prev = prevStartAyah(all, win.startAyah, cfg.windowSize);
     if (prev == null) return;
     goToAyah(prev, true);
-  }, [goToAyah]);
+  }, [goToAyah, openKursiSegment, playClip]);
 
   const setRepeats = useCallback((n: LearnRepeatCount) => {
     targetRepeatsRef.current = n;
@@ -356,6 +485,7 @@ export function useLearnLoop({
       const cfg = configRef.current;
       const win = ayahWindowRef.current;
       const all = timingsRef.current;
+      if (cfg?.kursiMode) return;
       const maxAvail = all.filter((t) => t.ayah > 0).length || LEARN_WINDOW_SIZE_MAX;
       const clamped = clampLearnWindowSize(n, maxAvail);
       if (!cfg) {
@@ -442,7 +572,10 @@ export function useLearnLoop({
   );
 
   const isLastWindow = Boolean(
-    ayahWindow && !nextStartAyah(timings, ayahWindow.endAyah),
+    config?.kursiMode && ayahWindow
+      ? (ayahWindow.segmentIndex ?? 0) >=
+          (ayahWindow.segmentCount ?? segmentsRef.current?.length ?? 1) - 1
+      : ayahWindow && !nextStartAyah(timings, ayahWindow.endAyah),
   );
 
   useEffect(() => {

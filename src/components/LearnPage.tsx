@@ -41,6 +41,7 @@ import {
 import { JUZ_AMMA_START } from '../utils/quizQuestions';
 import { scoreSurahMatch } from '../utils/surahSearch';
 import { capturePostHogEvent } from '../utils/posthog';
+import { AYAT_AL_KURSI } from '../utils/ayatAlKursi';
 
 type LearnSurahFilter = 'all' | 'amma' | 'popular';
 
@@ -181,7 +182,13 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onBack, onListenSurah }) =
       block: 'center',
       behavior: 'smooth',
     });
-  }, [loop.ayahWindow?.startAyah, loop.ayahWindow?.endAyah]);
+  }, [
+    loop.ayahWindow?.startAyah,
+    loop.ayahWindow?.endAyah,
+    loop.ayahWindow?.segmentIndex,
+  ]);
+
+  const isKursiSession = Boolean(loop.config?.kursiMode);
 
   const canStart =
     isOnline &&
@@ -189,6 +196,17 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onBack, onListenSurah }) =
     eligible.length > 0 &&
     selectedReciter != null &&
     selectedSurah != null;
+
+  const kursiSurah = useMemo(
+    () => availableSurahs.find((s) => s.id === AYAT_AL_KURSI.surahId) ?? null,
+    [availableSurahs],
+  );
+
+  const canStartKursi =
+    isOnline &&
+    timingCatalogReady &&
+    selectedReciter != null &&
+    kursiSurah != null;
 
   const handleStart = () => {
     if (!selectedReciter || !selectedSurah) return;
@@ -207,6 +225,30 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onBack, onListenSurah }) =
       surah: selectedSurah,
       windowSize: clampLearnWindowSize(windowSize, maxWindow),
       repeats,
+    });
+  };
+
+  const handleStartKursi = () => {
+    if (!selectedReciter || !kursiSurah) return;
+    const moshaf = getLearnMoshaf(selectedReciter);
+    if (!moshaf) return;
+    setSurahId(AYAT_AL_KURSI.surahId);
+    setWindowSize(1);
+    capturePostHogEvent('learning_session_started', {
+      reciter_id: selectedReciter.id,
+      moshaf_id: moshaf.id,
+      surah_id: AYAT_AL_KURSI.surahId,
+      window_size: 1,
+      repeat_count: repeats,
+      focus: 'ayat_al_kursi',
+    });
+    void loop.start({
+      reciter: selectedReciter,
+      moshaf,
+      surah: kursiSurah,
+      windowSize: 1,
+      repeats,
+      kursiMode: true,
     });
   };
 
@@ -238,28 +280,56 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onBack, onListenSurah }) =
   const allAyahNumbers = useMemo(() => ayahs.map((a) => a.number), [ayahs]);
   const swipeRef = useRef<{ x: number; y: number; id: number } | null>(null);
 
+  const sessionAyahs = useMemo(() => {
+    if (!isKursiSession) return ayahs;
+    return ayahs.filter((a) => a.number === AYAT_AL_KURSI.ayah);
+  }, [ayahs, isKursiSession]);
+
   const canGoPrev = Boolean(
     loop.ayahWindow &&
-      loop.timings.some((t) => t.ayah > 0 && t.ayah < loop.ayahWindow!.startAyah),
+      (isKursiSession
+        ? (loop.ayahWindow.segmentIndex ?? 0) > 0
+        : loop.timings.some((t) => t.ayah > 0 && t.ayah < loop.ayahWindow!.startAyah)),
   );
 
   const canGoNext = Boolean(
     loop.ayahWindow &&
-      loop.timings.some((t) => t.ayah > loop.ayahWindow!.endAyah),
+      (isKursiSession
+        ? (loop.ayahWindow.segmentIndex ?? 0) <
+          (loop.ayahWindow.segmentCount ?? 1) - 1
+        : loop.timings.some((t) => t.ayah > loop.ayahWindow!.endAyah)),
   );
 
   const statusLabel =
     loop.reciterSwitching
       ? 'Changement de voix…'
       : loop.phase === 'listening'
-        ? `Écoute ${loop.repIndex + 1}/${loop.repeats}`
+        ? loop.repeats === 0
+          ? `Écoute ${loop.repIndex + 1} · ∞`
+          : `Écoute ${loop.repIndex + 1}/${loop.repeats}`
         : loop.phase === 'ready'
           ? loop.isLastWindow
-            ? 'Dernier passage — terminé bientôt'
+            ? isKursiSession
+              ? 'Dernière phrase — terminé bientôt'
+              : 'Dernier passage — terminé bientôt'
             : loop.autoAdvance
               ? 'Suite auto activée'
-              : 'À vous — défloutez si besoin'
-          : 'Touchez un verset pour l’écouter';
+              : isKursiSession
+                ? 'À vous — phrase suivante quand vous voulez'
+                : 'À vous — défloutez si besoin'
+          : isKursiSession
+            ? 'Écoutez phrase par phrase'
+            : 'Touchez un verset pour l’écouter';
+
+  const rangeLabel = (() => {
+    const win = loop.ayahWindow;
+    if (!win) return '—';
+    if (isKursiSession && win.segmentCount != null && win.segmentIndex != null) {
+      return `partie ${win.segmentIndex + 1}/${win.segmentCount}`;
+    }
+    if (win.startAyah === win.endAyah) return `v. ${win.startAyah}`;
+    return `v. ${win.startAyah}–${win.endAyah}`;
+  })();
 
   const applyWindowSize = (n: number) => {
     const next = clampLearnWindowSize(n, maxWindow);
@@ -315,7 +385,9 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onBack, onListenSurah }) =
         <div className="learn-page__heading">
           <h2 className="learn-page__title">
             {inSession && loop.config
-              ? loop.config.surah.name
+              ? isKursiSession
+                ? AYAT_AL_KURSI.title
+                : loop.config.surah.name
               : loop.phase === 'done'
                 ? 'Session terminée'
                 : 'Apprendre une sourate'}
@@ -346,6 +418,43 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onBack, onListenSurah }) =
                 Cliquez un verset pour le lire. Défloutez quand vous voulez.
               </p>
             </div>
+          </div>
+
+          <div className="learn-featured">
+            <p className="learn-label">À mémoriser</p>
+            <button
+              type="button"
+              disabled={!canStartKursi}
+              onClick={handleStartKursi}
+              className="learn-featured__card tap-feedback"
+              aria-label={`Apprendre ${AYAT_AL_KURSI.title}`}
+            >
+              <span className="learn-featured__badge">Verset 255</span>
+              <span className="learn-featured__titles">
+                <span className="learn-featured__title">{AYAT_AL_KURSI.title}</span>
+                <span className="learn-featured__ar" lang="ar" dir="rtl">
+                  {AYAT_AL_KURSI.arabicTitle}
+                </span>
+              </span>
+              <span className="learn-featured__teaser" lang="ar" dir="rtl">
+                {AYAT_AL_KURSI.teaser}
+              </span>
+              <span className="learn-featured__meta">
+                Al-Baqarah · verset 255 · 8 phrases
+              </span>
+              <span className="learn-featured__cta">
+                Apprendre
+                <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+              </span>
+            </button>
+            {!selectedReciter && eligible.length > 0 ? (
+              <p className="learn-featured__hint">Choisissez d’abord un récitateur ci-dessous.</p>
+            ) : null}
+            {selectedReciter && !kursiSurah ? (
+              <p className="learn-featured__hint">
+                Cette voix n’a pas Al-Baqarah synchronisée.
+              </p>
+            ) : null}
           </div>
 
           {!isOnline && (
@@ -587,59 +696,57 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onBack, onListenSurah }) =
                 disabled={!canGoPrev}
                 onClick={loop.goPrev}
                 className="learn-mini-bar__nav tap-feedback"
-                aria-label="Versets précédents"
+                aria-label={isKursiSession ? 'Phrase précédente' : 'Versets précédents'}
               >
                 <ArrowLeft className="h-4 w-4" />
               </button>
-              <span className="learn-mini-bar__range">
-                {loop.ayahWindow
-                  ? loop.ayahWindow.startAyah === loop.ayahWindow.endAyah
-                    ? `v. ${loop.ayahWindow.startAyah}`
-                    : `v. ${loop.ayahWindow.startAyah}–${loop.ayahWindow.endAyah}`
-                  : '—'}
-              </span>
+              <span className="learn-mini-bar__range">{rangeLabel}</span>
               <button
                 type="button"
                 disabled={!canGoNext}
                 onClick={loop.goNext}
                 className="learn-mini-bar__nav tap-feedback"
-                aria-label="Versets suivants"
+                aria-label={isKursiSession ? 'Phrase suivante' : 'Versets suivants'}
               >
                 <ArrowRight className="h-4 w-4" />
               </button>
 
-              <span className="learn-mini-bar__sep" aria-hidden />
+              {!isKursiSession && (
+                <>
+                  <span className="learn-mini-bar__sep" aria-hidden />
 
-              <div className="learn-stepper learn-stepper--mini" role="group" aria-label="Nombre de versets">
-                <button
-                  type="button"
-                  className="learn-stepper__btn tap-feedback"
-                  aria-label="Moins de versets"
-                  disabled={(loop.windowSize || windowSize) <= LEARN_WINDOW_SIZE_MIN}
-                  onClick={() => applyWindowSize((loop.windowSize || windowSize) - 1)}
-                >
-                  −
-                </button>
-                <input
-                  className="learn-stepper__value"
-                  type="number"
-                  inputMode="numeric"
-                  min={LEARN_WINDOW_SIZE_MIN}
-                  max={maxWindow}
-                  value={loop.windowSize || windowSize}
-                  aria-label="Nombre de versets à lire ensemble"
-                  onChange={(e) => applyWindowSize(Number(e.target.value))}
-                />
-                <button
-                  type="button"
-                  className="learn-stepper__btn tap-feedback"
-                  aria-label="Plus de versets"
-                  disabled={(loop.windowSize || windowSize) >= maxWindow}
-                  onClick={() => applyWindowSize((loop.windowSize || windowSize) + 1)}
-                >
-                  +
-                </button>
-              </div>
+                  <div className="learn-stepper learn-stepper--mini" role="group" aria-label="Nombre de versets">
+                    <button
+                      type="button"
+                      className="learn-stepper__btn tap-feedback"
+                      aria-label="Moins de versets"
+                      disabled={(loop.windowSize || windowSize) <= LEARN_WINDOW_SIZE_MIN}
+                      onClick={() => applyWindowSize((loop.windowSize || windowSize) - 1)}
+                    >
+                      −
+                    </button>
+                    <input
+                      className="learn-stepper__value"
+                      type="number"
+                      inputMode="numeric"
+                      min={LEARN_WINDOW_SIZE_MIN}
+                      max={maxWindow}
+                      value={loop.windowSize || windowSize}
+                      aria-label="Nombre de versets à lire ensemble"
+                      onChange={(e) => applyWindowSize(Number(e.target.value))}
+                    />
+                    <button
+                      type="button"
+                      className="learn-stepper__btn tap-feedback"
+                      aria-label="Plus de versets"
+                      disabled={(loop.windowSize || windowSize) >= maxWindow}
+                      onClick={() => applyWindowSize((loop.windowSize || windowSize) + 1)}
+                    >
+                      +
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
 
             {settingsOpen && (
@@ -660,7 +767,7 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onBack, onListenSurah }) =
                           loop.repeats === n ? 'is-active' : ''
                         }`}
                       >
-                        {n}×
+                        {n === 0 ? '∞' : `${n}×`}
                       </button>
                     ))}
                   </div>
@@ -735,17 +842,43 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onBack, onListenSurah }) =
             {textError && (
               <p className="text-sm text-rose-300 px-1">{textError}</p>
             )}
-            <p className="learn-surah__hint">Touchez = écouter · Œil = flouter</p>
+            {isKursiSession && loop.ayahWindow?.phraseAr && (
+              <div className="learn-kursi-phrase" ref={focusRef}>
+                <p className="learn-kursi-phrase__meta">
+                  Phrase {(loop.ayahWindow.segmentIndex ?? 0) + 1}/
+                  {loop.ayahWindow.segmentCount ?? 8}
+                </p>
+                <p className="learn-kursi-phrase__ar" lang="ar" dir="rtl">
+                  {loop.ayahWindow.phraseAr}
+                </p>
+                {showPhonetic && loop.ayahWindow.phrasePhonetic ? (
+                  <p className="learn-kursi-phrase__phonetic">
+                    {loop.ayahWindow.phrasePhonetic}
+                  </p>
+                ) : null}
+                {showFr && loop.ayahWindow.phraseFr ? (
+                  <p className="learn-kursi-phrase__fr">{loop.ayahWindow.phraseFr}</p>
+                ) : null}
+              </div>
+            )}
+            <p className="learn-surah__hint">
+              {isKursiSession
+                ? 'Écoutez chaque phrase · flèches pour changer'
+                : 'Touchez = écouter · Œil = flouter'}
+            </p>
             {!textLoading &&
               !textError &&
-              ayahs.map((a) => {
+              sessionAyahs.map((a) => {
                 const isFocus = loop.isFocusAyah(a.number);
                 const revealed = loop.isAyahRevealed(a.number);
                 return (
                   <div
                     key={a.key}
                     ref={
-                      isFocus && loop.ayahWindow && a.number === loop.ayahWindow.startAyah
+                      !isKursiSession &&
+                      isFocus &&
+                      loop.ayahWindow &&
+                      a.number === loop.ayahWindow.startAyah
                         ? focusRef
                         : undefined
                     }
@@ -773,9 +906,15 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onBack, onListenSurah }) =
                     <button
                       type="button"
                       className="learn-ayah-row__main tap-feedback"
-                      onClick={() => loop.goToAyah(a.number, true)}
+                      onClick={() =>
+                        isKursiSession ? loop.listen() : loop.goToAyah(a.number, true)
+                      }
                       aria-current={isFocus ? 'true' : undefined}
-                      aria-label={`Verset ${a.number}, écouter`}
+                      aria-label={
+                        isKursiSession
+                          ? 'Réécouter la phrase'
+                          : `Verset ${a.number}, écouter`
+                      }
                     >
                       <span className="learn-ayah-row__num">{a.number}</span>
                       <div className="learn-ayah-row__body">

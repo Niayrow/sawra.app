@@ -713,6 +713,7 @@ const AppContent: React.FC = () => {
   const parsedPath = useMemo(() => parseLocation(pathname, ''), [pathname]);
   const [activeTab, setActiveTab] = useState<TabId>(() => parsedPath.tab);
   const [radioTheaterOpen, setRadioTheaterOpen] = useState(false);
+  const [mobilePlayerChrome, setMobilePlayerChrome] = useState<'full' | 'pill'>('full');
 
   useEffect(() => {
     if (activeTab !== 'radio') setRadioTheaterOpen(false);
@@ -1227,6 +1228,15 @@ const AppContent: React.FC = () => {
           ? ('none' as const)
           : activeTab;
 
+  const playerVisible =
+    Boolean(currentTrack) &&
+    activeTab !== 'account' &&
+    activeTab !== 'quiz' &&
+    activeTab !== 'learn' &&
+    !radioTheaterOpen;
+  const playerPillMode = playerVisible && mobilePlayerChrome === 'pill';
+  const playerFullDock = playerVisible && mobilePlayerChrome === 'full';
+
   if (showLoadingHome) {
     // Keep the HTML #boot-splash as the LCP element; React stays empty until ready.
     return null;
@@ -1235,11 +1245,8 @@ const AppContent: React.FC = () => {
   return (
     <div
       data-nav-desktop={navDesktopStyle}
-      data-hide-player={
-        activeTab === 'account' || activeTab === 'quiz' || activeTab === 'learn' || radioTheaterOpen
-          ? 'true'
-          : undefined
-      }
+      data-hide-player={!playerVisible ? 'true' : undefined}
+      data-player-pill={playerPillMode ? 'true' : undefined}
       data-hide-nav={
         activeTab === 'quiz' || activeTab === 'learn' || radioTheaterOpen ? 'true' : undefined
       }
@@ -1894,6 +1901,7 @@ const AppContent: React.FC = () => {
           <GlobalPlayerV2
             desktopChrome={navDesktopStyle}
             onDesktopChromeChange={handleNavDesktopStyleChange}
+            onMobileChromeChange={setMobilePlayerChrome}
           />
         </Suspense>
       )}
@@ -1905,7 +1913,7 @@ const AppContent: React.FC = () => {
         <Navbar
           activeTab={navActiveTab}
           setActiveTab={handleSetActiveTab}
-          dockWithPlayer={Boolean(currentTrack) && activeTab !== 'account'}
+          dockWithPlayer={playerFullDock}
           desktopStyle={navDesktopStyle}
           onOpenQuiz={() => handleNavigate('quiz')}
           onOpenLearn={() => handleNavigate('learn')}

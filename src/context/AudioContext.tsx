@@ -21,6 +21,7 @@ import {
   savePlayerV2Prefs,
   type PlayerV2Prefs,
 } from '../components/player/playerV2Prefs';
+import { getAppOptions } from '../utils/appOptions';
 import { AudioEffectsEngine } from '../audio/effectsEngine';
 import {
   effectsNeedProcessing,
@@ -141,6 +142,8 @@ interface AudioContextType {
   togglePlay: () => void;
   pause: () => void;
   play: () => void;
+  /** Pause audio and clear the current track (dismiss player bar). */
+  dismissTrack: () => void;
   seekTo: (time: number) => void;
   setVolume: (vol: number) => void;
   setPlaybackSpeed: (speed: number) => void;
@@ -345,6 +348,13 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const customPlaylistOrderRef = useRef<number[] | null>(null);
   const radioSlotQueueRef = useRef<Array<{ reciterId: number; surahId: number }> | null>(null);
   const radioSlotIndexRef = useRef(0);
+  const autoResumeRef = useRef<{
+    reciter: Reciter;
+    moshaf: Moshaf;
+    surah: Surah;
+    time: number;
+  } | null>(null);
+  const autoResumeAttemptedRef = useRef(false);
   const recitersRef = useRef(reciters);
   useEffect(() => {
     recitersRef.current = reciters;
@@ -681,7 +691,10 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           setReciters(stabilized);
           writeStorage(RECITERS_CACHE_KEY, JSON.stringify(stabilized));
           // Always restore from corrected names so the player matches the list
-          restoreFromLocalStorage(stabilized);
+          const restored = restoreFromLocalStorage(stabilized);
+          if (restored && getAppOptions().autoResumeOnLaunch) {
+            autoResumeRef.current = restored;
+          }
         } else {
           throw new Error('Unexpected API response structure.');
         }
@@ -695,7 +708,10 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             const cachedReciters = JSON.parse(cached) as Reciter[];
             const stabilized = stabilizeFirstScreenReciters(cachedReciters);
             setReciters(stabilized);
-            restoreFromLocalStorage(stabilized);
+            const restored = restoreFromLocalStorage(stabilized);
+            if (restored && getAppOptions().autoResumeOnLaunch) {
+              autoResumeRef.current = restored;
+            }
             setError('Connexion instable : affichage des récitants sauvegardés localement.');
           } catch {
             setError('Impossible de charger les récitants. Vérifiez votre connexion puis réessayez.');
@@ -924,13 +940,17 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               const restoredTrack: AudioTrack = { reciter, moshaf, surah };
               setCurrentTrack(restoredTrack);
               
+              let parsedTime = 0;
               const savedTime = readStorage(`${LOCAL_STORAGE_PREFIX}timestamp`);
               if (savedTime) {
-                const parsedTime = Number.parseFloat(savedTime);
-                if (Number.isFinite(parsedTime) && parsedTime >= 0) {
-                  setCurrentTime(parsedTime);
+                const t = Number.parseFloat(savedTime);
+                if (Number.isFinite(t) && t >= 0) {
+                  parsedTime = t;
+                  setCurrentTime(t);
                 }
               }
+
+              return { reciter, moshaf, surah, time: parsedTime };
             }
           }
         }
@@ -938,6 +958,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch (e) {
       console.error('Failed to restore playback state from LocalStorage', e);
     }
+    return null;
   };
 
   const persistSelection = (reciter: Reciter | null, moshaf: Moshaf | null, surah: Surah | null) => {
@@ -1112,6 +1133,20 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }
 
+  // Auto-resume last track when enabled in Options (best-effort; browsers may block).
+  useEffect(() => {
+    if (isLoadingReciters || autoResumeAttemptedRef.current) return;
+    const pending = autoResumeRef.current;
+    if (!pending || !audioRef.current) return;
+    if (!getAppOptions().autoResumeOnLaunch) {
+      autoResumeRef.current = null;
+      return;
+    }
+    autoResumeAttemptedRef.current = true;
+    autoResumeRef.current = null;
+    void playTrack(pending.reciter, pending.moshaf, pending.surah, pending.time).catch(() => undefined);
+  }, [isLoadingReciters]);
+
   const getAccurateCurrentTime = () => {
     const audio = audioRef.current;
     if (audio && Number.isFinite(audio.currentTime) && audio.currentTime > 0) {
@@ -1157,6 +1192,31 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const pause = () => {
     if (audioRef.current) {
       audioRef.current.pause();
+    }
+  };
+
+  const dismissTrack = () => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      try {
+        audio.removeAttribute('src');
+        audio.load();
+      } catch {
+        // ignore
+      }
+    }
+    setPlaybackStatus('idle');
+    setCurrentTime(0);
+    setDuration(0);
+    setCurrentTrack(null);
+    try {
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = null;
+        navigator.mediaSession.playbackState = 'none';
+      }
+    } catch {
+      // ignore
     }
   };
 
@@ -1553,6 +1613,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       togglePlay,
       pause,
       play,
+      dismissTrack,
       seekTo,
       setVolume,
       setPlaybackSpeed,

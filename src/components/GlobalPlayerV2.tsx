@@ -4,8 +4,8 @@ import { useAudio } from '../context/AudioContext';
 import {
   Play, Pause, SkipForward, SkipBack, ChevronDown, Volume2, VolumeX,
   Disc, ListMusic, Search, X, Settings, Sparkles, Check, Moon, Repeat,
-  Repeat1, Clock, RotateCcw, RotateCw, Gauge, Maximize2, SlidersHorizontal, MonitorSmartphone,
-  SlidersVertical, BookOpen
+  Repeat1, Clock, RotateCcw, RotateCw, Gauge, SlidersHorizontal, MonitorSmartphone,
+  SlidersVertical, BookOpen, Headphones
 } from '../icons/motion';
 import { PLAYER_THEMES, PLAYER_THEME_IDS, type PlayerThemeId } from './player/playerThemes';
 import {
@@ -17,6 +17,7 @@ import { AudioEffectsPanel } from './player/AudioEffectsPanel';
 import { AUDIO_EFFECT_PRESETS, effectsNeedProcessing } from '../audio/effectsTypes';
 import { ReciterPortrait } from './ReciterPortrait';
 import { SURAHS } from '../data/surahs';
+import type { Moshaf, Reciter } from '../types';
 import { SurahReaderSheet, usePlayerBarAnchor, READER_MOTION_MS } from './SurahReaderSheet';
 import { OPEN_READER_EVENT } from '../utils/appEvents';
 import { useReaderPrefs } from './reader/readerPrefs';
@@ -41,6 +42,19 @@ const formatSleepTime = (seconds: number) => {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
   return `${mins}m ${secs.toString().padStart(2, '0')}s`;
+};
+
+const moshafHasSurah = (moshaf: Moshaf, surahId: number): boolean => {
+  return moshaf.surah_list
+    .split(',')
+    .some((part) => parseInt(part.trim(), 10) === surahId);
+};
+
+/** Prefer Hafs when several moshafs include the surah. */
+const pickMoshafForSurah = (reciter: Reciter, surahId: number): Moshaf | null => {
+  const matches = reciter.moshaf.filter((m) => moshafHasSurah(m, surahId));
+  if (!matches.length) return null;
+  return matches.find((m) => /hafs/i.test(m.name)) ?? matches[0] ?? null;
 };
 
 /** Scrolls left when the label overflows its container */
@@ -78,21 +92,52 @@ const MarqueeText: React.FC<{ text: string; className?: string }> = ({ text, cla
   );
 };
 
-const DENSITY_META: Record<PlayerBarDensity, { label: string; barClass: string; padClass: string }> = {
+const DENSITY_META: Record<
+  PlayerBarDensity,
+  {
+    label: string;
+    barClass: string;
+    padClass: string;
+    coverClass: string;
+    rowGapClass: string;
+    toolsClass: string;
+    playBtnClass: string;
+    skipBtnClass: string;
+    discIconClass: string;
+  }
+> = {
   compact: {
     label: 'Compacte',
-    barClass: 'md:min-h-[4.75rem]',
-    padClass: 'md:py-2 md:px-5',
+    barClass: '',
+    padClass: 'px-2.5 pt-1.5 pb-1 md:px-4 md:py-1.5',
+    coverClass: 'w-9 h-9 md:w-11 md:h-11 rounded-lg md:rounded-xl',
+    rowGapClass: 'gap-2 md:gap-3 lg:gap-4',
+    toolsClass: 'px-2.5 pb-1.5 pt-0 gap-2',
+    playBtnClass: 'w-9 h-9 md:h-9 md:w-9',
+    skipBtnClass: 'w-8 h-8',
+    discIconClass: 'w-4 h-4 md:w-5 md:h-5',
   },
   comfortable: {
     label: 'Confort',
-    barClass: 'md:min-h-[5.5rem]',
-    padClass: 'md:py-2.5 md:px-6',
+    barClass: '',
+    padClass: 'px-3 pt-2.5 pb-1.5 md:px-5 md:py-2.5',
+    coverClass: 'w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl',
+    rowGapClass: 'gap-3 md:gap-5 lg:gap-8',
+    toolsClass: 'px-3 pb-2.5 pt-0.5 gap-2.5',
+    playBtnClass: 'w-11 h-11 md:h-11 md:w-11',
+    skipBtnClass: 'w-10 h-10',
+    discIconClass: 'w-5 h-5 md:w-7 md:h-7',
   },
   expanded: {
     label: 'Large',
-    barClass: 'md:min-h-[6.25rem]',
-    padClass: 'md:py-3 md:px-6',
+    barClass: 'md:min-h-[6.75rem]',
+    padClass: 'px-3.5 pt-3 pb-2 md:px-6 md:py-3.5',
+    coverClass: 'w-14 h-14 md:w-[4.75rem] md:h-[4.75rem] rounded-xl md:rounded-2xl',
+    rowGapClass: 'gap-3.5 md:gap-6 lg:gap-10',
+    toolsClass: 'px-3.5 pb-3.5 pt-1 gap-3',
+    playBtnClass: 'w-12 h-12 md:h-12 md:w-12',
+    skipBtnClass: 'w-11 h-11',
+    discIconClass: 'w-6 h-6 md:w-8 md:h-8',
   },
 };
 
@@ -100,7 +145,9 @@ export const GlobalPlayerV2: React.FC<{
   /** Sync with navbar: dock = floating player, classic = full-bleed bottom bar */
   desktopChrome?: 'dock' | 'classic';
   onDesktopChromeChange?: (style: 'dock' | 'classic') => void;
-}> = ({ desktopChrome, onDesktopChromeChange }) => {
+  /** Mobile chrome: full mini-bar vs idle pill (for shell padding / nav dock). */
+  onMobileChromeChange?: (chrome: 'full' | 'pill') => void;
+}> = ({ desktopChrome, onDesktopChromeChange, onMobileChromeChange }) => {
   const {
     currentTrack,
     playbackStatus,
@@ -109,6 +156,7 @@ export const GlobalPlayerV2: React.FC<{
     volume,
     playbackSpeed,
     togglePlay,
+    dismissTrack,
     seekTo,
     setVolume,
     setPlaybackSpeed,
@@ -142,16 +190,47 @@ export const GlobalPlayerV2: React.FC<{
   const [showPlaylist, setShowPlaylist] = useState(false);
   const [playlistClosing, setPlaylistClosing] = useState(false);
   const [playlistEntranceDone, setPlaylistEntranceDone] = useState(false);
+  const [showReciterPicker, setShowReciterPicker] = useState(false);
+  const [reciterPickerClosing, setReciterPickerClosing] = useState(false);
+  const [reciterPickerEntranceDone, setReciterPickerEntranceDone] = useState(false);
   const [showPersonalize, setShowPersonalize] = useState(false);
   const [showEffects, setShowEffects] = useState(false);
   const [showVolumePopover, setShowVolumePopover] = useState(false);
   const [showAyahPicker, setShowAyahPicker] = useState(false);
+  const [isNarrowViewport, setIsNarrowViewport] = useState(false);
+  /** Keep full mini-bar while paused after user expands the pill. */
+  const [mobileBarPinned, setMobileBarPinned] = useState(false);
+  /** Wait a few seconds after pause before collapsing to the pill. */
+  const [idleCollapseReady, setIdleCollapseReady] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 767px)');
+    const sync = () => setIsNarrowViewport(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
+  useEffect(() => {
+    if (playbackStatus === 'playing' || playbackStatus === 'buffering') {
+      setMobileBarPinned(false);
+      setIdleCollapseReady(false);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setIdleCollapseReady(true);
+    }, 3500);
+    return () => window.clearTimeout(timer);
+  }, [playbackStatus]);
 
   const openReader = () => {
     if (isReaderClosing) return;
     setIsExpanded(false);
     setShowPlaylist(false);
     setPlaylistClosing(false);
+    setShowReciterPicker(false);
+    setReciterPickerClosing(false);
     setShowPersonalize(false);
     setShowEffects(false);
     setShowVolumePopover(false);
@@ -184,7 +263,9 @@ export const GlobalPlayerV2: React.FC<{
 
   /** Chrome join only while fully open — restores during close (no late snap) */
   const readerDockJoined =
-    (isReaderOpen && !isReaderClosing) || (showPlaylist && !playlistClosing);
+    (isReaderOpen && !isReaderClosing) ||
+    (showPlaylist && !playlistClosing) ||
+    (showReciterPicker && !reciterPickerClosing);
   const [readerPrefs] = useReaderPrefs();
   const autoOpenedSurahRef = useRef<number | null>(null);
 
@@ -215,7 +296,9 @@ export const GlobalPlayerV2: React.FC<{
     setLocalDocked((d) => !d);
   };
   const [drawerSearch, setDrawerSearch] = useState('');
+  const [reciterSearch, setReciterSearch] = useState('');
   const currentSurahRowRef = useRef<HTMLButtonElement | null>(null);
+  const currentReciterRowRef = useRef<HTMLButtonElement | null>(null);
   const volumeWrapRef = useRef<HTMLDivElement | null>(null);
   const volumeBtnRef = useRef<HTMLButtonElement | null>(null);
   const [volumePopoverPos, setVolumePopoverPos] = useState<{ bottom: number; right: number } | null>(null);
@@ -227,6 +310,8 @@ export const GlobalPlayerV2: React.FC<{
 
   const theme = PLAYER_THEMES[(playerTheme as PlayerThemeId)] || PLAYER_THEMES.emerald;
   const density = DENSITY_META[prefs.density] || DENSITY_META.expanded;
+  const isCompactBar = prefs.density === 'compact';
+  const ayahBarVariant = prefs.density === 'comfortable' ? 'link' : 'full';
   const readerTopRadius =
     typeof window !== 'undefined' &&
     window.matchMedia('(min-width: 768px)').matches &&
@@ -235,7 +320,7 @@ export const GlobalPlayerV2: React.FC<{
       : '0px';
   const playerBarAnchor = usePlayerBarAnchor(
     playerBarRef,
-    isReaderOpen || showPlaylist,
+    isReaderOpen || showPlaylist || showReciterPicker,
     {
       topRadius: readerTopRadius,
       deps: [
@@ -247,6 +332,8 @@ export const GlobalPlayerV2: React.FC<{
         isReaderClosing,
         showPlaylist,
         playlistClosing,
+        showReciterPicker,
+        reciterPickerClosing,
       ],
     }
   );
@@ -261,7 +348,30 @@ export const GlobalPlayerV2: React.FC<{
   const openAyahPicker = () => setShowAyahPicker(true);
   const speedOptions = [0.75, 0.9, 1, 1.25, 1.5, 1.75, 2];
 
+  const showMobilePill =
+    isNarrowViewport &&
+    !isExpanded &&
+    !isReaderOpen &&
+    !showPlaylist &&
+    !showReciterPicker &&
+    playbackStatus !== 'playing' &&
+    playbackStatus !== 'buffering' &&
+    !mobileBarPinned &&
+    idleCollapseReady;
+
+  useEffect(() => {
+    onMobileChromeChange?.(showMobilePill ? 'pill' : 'full');
+  }, [showMobilePill, onMobileChromeChange]);
+
+  useEffect(() => {
+    return () => onMobileChromeChange?.('full');
+  }, [onMobileChromeChange]);
+
   const onMiniBarTouchStart = (e: React.TouchEvent) => {
+    if (showMobilePill) {
+      swipeStartYRef.current = null;
+      return;
+    }
     const target = e.target as HTMLElement | null;
     if (target?.closest('input, [data-player-transport]')) {
       swipeStartYRef.current = null;
@@ -330,8 +440,27 @@ export const GlobalPlayerV2: React.FC<{
     );
   }, [currentTrack, drawerSearch, getAvailableSurahs]);
 
+  const filteredReciters = useMemo(() => {
+    if (!currentTrack) return [];
+    const surahId = currentTrack.surah.id;
+    const withSurah = reciters.filter((r) => pickMoshafForSurah(r, surahId));
+    const query = reciterSearch.toLowerCase().trim();
+    const filtered = query
+      ? withSurah.filter(
+          (r) =>
+            r.name.toLowerCase().includes(query) ||
+            String(r.id).includes(query),
+        )
+      : withSurah;
+    return [...filtered].sort((a, b) => {
+      if (a.id === currentTrack.reciter.id) return -1;
+      if (b.id === currentTrack.reciter.id) return 1;
+      return a.name.localeCompare(b.name, 'fr');
+    });
+  }, [currentTrack, reciters, reciterSearch]);
+
   useEffect(() => {
-    if (!showPlaylist && !showPersonalize && !showEffects) return;
+    if (!showPlaylist && !showPersonalize && !showEffects && !showReciterPicker) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     const onKey = (e: KeyboardEvent) => {
@@ -342,6 +471,13 @@ export const GlobalPlayerV2: React.FC<{
           setShowPlaylist(false);
           setPlaylistClosing(false);
           setDrawerSearch('');
+        }, 240);
+      } else if (showReciterPicker) {
+        setReciterPickerClosing(true);
+        window.setTimeout(() => {
+          setShowReciterPicker(false);
+          setReciterPickerClosing(false);
+          setReciterSearch('');
         }, 240);
       } else if (showEffects) {
         setShowEffects(false);
@@ -354,14 +490,14 @@ export const GlobalPlayerV2: React.FC<{
       document.body.style.overflow = previous;
       window.removeEventListener('keydown', onKey);
     };
-  }, [showPlaylist, showPersonalize, showEffects]);
+  }, [showPlaylist, showPersonalize, showEffects, showReciterPicker]);
 
   useEffect(() => {
     if (!currentTrack || remoteSession) return;
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
-      if (showPlaylist || showPersonalize || showEffects) return;
+      if (showPlaylist || showPersonalize || showEffects || showReciterPicker) return;
 
       if (e.code === 'Space' || e.key === ' ') {
         e.preventDefault();
@@ -386,6 +522,7 @@ export const GlobalPlayerV2: React.FC<{
     showPlaylist,
     showPersonalize,
     showEffects,
+    showReciterPicker,
     togglePlay,
     seekTo,
     currentTime,
@@ -496,6 +633,8 @@ export const GlobalPlayerV2: React.FC<{
   const openPlaylist = () => {
     setIsReaderOpen(false);
     setIsReaderClosing(false);
+    setShowReciterPicker(false);
+    setReciterPickerClosing(false);
     setShowPersonalize(false);
     setShowVolumePopover(false);
     setPlaylistClosing(false);
@@ -522,6 +661,41 @@ export const GlobalPlayerV2: React.FC<{
     }, READER_MOTION_MS);
   };
 
+  const openReciterPicker = () => {
+    if (remoteSession) return;
+    setIsExpanded(false);
+    setIsReaderOpen(false);
+    setIsReaderClosing(false);
+    setShowPlaylist(false);
+    setPlaylistClosing(false);
+    setShowPersonalize(false);
+    setShowEffects(false);
+    setShowVolumePopover(false);
+    setReciterPickerClosing(false);
+    setReciterPickerEntranceDone(false);
+    setShowReciterPicker(true);
+  };
+
+  const closeReciterPicker = () => {
+    if (reciterPickerClosing) return;
+    setReciterPickerClosing(true);
+    window.setTimeout(() => {
+      setShowReciterPicker(false);
+      setReciterPickerClosing(false);
+      setReciterPickerEntranceDone(false);
+      setReciterSearch('');
+    }, READER_MOTION_MS);
+  };
+
+  const selectReciter = (reciter: Reciter) => {
+    if (!currentTrack || remoteSession) return;
+    const moshaf = pickMoshafForSurah(reciter, currentTrack.surah.id);
+    if (!moshaf) return;
+    const resumeAt = Number.isFinite(currentTime) ? Math.max(0, currentTime) : 0;
+    void playTrack(reciter, moshaf, currentTrack.surah, resumeAt);
+    closeReciterPicker();
+  };
+
   useEffect(() => {
     if (!showPlaylist || playlistClosing) return;
     setPlaylistEntranceDone(false);
@@ -529,11 +703,28 @@ export const GlobalPlayerV2: React.FC<{
     return () => window.clearTimeout(t);
   }, [showPlaylist, playlistClosing]);
 
+  useEffect(() => {
+    if (!showReciterPicker || reciterPickerClosing) return;
+    setReciterPickerEntranceDone(false);
+    const t = window.setTimeout(() => setReciterPickerEntranceDone(true), READER_MOTION_MS);
+    return () => window.clearTimeout(t);
+  }, [showReciterPicker, reciterPickerClosing]);
+
+  useEffect(() => {
+    if (!showReciterPicker || reciterPickerClosing) return;
+    const id = window.requestAnimationFrame(() => {
+      currentReciterRowRef.current?.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [showReciterPicker, reciterPickerClosing, currentTrack?.reciter.id]);
+
   const openPersonalize = () => {
     setIsReaderOpen(false);
     setIsReaderClosing(false);
     setShowPlaylist(false);
     setPlaylistClosing(false);
+    setShowReciterPicker(false);
+    setReciterPickerClosing(false);
     setShowVolumePopover(false);
     setShowEffects(false);
     setShowPersonalize(true);
@@ -544,6 +735,8 @@ export const GlobalPlayerV2: React.FC<{
     setIsReaderClosing(false);
     setShowPlaylist(false);
     setPlaylistClosing(false);
+    setShowReciterPicker(false);
+    setReciterPickerClosing(false);
     setShowVolumePopover(false);
     setShowPersonalize(false);
     setShowEffects(true);
@@ -571,9 +764,66 @@ export const GlobalPlayerV2: React.FC<{
 
   return (
     <>
+      {/* ── Mobile idle pill (paused / no active playback) ── */}
+      {showMobilePill && currentTrack && (
+        <div
+          className="fixed z-[50] md:hidden left-3 right-3 bottom-[calc(4.35rem+env(safe-area-inset-bottom,0px)+0.45rem)] flex items-center gap-1.5 rounded-2xl border border-[#bfa078]/35 bg-[#0c1522]/95 px-2 py-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.45)] backdrop-blur-md"
+          role="region"
+          aria-label="Lecture en pause"
+        >
+          <button
+            type="button"
+            onClick={() => setMobileBarPinned(true)}
+            className="flex min-w-0 flex-1 items-center gap-2 rounded-xl px-1 py-0.5 text-left tap-feedback"
+            aria-label="Ouvrir le lecteur"
+          >
+            <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg border border-[#bfa078]/30 bg-[#07111d]">
+              <ReciterPortrait reciter={currentTrack.reciter} alt="" />
+            </div>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px] font-semibold text-[#f6f8fb] leading-tight">
+                {currentTrack.surah.name}
+              </span>
+              <span className="mt-0.5 block truncate text-[10px] text-[#95a7ba] leading-tight">
+                {currentTrack.reciter.name}
+              </span>
+            </span>
+          </button>
+          <button
+            type="button"
+            disabled={Boolean(remoteSession)}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (remoteSession) return;
+              togglePlay();
+            }}
+            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full tap-feedback disabled:pointer-events-none disabled:grayscale ${
+              remoteSession
+                ? 'bg-[#30455c] text-[#95a7ba]'
+                : `${theme.accent} text-[#111d2d] shadow-md ${theme.accentShadow}`
+            }`}
+            aria-label="Lecture"
+          >
+            <Play className="h-4 w-4 fill-current ml-0.5" />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              dismissTrack();
+            }}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#30455c]/70 bg-[#111d2d]/90 text-[#aab7c5] tap-feedback hover:text-[#f6f8fb]"
+            aria-label="Fermer le lecteur"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       {/* ── Mini bar: full-width on mobile, large desktop player bar ── */}
       <div
         ref={playerBarRef}
+        data-player-density={prefs.density}
         className={`fixed z-[50] transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]
           max-md:left-0 max-md:right-0 max-md:w-full max-md:max-w-none
           max-md:bottom-[calc(4.35rem+env(safe-area-inset-bottom,0px))]
@@ -585,7 +835,8 @@ export const GlobalPlayerV2: React.FC<{
           ${remoteSession && !isExpanded ? 'md:min-h-0' : density.barClass}
           ${prefs.showGlow ? `bg-gradient-to-r ${theme.accentGlow} via-transparent to-transparent` : ''}
           ${isExpanded ? 'opacity-0 pointer-events-none translate-y-3 md:opacity-100 md:pointer-events-auto md:translate-y-0' : 'opacity-100'}
-          ${readerDockJoined ? 'max-md:!z-[53] !border-t-0 reader-dock-joined' : ''}
+          ${showMobilePill ? 'max-md:opacity-0 max-md:pointer-events-none max-md:translate-y-3' : ''}
+          ${readerDockJoined ? '!z-[141] !border-t-0 reader-dock-joined' : ''}
         `}
         style={typeof window !== 'undefined' && window.matchMedia('(min-width:768px)').matches ? {
           bottom: docked ? 0 : '1.5rem',
@@ -637,39 +888,44 @@ export const GlobalPlayerV2: React.FC<{
 
         <div className="relative flex flex-col md:block">
         <div
-          className={`relative flex items-center gap-3 md:gap-5 lg:gap-8 md:grid md:grid-cols-[minmax(0,1.15fr)_minmax(220px,0.9fr)_minmax(0,1.15fr)] md:items-center px-3 pt-2.5 pb-1.5 md:px-5 md:py-3 ${density.padClass} ${
-            remoteSession ? 'pt-2.5 md:pt-2.5' : ''
+          className={`relative flex items-center md:grid md:grid-cols-[minmax(0,1.15fr)_minmax(220px,0.9fr)_minmax(0,1.15fr)] md:items-center ${density.rowGapClass} ${density.padClass} ${
+            remoteSession ? 'pt-2 md:pt-2' : ''
           }`}
         >
         {/* Track info */}
-        <div className="flex items-center gap-3 min-w-0 flex-1 md:col-span-1 md:gap-4 md:pt-0">
+        <div className={`flex items-center min-w-0 flex-1 md:col-span-1 md:pt-0 ${density.rowGapClass}`}>
           <button
             type="button"
-            onClick={() => setIsExpanded(true)}
-            className="group/disc relative shrink-0 md:pointer-events-none"
-            title="Agrandir le lecteur en plein écran"
-            aria-label="Agrandir le lecteur en plein écran"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (showReciterPicker && !reciterPickerClosing) closeReciterPicker();
+              else openReciterPicker();
+            }}
+            className="group/disc relative shrink-0"
+            title="Changer de récitateur"
+            aria-label="Changer de récitateur"
+            aria-expanded={showReciterPicker && !reciterPickerClosing}
           >
             <span
-              className="pointer-events-none absolute -inset-0.5 rounded-[0.85rem] bg-[#e2d0ba]/0 ring-1 ring-[#e2d0ba]/0 transition-all duration-300 md:hidden group-hover/disc:bg-[#e2d0ba]/[0.07] group-hover/disc:ring-[#e2d0ba]/25 group-active/disc:scale-95"
+              className="pointer-events-none absolute -inset-0.5 rounded-[0.85rem] bg-[#e2d0ba]/0 ring-1 ring-[#e2d0ba]/0 transition-all duration-300 group-hover/disc:bg-[#e2d0ba]/[0.07] group-hover/disc:ring-[#e2d0ba]/25 group-active/disc:scale-95"
               aria-hidden
             />
             <span
               className="player-disc-hint pointer-events-none absolute -inset-[3px] rounded-[0.9rem] ring-1 ring-[#e2d0ba]/25 md:hidden"
               aria-hidden
             />
-            <div className="relative w-12 h-12 md:w-16 md:h-16 rounded-xl md:rounded-2xl bg-[#07111d] border border-[#46607b]/50 md:border-[#bfa078]/30 overflow-hidden flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-transform duration-150 group-active/disc:scale-95 md:group-active/disc:scale-100 md:shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
+            <div className={`relative ${density.coverClass} bg-[#07111d] border border-[#46607b]/50 md:border-[#bfa078]/30 overflow-hidden flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-[width,height] duration-300 group-active/disc:scale-95 md:shadow-[0_8px_24px_rgba(0,0,0,0.35)]`}>
               {hasCover && currentTrack ? (
                 <ReciterPortrait reciter={currentTrack.reciter} alt="" />
               ) : (
-                <Disc className={`w-5 h-5 md:w-7 md:h-7 ${theme.glowDisc} ${playbackStatus === 'playing' ? 'animate-[spin_10s_linear_infinite]' : ''}`} />
+                <Disc className={`${density.discIconClass} ${theme.glowDisc} ${playbackStatus === 'playing' ? 'animate-[spin_10s_linear_infinite]' : ''}`} />
               )}
             </div>
             <span
-              className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-[#bfa078]/35 bg-[#111d2d] text-[#e6d5c2]/90 shadow-md md:hidden"
+              className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-[#bfa078]/35 bg-[#111d2d] text-[#e6d5c2]/90 shadow-md"
               aria-hidden
             >
-              <Maximize2 className="w-2.5 h-2.5" strokeWidth={2.5} />
+              <Headphones className="w-2.5 h-2.5" strokeWidth={2.5} />
             </span>
           </button>
 
@@ -724,10 +980,10 @@ export const GlobalPlayerV2: React.FC<{
                 if (remoteSession) return;
                 playPrevTrack();
               }}
-              className="w-10 h-10 rounded-full bg-[#111d2d] border border-[#30455c] text-[#e6edf5] flex items-center justify-center tap-feedback disabled:pointer-events-none disabled:grayscale"
+              className={`${density.skipBtnClass} rounded-full bg-[#111d2d] border border-[#30455c] text-[#e6edf5] flex items-center justify-center tap-feedback disabled:pointer-events-none disabled:grayscale transition-[width,height] duration-300`}
               aria-label="Précédent"
             >
-              <SkipBack className="w-4.5 h-4.5 fill-current" />
+              <SkipBack className="w-4 h-4 fill-current" />
             </button>
             <button
               type="button"
@@ -737,7 +993,7 @@ export const GlobalPlayerV2: React.FC<{
                 if (remoteSession) return;
                 togglePlay();
               }}
-              className={`w-11 h-11 rounded-full flex items-center justify-center tap-feedback disabled:pointer-events-none disabled:grayscale ${
+              className={`${density.playBtnClass} rounded-full flex items-center justify-center tap-feedback disabled:pointer-events-none disabled:grayscale transition-[width,height] duration-300 ${
                 remoteSession
                   ? 'bg-[#30455c] text-[#95a7ba] shadow-none'
                   : `${theme.accent} text-[#111d2d] shadow-md ${theme.accentShadow}`
@@ -745,9 +1001,9 @@ export const GlobalPlayerV2: React.FC<{
               aria-label={playbackStatus === 'playing' ? 'Pause' : 'Lecture'}
             >
               {playbackStatus === 'playing' ? (
-                <Pause className="w-5 h-5 fill-current" />
+                <Pause className="w-4.5 h-4.5 fill-current" />
               ) : (
-                <Play className="w-5 h-5 fill-current ml-0.5" />
+                <Play className="w-4.5 h-4.5 fill-current ml-0.5" />
               )}
             </button>
             <button
@@ -758,10 +1014,21 @@ export const GlobalPlayerV2: React.FC<{
                 if (remoteSession) return;
                 playNextTrack();
               }}
-              className="w-10 h-10 rounded-full bg-[#111d2d] border border-[#30455c] text-[#e6edf5] flex items-center justify-center tap-feedback disabled:pointer-events-none disabled:grayscale"
+              className={`${density.skipBtnClass} rounded-full bg-[#111d2d] border border-[#30455c] text-[#e6edf5] flex items-center justify-center tap-feedback disabled:pointer-events-none disabled:grayscale transition-[width,height] duration-300`}
               aria-label="Suivant"
             >
-              <SkipForward className="w-4.5 h-4.5 fill-current" />
+              <SkipForward className="w-4 h-4 fill-current" />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                dismissTrack();
+              }}
+              className={`${density.skipBtnClass} rounded-full bg-[#111d2d]/80 border border-[#30455c]/70 text-[#95a7ba] flex items-center justify-center tap-feedback hover:text-[#f6f8fb] transition-[width,height] duration-300`}
+              aria-label="Fermer le lecteur"
+            >
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -792,7 +1059,7 @@ export const GlobalPlayerV2: React.FC<{
                 if (remoteSession) return;
                 togglePlay();
               }}
-              className={`h-11 w-11 rounded-full flex items-center justify-center tap-feedback disabled:pointer-events-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] ${
+              className={`${density.playBtnClass} rounded-full flex items-center justify-center tap-feedback disabled:pointer-events-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] transition-[width,height] duration-300 ${
                 remoteSession
                   ? 'bg-[#30455c] text-[#95a7ba] shadow-none'
                   : `${theme.accent} text-[#111d2d] shadow-lg ${theme.accentShadow}`
@@ -821,7 +1088,9 @@ export const GlobalPlayerV2: React.FC<{
           {!remoteSession && (
             <div className="flex w-full flex-col gap-1">
               <div className="flex w-full items-center gap-2 text-[10px] font-mono font-semibold text-[#95a7ba]">
-                <span className="w-9 shrink-0 text-right tabular-nums text-[#e6d5c2]">{formatTime(currentTime)}</span>
+                {!isCompactBar ? (
+                  <span className="w-9 shrink-0 text-right tabular-nums text-[#e6d5c2]">{formatTime(currentTime)}</span>
+                ) : null}
                 <input
                   type="range"
                   min={0}
@@ -837,17 +1106,22 @@ export const GlobalPlayerV2: React.FC<{
                   aria-valuenow={Math.floor(currentTime)}
                   aria-valuetext={`${formatTime(currentTime)} sur ${formatDuration(duration)}`}
                 />
-                <span className="w-9 shrink-0 tabular-nums">{formatDuration(duration)}</span>
+                {!isCompactBar ? (
+                  <span className="w-9 shrink-0 tabular-nums">{formatDuration(duration)}</span>
+                ) : null}
               </div>
-              <AyahProgressIndicator
-                available={ayahSyncAvailable}
-                activeAyah={activeAyah}
-                totalAyahs={totalAyahs}
-                ayahProgress={ayahProgress}
-                onOpenPicker={openAyahPicker}
-                accentColor={theme.sliderAccentColor}
-                className="px-9"
-              />
+              {!isCompactBar ? (
+                <AyahProgressIndicator
+                  available={ayahSyncAvailable}
+                  activeAyah={activeAyah}
+                  totalAyahs={totalAyahs}
+                  ayahProgress={ayahProgress}
+                  onOpenPicker={openAyahPicker}
+                  accentColor={theme.sliderAccentColor}
+                  variant={ayahBarVariant}
+                  className="px-9"
+                />
+              ) : null}
             </div>
           )}
         </div>
@@ -879,16 +1153,6 @@ export const GlobalPlayerV2: React.FC<{
             <BookOpen className="w-4.5 h-4.5" />
           </button>
 
-          <button
-            type="button"
-            onClick={togglePlaylist}
-            className={`h-10 w-10 rounded-xl flex items-center justify-center text-[#aab7c5] hover:text-[#f6f8fb] hover:bg-[#111d2d]/70 shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] ${theme.accentTextHover}`}
-            title="Sourates"
-            aria-label="Ouvrir la liste des sourates"
-          >
-            <ListMusic className="w-4.5 h-4.5" />
-          </button>
-
           <div ref={volumeWrapRef} className="relative shrink-0">
             <button
               ref={volumeBtnRef}
@@ -913,7 +1177,7 @@ export const GlobalPlayerV2: React.FC<{
                   id="player-volume-popover"
                   role="dialog"
                   aria-label="Réglage du volume"
-                  className="fixed z-[90] flex w-52 items-center gap-2.5 rounded-2xl border border-[#bfa078]/30 bg-[#0c1522] p-3 shadow-[0_18px_44px_rgba(0,0,0,0.55),0_0_24px_rgba(191,160,120,0.12)]"
+                  className="fixed z-[150] flex w-52 items-center gap-2.5 rounded-2xl border border-[#bfa078]/30 bg-[#0c1522] p-3 shadow-[0_18px_44px_rgba(0,0,0,0.55),0_0_24px_rgba(191,160,120,0.12)]"
                   style={{
                     bottom: volumePopoverPos.bottom,
                     right: volumePopoverPos.right,
@@ -988,7 +1252,7 @@ export const GlobalPlayerV2: React.FC<{
         </div>
 
         {/* Mobile tools + progress / duration */}
-        <div className="relative z-[1] flex items-center gap-2.5 px-3 pb-2.5 pt-0.5 md:hidden">
+        <div className={`relative z-[1] flex items-center md:hidden ${density.toolsClass}`}>
           <button
             type="button"
             onClick={(e) => {
@@ -1034,9 +1298,11 @@ export const GlobalPlayerV2: React.FC<{
           {!remoteSession ? (
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <div className="flex min-w-0 items-center gap-2">
-                <span className="w-9 shrink-0 text-right text-[11px] font-mono font-semibold tabular-nums text-[#e6d5c2]" aria-live="polite">
-                  {formatTime(currentTime)}
-                </span>
+                {!isCompactBar ? (
+                  <span className="w-9 shrink-0 text-right text-[11px] font-mono font-semibold tabular-nums text-[#e6d5c2]" aria-live="polite">
+                    {formatTime(currentTime)}
+                  </span>
+                ) : null}
                 <input
                   type="range"
                   min={0}
@@ -1054,19 +1320,24 @@ export const GlobalPlayerV2: React.FC<{
                   aria-valuenow={Math.floor(currentTime)}
                   aria-valuetext={`${formatTime(currentTime)} sur ${formatDuration(duration)}`}
                 />
-                <span className="w-9 shrink-0 text-[11px] font-mono font-semibold tabular-nums text-[#95a7ba]">
-                  {formatDuration(duration)}
-                </span>
+                {!isCompactBar ? (
+                  <span className="w-9 shrink-0 text-[11px] font-mono font-semibold tabular-nums text-[#95a7ba]">
+                    {formatDuration(duration)}
+                  </span>
+                ) : null}
               </div>
-              <AyahProgressIndicator
-                available={ayahSyncAvailable}
-                activeAyah={activeAyah}
-                totalAyahs={totalAyahs}
-                ayahProgress={ayahProgress}
-                onOpenPicker={openAyahPicker}
-                accentColor={theme.sliderAccentColor}
-                className="px-9"
-              />
+              {!isCompactBar ? (
+                <AyahProgressIndicator
+                  available={ayahSyncAvailable}
+                  activeAyah={activeAyah}
+                  totalAyahs={totalAyahs}
+                  ayahProgress={ayahProgress}
+                  onOpenPicker={openAyahPicker}
+                  accentColor={theme.sliderAccentColor}
+                  variant={ayahBarVariant}
+                  className="px-9"
+                />
+              ) : null}
             </div>
           ) : (
             <p className="min-w-0 flex-1 truncate text-[11px] text-[#95a7ba]">
@@ -1158,7 +1429,13 @@ export const GlobalPlayerV2: React.FC<{
               </p>
             </button>
 
-            <div className="mx-auto mb-7 w-28 h-28 rounded-full border border-[#bfa078]/35 bg-[#111d2d]/60 overflow-hidden shadow-[0_0_28px_rgba(191,160,120,0.12)]">
+            <button
+              type="button"
+              onClick={openReciterPicker}
+              className="mx-auto mb-7 block w-28 h-28 rounded-full border border-[#bfa078]/35 bg-[#111d2d]/60 overflow-hidden shadow-[0_0_28px_rgba(191,160,120,0.12)] tap-feedback"
+              aria-label="Changer de récitateur"
+              title="Changer de récitateur"
+            >
               {hasCover && currentTrack ? (
                 <ReciterPortrait reciter={currentTrack.reciter} alt="" />
               ) : (
@@ -1166,7 +1443,7 @@ export const GlobalPlayerV2: React.FC<{
                   <Disc className={`w-12 h-12 ${theme.glowDisc} ${playbackStatus === 'playing' ? 'animate-[spin_12s_linear_infinite]' : ''}`} />
                 </div>
               )}
-            </div>
+            </button>
 
             <div className="w-full mb-6">
               <input
@@ -1259,7 +1536,7 @@ export const GlobalPlayerV2: React.FC<{
               {isReaderOpen ? 'Fermer la lecture' : 'Lire le Coran'}
             </button>
 
-            <div className="grid grid-cols-4 gap-2 mt-auto">
+            <div className="grid grid-cols-3 gap-2 mt-auto">
               <button
                 type="button"
                 onClick={cycleRepeat}
@@ -1271,14 +1548,6 @@ export const GlobalPlayerV2: React.FC<{
               >
                 <RepeatIcon className="w-4 h-4" />
                 {repeatMode === 'one' ? '1' : repeatMode === 'none' ? 'Off' : 'All'}
-              </button>
-              <button
-                type="button"
-                onClick={togglePlaylist}
-                className="h-12 rounded-2xl border border-[#30455c] text-xs font-bold text-[#d0d9e3] flex items-center justify-center gap-1.5 tap-feedback"
-              >
-                <ListMusic className="w-4 h-4" />
-                Liste
               </button>
               <button
                 type="button"
@@ -1664,7 +1933,7 @@ export const GlobalPlayerV2: React.FC<{
       {/* ── Surah list — docked / fused with the player bar (same as Coran reader) ── */}
       {showPlaylist && playerBarAnchor && (
         <div
-          className="pointer-events-none fixed inset-0 z-[49]"
+          className="pointer-events-none fixed inset-0 z-[140]"
           role="dialog"
           aria-modal="true"
           aria-labelledby="player-playlist-title"
@@ -1873,6 +2142,173 @@ export const GlobalPlayerV2: React.FC<{
                 <div className="flex flex-col items-center justify-center gap-2 px-6 py-14 text-center">
                   <Search className="h-5 w-5 text-[#5f7388]" />
                   <p className="text-sm text-[#aab7c5]">Aucune sourate pour « {drawerSearch} »</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Reciter picker — docked with the player bar ── */}
+      {showReciterPicker && playerBarAnchor && (
+        <div
+          className="pointer-events-none fixed inset-0 z-[140]"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="player-reciter-picker-title"
+        >
+          <button
+            type="button"
+            className={`player-reader-backdrop absolute inset-0 bg-[#07111d]/68 backdrop-blur-[10px] ${
+              reciterPickerClosing ? 'is-closing pointer-events-none' : 'pointer-events-auto'
+            }`}
+            aria-label="Fermer"
+            onClick={closeReciterPicker}
+            tabIndex={reciterPickerClosing ? -1 : 0}
+          />
+          <div
+            className={`player-reader-dock pointer-events-auto absolute z-10 flex flex-col overflow-hidden ${
+              reciterPickerClosing ? 'is-closing' : ''
+            } ${reciterPickerEntranceDone && !reciterPickerClosing ? 'is-settled' : ''}`}
+            style={{
+              left: playerBarAnchor.left,
+              width: playerBarAnchor.width,
+              bottom: Math.max(0, playerBarAnchor.bottom - 1),
+              height: `min(72dvh, calc(100dvh - ${playerBarAnchor.bottom}px - 1rem))`,
+              maxHeight: `calc(100dvh - ${playerBarAnchor.bottom}px - env(safe-area-inset-top, 0px))`,
+              borderTopLeftRadius: playerBarAnchor.borderRadius,
+              borderTopRightRadius: playerBarAnchor.borderRadius,
+              borderBottomLeftRadius: 0,
+              borderBottomRightRadius: 0,
+            }}
+          >
+            <div className="relative isolate shrink-0 border-b border-[#30455c]/40">
+              <div
+                className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(241,232,220,0.14),transparent_52%),linear-gradient(180deg,rgba(22,37,56,0.5)_0%,transparent_100%)]"
+                aria-hidden
+              />
+              <div className="relative z-10 px-3 pt-1.5 pb-3 md:px-4">
+                <div className="mb-1.5 flex justify-center">
+                  <span className="h-0.5 w-8 rounded-full bg-[#bfa078]/40" aria-hidden />
+                </div>
+
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#bfa078]/28 bg-[#07111d]/55 text-[#bfa078]"
+                    aria-hidden
+                  >
+                    <Headphones className="h-3.5 w-3.5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h3
+                      id="player-reciter-picker-title"
+                      className="truncate text-[0.95rem] font-black tracking-tight text-[#f6f8fb] md:text-base"
+                    >
+                      Récitateurs
+                    </h3>
+                    <p className="mt-0.5 truncate text-[11px] font-medium text-[#7a8fa3]">
+                      {currentTrack.surah.name}
+                      <span className="text-[#5f7388]"> · </span>
+                      {filteredReciters.length} voix
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={closeReciterPicker}
+                    disabled={reciterPickerClosing}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#46607b]/45 bg-[#0a1420]/80 text-[#aab7c5] hover:border-[#bfa078]/35 hover:text-[#f6f8fb] disabled:opacity-50"
+                    aria-label="Fermer la liste"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                <div className="relative mt-3 min-w-0">
+                  <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#95a7ba]" aria-hidden />
+                  <input
+                    type="search"
+                    value={reciterSearch}
+                    onChange={(e) => setReciterSearch(e.target.value)}
+                    placeholder="Rechercher un récitateur…"
+                    aria-label="Rechercher un récitateur"
+                    className="w-full min-h-10 rounded-xl border border-[#30455c]/65 bg-[#111d2d]/88 py-2 pl-9 pr-9 text-sm text-[#e6edf5] placeholder:text-[#8295aa] focus:border-[#bfa078]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#bfa078]/55"
+                  />
+                  {reciterSearch ? (
+                    <button
+                      type="button"
+                      onClick={() => setReciterSearch('')}
+                      aria-label="Effacer la recherche"
+                      className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-[#162538] text-[#aab7c5]"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-3 pb-3 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
+              <ul className="flex flex-col gap-1" role="listbox" aria-label="Choisir un récitateur">
+                {filteredReciters.map((reciter) => {
+                  const isCurrent = currentTrack.reciter.id === reciter.id;
+                  const moshaf = pickMoshafForSurah(reciter, currentTrack.surah.id);
+                  return (
+                    <li key={reciter.id}>
+                      <button
+                        ref={isCurrent ? currentReciterRowRef : undefined}
+                        type="button"
+                        role="option"
+                        aria-selected={isCurrent}
+                        disabled={!moshaf || Boolean(remoteSession)}
+                        onClick={() => {
+                          if (isCurrent) {
+                            closeReciterPicker();
+                            return;
+                          }
+                          selectReciter(reciter);
+                        }}
+                        className={`group flex w-full items-center gap-3 rounded-2xl border px-2.5 py-2 text-left transition-all tap-feedback disabled:opacity-45 ${
+                          isCurrent
+                            ? 'border-[#bfa078]/30 bg-[#e2d0ba]/[0.08]'
+                            : 'border-transparent hover:border-[#30455c]/50 hover:bg-[#111d2d]/80'
+                        }`}
+                      >
+                        <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl border border-[#46607b]/45 bg-[#07111d]">
+                          <ReciterPortrait reciter={reciter} alt="" />
+                          {isCurrent ? (
+                            <span className="absolute inset-0 flex items-center justify-center bg-[#07111d]/45">
+                              <Check className="h-4 w-4 text-[#e2d0ba]" strokeWidth={2.6} />
+                            </span>
+                          ) : null}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className={`block truncate text-[13px] font-bold leading-tight ${isCurrent ? 'text-[#f8fbff]' : 'text-[#f1f5f9]'}`}>
+                            {reciter.name}
+                          </span>
+                          {moshaf ? (
+                            <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[11px] font-medium text-[#95a7ba]">
+                              <span className="truncate">{moshaf.name}</span>
+                              <AyahSyncBadge moshaf={moshaf} compact />
+                            </span>
+                          ) : (
+                            <span className="mt-0.5 block text-[11px] text-[#7a8fa3]">
+                              Sourate indisponible
+                            </span>
+                          )}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+              {filteredReciters.length === 0 && (
+                <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
+                  <Search className="h-5 w-5 text-[#5f7388]" />
+                  <p className="text-sm text-[#aab7c5]">
+                    {reciterSearch
+                      ? `Aucun récitateur pour « ${reciterSearch} »`
+                      : 'Aucun récitateur pour cette sourate'}
+                  </p>
                 </div>
               )}
             </div>

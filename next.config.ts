@@ -13,6 +13,8 @@ const tabRedirect = (value: string, destination: string) => ({
 const nextConfig: NextConfig = {
   output: isExport ? 'export' : undefined,
   images: { unoptimized: true },
+  // Accès mobile en LAN (`next dev --hostname 0.0.0.0`)
+  allowedDevOrigins: ['192.168.1.25', '10.5.0.2'],
   turbopack: {
     root: process.cwd(),
   },
@@ -47,6 +49,21 @@ const nextConfig: NextConfig = {
             { source: '/privacy/', destination: '/privacy', permanent: true },
             { source: '/terms/', destination: '/terms', permanent: true },
             { source: '/sources/', destination: '/sources', permanent: true },
+            {
+              source: '/informations/sources',
+              destination: '/sources',
+              permanent: true,
+            },
+            {
+              source: '/informations/confidentialite',
+              destination: '/privacy',
+              permanent: true,
+            },
+            {
+              source: '/informations/conditions',
+              destination: '/terms',
+              permanent: true,
+            },
             {
               source: '/',
               has: [
@@ -90,7 +107,7 @@ const nextConfig: NextConfig = {
                 { type: 'query', key: 'panel', value: 'legal' },
                 { type: 'query', key: 'section', value: 'privacy' },
               ],
-              destination: '/informations/confidentialite',
+              destination: '/privacy',
               permanent: true,
             },
             {
@@ -100,7 +117,7 @@ const nextConfig: NextConfig = {
                 { type: 'query', key: 'panel', value: 'legal' },
                 { type: 'query', key: 'section', value: 'terms' },
               ],
-              destination: '/informations/conditions',
+              destination: '/terms',
               permanent: true,
             },
             {
@@ -109,9 +126,13 @@ const nextConfig: NextConfig = {
                 { type: 'query', key: 'tab', value: 'more' },
                 { type: 'query', key: 'panel', value: 'legal' },
               ],
-              destination: '/informations/sources',
+              destination: '/sources',
               permanent: true,
             },
+            tabRedirect('sources', '/sources'),
+            tabRedirect('privacy', '/privacy'),
+            tabRedirect('terms', '/terms'),
+            tabRedirect('legal', '/sources'),
           ];
         },
       }),

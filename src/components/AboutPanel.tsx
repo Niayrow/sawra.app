@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Compass, Cloud, HardDrive, Headphones, Shield, Sparkles, Trash2, Wifi,
   MonitorSmartphone, ListMusic, Smartphone, ExternalLink, History, BookOpen, FileText,
@@ -48,20 +49,14 @@ const FAQ_ITEMS: Array<{ question: string; answer: string }> = [
   {
     question: 'Le compte GoMuslimLife est-il partagé ?',
     answer:
-      'Oui. Un même compte sert pour Sawra et gomuslimlife.com : favoris, signets, historique, reprise et préférences sont synchronisés entre appareils.',
+      'Oui. Un même compte GoMuslimLife sert pour Sawra et gomuslimlife.com. Sur Sawra, favoris, signets, historique, reprise et préférences sont synchronisés entre vos appareils.',
   },
   {
     question: 'Sawra fonctionne-t-il sur mobile ?',
     answer:
-      'Oui. Sawra est une PWA installable sur Android et iOS, avec une expérience optimisée mobile.',
+      'Oui. Sawra est une PWA installable sur Android et iOS. Des applications natives sont en préparation.',
   },
 ];
-
-type LegalPanelId = 'sources' | 'privacy' | 'terms';
-
-type AboutPanelProps = {
-  onOpenLegal?: (panel: LegalPanelId) => void;
-};
 
 const UPDATE_HISTORY: Array<{
   version: string;
@@ -70,99 +65,23 @@ const UPDATE_HISTORY: Array<{
   items: string[];
 }> = [
   {
-    version: '1.7.0',
-    date: '14 août 2026',
-    title: 'Next.js, SEO par URL & Options dédiées',
-    items: [
-      'Migration web vers Next.js : métadonnées HTML, sitemap et robots par route (/ecouter, /quiz…).',
-      'Page Options dédiée (navbar flottante / pleine) ; À propos, Comparer, Téléchargements et Légal en pages distinctes.',
-      'Footer constellation + confirmation de suppression de compte (taper « supprimer »).',
-      'Politique Sources / Confidentialité / Conditions alignées sur v1.7.',
-    ],
-  },
-  {
-    version: '1.6.0',
-    date: '14 août 2026',
-    title: 'Bibliothèque personnelle, reprise & streak',
-    items: [
-      'Signets de versets précis avec notes personnelles, depuis le lecteur.',
-      'Reprise ciblée par sourate (verset affiché seulement s’il est sûr) et takeover multi-appareils plus fluide.',
-      'Historique d’écoute (compte) : temps total, calendrier 7 jours et streak enregistrés en direct dans le cloud (≥ 1 min / jour, fuseau de l’appareil).',
-      'Onglet Bibliothèque (signets, historique, voix) — merge invité → compte idempotent.',
-      'Retrait de l’onglet Moments (vidéos YouTube) — les anciens liens reviennent à l’accueil.',
-      'Suppression du compte et des données depuis Connexion (droit d’effacement).',
-    ],
-  },
-  {
-    version: '1.5.0',
-    date: '13 août 2026',
-    title: 'Quiz, Apprendre & navigation Pratiquer',
-    items: [
-      'Quiz Coran : « De quelle sourate ? », 5/10/15 questions, niveaux Facile / Moyen / Difficile, récitateurs verset par verset.',
-      'Quiz : clips de 2 versets, changement de voix à chaque question, relecture + suite après une bonne réponse.',
-      'Nouvelle page Apprendre : flou / écoute / révélation, phonétique, taille de groupe libre, préférences mémorisées.',
-      'Navbar Pratiquer (menu bulle Quiz / Apprendre) ; Options dans le header mobile ; dock bas allégé.',
-      'Accueil : Lecture | Explorer · Quiz | Apprendre ; fusion Explorer et animation Pratiquer peaufinées.',
-    ],
-  },
-  {
-    version: '1.4.0',
-    date: '9 août 2026',
-    title: 'Lecteur de versets & nouvelle identité',
-    items: [
-      'Feuille de lecture sourate avec texte, options et sync audio ↔ versets (mp3quran).',
-      'Nouveau branding : appicon PWA, icônes & favicon, logo navbar sans cadre.',
-      'Compte : renommer le nom affiché ; badge Connecté à la place de Connexion.',
-      'Filtres Versets / Sans sur Écouter et polish divers (hero, cartes).',
-    ],
-  },
-  {
-    version: '1.3.0',
-    date: '2 août 2026',
-    title: 'Sélection mobile & polish UX',
-    items: [
-      'Liste des sourates mobile : appui long, multi-sélection, barre Boucle / Télécharger.',
-      'Navbar mobile allégée : Accueil, Écouter, Favoris (+ Moments), Options.',
-      'Toast téléchargement, modal effets audio et bouton effets affinés.',
-      'Hero « simplement. » animé (couleur) et correctif chevauchement recherche / récitateur.',
-    ],
-  },
-  {
-    version: '1.2.0',
-    date: '27 juil. 2026',
-    title: 'Identité & expérience mobile',
-    items: [
-      'Nouveau logo calligraphie + icônes app / PWA (noir & cuivre).',
-      'Accueil redesigné : hero compact, accès rapide, lieux et favoris.',
-      'Navbar mobile : sélection marine, dock collé au lecteur, sans logo.',
-      'Player bar : temps, progression seekable, swipe plein écran, liste des sourates au tap.',
-      'Lecture distante : contrôles grisés + masquage temps/progression hors appareil local.',
-    ],
-  },
-  {
-    version: '1.1.0',
-    date: '2026',
-    title: 'Sync & lecteur V2',
-    items: [
-      'Lecteur V2 personnalisable (thèmes, densité, contrôles).',
-      'Synchronisation cloud des favoris, préférences et boucle de sourates.',
-      'Bandeau multi-appareils « Basculer ici » et reprise de lecture.',
-      'Palette marine et accents UI harmonisés.',
-    ],
-  },
-  {
     version: '1.0.0',
-    date: '2026',
+    date: '16 août 2026',
     title: 'Première version publique',
     items: [
-      'Streaming des récitateurs, favoris et mode hors-ligne.',
-      'Installation PWA.',
-      'Compte GoMuslimLife partagé.',
+      'Écoute en streaming, favoris, téléchargement hors-ligne et installation PWA.',
+      'Lecteur personnalisable : thèmes, progression, plein écran, effets audio.',
+      'Lecture des versets synchronisée avec l’audio, signets et notes personnelles.',
+      'Bibliothèque : signets, historique d’écoute, streak et récitateurs favoris.',
+      'Quiz Coran et page Apprendre (écoute, flou, phonétique).',
+      'Compte GoMuslimLife : sync multi-appareils, reprise de lecture, suppression du compte.',
+      'Options, pages À propos / Légal, et confirmation avant suppression de compte.',
     ],
   },
 ];
 
-export const AboutPanel: React.FC<AboutPanelProps> = ({ onOpenLegal }) => {
+export const AboutPanel: React.FC = () => {
+  const router = useRouter();
   const { cacheInfo, clearCache } = useAudio();
 
   const handleClear = async () => {
@@ -200,7 +119,7 @@ export const AboutPanel: React.FC<AboutPanelProps> = ({ onOpenLegal }) => {
     {
       icon: Cloud,
       title: 'Compte GoMuslimLife',
-      body: 'Un compte pour Sawra et GoMuslimLife.com : favoris, signets, historique, reprise et préférences — pas de pub ni d’historique commercialisé.',
+      body: 'Un même compte pour Sawra et GoMuslimLife.com. Sur Sawra : sync favoris, signets, historique et reprise entre appareils — pas de pub ni d’historique commercialisé.',
     },
     {
       icon: Smartphone,
@@ -240,7 +159,7 @@ export const AboutPanel: React.FC<AboutPanelProps> = ({ onOpenLegal }) => {
             <span className="brand-chip inline-flex items-center rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider">
               v{APP_VERSION}
             </span>
-            <span className="text-[11px] text-[#95a7ba]">Dernière maj · 14 août 2026</span>
+            <span className="text-[11px] text-[#95a7ba]">Dernière maj · 16 août 2026</span>
           </div>
           <a
             href="https://gomuslimlife.com"
@@ -355,25 +274,37 @@ export const AboutPanel: React.FC<AboutPanelProps> = ({ onOpenLegal }) => {
         )}
       </div>
 
-      {onOpenLegal && (
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          {([
-            { id: 'sources' as const, label: 'Sources & licences', icon: BookOpen },
-            { id: 'privacy' as const, label: 'Confidentialité', icon: Shield },
-            { id: 'terms' as const, label: 'Conditions', icon: FileText },
-          ]).map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => onOpenLegal(id)}
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          {(
+            [
+              { href: '/sources', label: 'Sources & licences', icon: BookOpen },
+              { href: '/privacy', label: 'Confidentialité', icon: Shield },
+              { href: '/terms', label: 'Conditions', icon: FileText },
+            ] as const
+          ).map(({ href, label, icon: Icon }) => (
+            <a
+              key={href}
+              href={href}
+              onClick={(event) => {
+                if (
+                  event.metaKey ||
+                  event.ctrlKey ||
+                  event.shiftKey ||
+                  event.altKey ||
+                  event.button !== 0
+                ) {
+                  return;
+                }
+                event.preventDefault();
+                router.push(href);
+              }}
               className="flex min-h-11 items-center gap-2 rounded-2xl border border-[#30455c]/55 bg-[#111d2d]/70 px-3.5 py-3 text-left text-xs font-semibold text-[#d0d9e3] transition-colors hover:border-[#46607b]/60 hover:text-[#f6f8fb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] tap-feedback"
             >
               <Icon className="h-4 w-4 shrink-0 text-[#e2d0ba]" aria-hidden />
               {label}
-            </button>
+            </a>
           ))}
         </div>
-      )}
 
       <div className="rounded-2xl border border-[#30455c]/40 bg-[#111d2d]/45 p-4 flex items-center gap-3">
         <Sparkles className="w-5 h-5 text-[#e2d0ba] shrink-0" />

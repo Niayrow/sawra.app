@@ -1,4 +1,4 @@
-import { resolveSeoForView, type LegalSub } from '@/utils/seo';
+import { resolveSeoForView } from '@/utils/seo';
 import { seoDocToMetadata } from '@/utils/seoMetadata';
 
 export const listenMetadata = seoDocToMetadata(resolveSeoForView('listen'));
@@ -11,6 +11,3 @@ export const aboutMetadata = seoDocToMetadata(resolveSeoForView('more', 'about')
 export const compareMetadata = seoDocToMetadata(resolveSeoForView('more', 'compare'));
 export const downloadsMetadata = seoDocToMetadata(resolveSeoForView('more', 'downloads'));
 export const optionsMetadata = seoDocToMetadata(resolveSeoForView('more', 'priorities'));
-
-export const legalMetadata = (section: LegalSub) =>
-  seoDocToMetadata(resolveSeoForView('more', 'legal', section));

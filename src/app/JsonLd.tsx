@@ -33,7 +33,7 @@ const GRAPH = {
       url: 'https://sawra.app/',
       applicationCategory: 'MultimediaApplication',
       applicationSubCategory: 'Quran audio player',
-      operatingSystem: 'Web, Android, iOS',
+      operatingSystem: 'Web Browser, Progressive Web App',
       browserRequirements: 'Requires JavaScript. Modern browser recommended.',
       inLanguage: 'fr-FR',
       isAccessibleForFree: true,
@@ -98,7 +98,7 @@ const GRAPH = {
           name: 'Sawra fonctionne-t-il sur mobile ?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Oui. Sawra est une application web progressive (PWA) installable sur Android et iOS, avec une expérience optimisée mobile.',
+            text: 'Oui. Sawra est une application web progressive (PWA) installable sur Android et iOS. Des applications natives sont en préparation.',
           },
         },
         {
@@ -138,7 +138,7 @@ const GRAPH = {
           name: 'Le compte GoMuslimLife est-il partagé ?',
           acceptedAnswer: {
             '@type': 'Answer',
-            text: 'Oui. Un même compte GoMuslimLife sert pour Sawra et gomuslimlife.com : favoris, signets, historique, reprise et préférences sont synchronisés entre appareils.',
+            text: 'Oui. Un même compte GoMuslimLife sert pour Sawra et gomuslimlife.com. Sur Sawra, favoris, signets, historique, reprise et préférences sont synchronisés entre vos appareils.',
           },
         },
       ],

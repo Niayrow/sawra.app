@@ -9,11 +9,11 @@ import { useAuth } from '../context/AuthContext';
 type AuthMode = 'signin' | 'signup';
 
 const DISCOVER_LINKS: Array<{ label: string; href: string; hint: string }> = [
-  { label: 'Options', href: '/options', hint: 'Navbar flottante ou pleine' },
+  { label: 'Options', href: '/options', hint: 'Lecture, texte, apparence…' },
   { label: 'À propos', href: '/a-propos', hint: 'Version, FAQ et nouveautés' },
   { label: 'Comparer', href: '/comparer', hint: 'Plusieurs récitateurs côte à côte' },
   { label: 'Téléchargements', href: '/telechargements', hint: 'Sourates hors ligne' },
-  { label: 'Sources & légal', href: '/informations/sources', hint: 'Licences, confidentialité, conditions' },
+  { label: 'Sources & légal', href: '/sources', hint: 'Licences, confidentialité, conditions' },
 ];
 
 type AccountPanelProps = {

@@ -28,7 +28,6 @@ type LibraryPageProps = {
   onToggleFavorite: (id: number, e: React.MouseEvent) => void;
   onExplore: () => void;
   onResume: () => void;
-  onOpenLegal?: () => void;
 };
 
 export const LibraryPage: React.FC<LibraryPageProps> = ({
@@ -38,7 +37,6 @@ export const LibraryPage: React.FC<LibraryPageProps> = ({
   onToggleFavorite,
   onExplore,
   onResume,
-  onOpenLegal,
 }) => {
   const { reciters, currentTrack, playFromAyah, playTrack } = useAudio();
   const { user, sessionReady } = useAuth();
@@ -326,15 +324,10 @@ export const LibraryPage: React.FC<LibraryPageProps> = ({
             </div>
 
             <p className="text-[11px] leading-relaxed text-[#8899ad]">
-              Les jours suivent le fuseau de l’appareil au moment de l’écoute.
-              {onOpenLegal ? (
-                <>
-                  {' '}
-                  <button type="button" onClick={onOpenLegal} className="font-semibold text-[#e2d0ba] underline-offset-2 hover:underline">
-                    En savoir plus
-                  </button>
-                </>
-              ) : null}
+              Les jours suivent le fuseau de l’appareil au moment de l’écoute.{' '}
+              <a href="/privacy" className="font-semibold text-[#e2d0ba] underline-offset-2 hover:underline">
+                En savoir plus
+              </a>
             </p>
 
             {recentProgress.length > 0 && (

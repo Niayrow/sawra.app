@@ -15,31 +15,36 @@ export const TAB_IDS = [
 ] as const;
 export type TabId = (typeof TAB_IDS)[number];
 
-export type MorePanel = 'downloads' | 'legal' | 'priorities' | 'compare' | 'about';
-export type LegalSub = 'sources' | 'privacy' | 'terms';
+export type MorePanel = 'downloads' | 'priorities' | 'compare' | 'about';
 
 export type AppLocation = {
   tab: TabId;
   morePanel: MorePanel;
-  legalSub: LegalSub;
   /** True when URL used legacy query params (caller should replaceState to clean path). */
   fromLegacyQuery: boolean;
 };
 
 export const MORE_PANEL_IDS: MorePanel[] = [
   'downloads',
-  'legal',
   'priorities',
   'compare',
   'about',
 ];
-export const LEGAL_SUB_IDS: LegalSub[] = ['sources', 'privacy', 'terms'];
 
 export const isMorePanel = (value: string | null): value is MorePanel =>
   Boolean(value && MORE_PANEL_IDS.includes(value as MorePanel));
 
-export const isLegalSub = (value: string | null): value is LegalSub =>
-  Boolean(value && LEGAL_SUB_IDS.includes(value as LegalSub));
+/** Standalone legal pages (outside the SPA shell). */
+export const LEGAL_PATHS = ['/sources', '/privacy', '/terms'] as const;
+export type LegalPath = (typeof LEGAL_PATHS)[number];
+
+export const isLegalPath = (value: string): value is LegalPath =>
+  (LEGAL_PATHS as readonly string[]).includes(value);
+
+export const isSpaPath = (pathname: string): boolean => {
+  const path = pathname.replace(/\/+$/, '') || '/';
+  return (SPA_PATHS as readonly string[]).includes(path);
+};
 
 /** Known SPA pathnames (normalized, no trailing slash except root). */
 export const SPA_PATHS = [
@@ -54,9 +59,6 @@ export const SPA_PATHS = [
   '/comparer',
   '/telechargements',
   '/options',
-  '/informations/sources',
-  '/informations/confidentialite',
-  '/informations/conditions',
 ] as const;
 
 const normalizePath = (pathname: string): string => {
@@ -65,13 +67,8 @@ const normalizePath = (pathname: string): string => {
   return trimmed || '/';
 };
 
-export const resolveMoreNavigation = (
-  raw: string | null,
-): { panel: MorePanel; legalSub?: LegalSub } => {
+export const resolveMoreNavigation = (raw: string | null): { panel: MorePanel } => {
   if (raw === 'downloads') return { panel: 'downloads' };
-  if (raw === 'sources' || raw === 'privacy' || raw === 'terms') {
-    return { panel: 'legal', legalSub: raw };
-  }
   if (isMorePanel(raw)) return { panel: raw };
   return { panel: 'downloads' };
 };
@@ -100,10 +97,6 @@ export const mapLegacyTab = (tab: string | null): TabId => {
     case 'more':
     case 'compare':
     case 'about':
-    case 'sources':
-    case 'privacy':
-    case 'terms':
-    case 'legal':
     case 'downloads':
       return 'more';
     case 'home':
@@ -112,11 +105,24 @@ export const mapLegacyTab = (tab: string | null): TabId => {
   }
 };
 
-export const pathForView = (
-  tab: TabId,
-  morePanel?: MorePanel | null,
-  legalSub?: LegalSub | null,
-): string => {
+/** Legacy legal query/path → standalone page. */
+export const legacyLegalHref = (raw: string | null | undefined): LegalPath | null => {
+  switch (raw) {
+    case 'privacy':
+    case 'confidentialite':
+      return '/privacy';
+    case 'terms':
+    case 'conditions':
+      return '/terms';
+    case 'sources':
+    case 'legal':
+      return '/sources';
+    default:
+      return null;
+  }
+};
+
+export const pathForView = (tab: TabId, morePanel?: MorePanel | null): string => {
   switch (tab) {
     case 'listen':
       return '/ecouter';
@@ -139,12 +145,7 @@ export const pathForView = (
         case 'downloads':
           return '/telechargements';
         case 'priorities':
-          return '/options';
-        case 'legal':
-          if (legalSub === 'privacy') return '/informations/confidentialite';
-          if (legalSub === 'terms') return '/informations/conditions';
-          return '/informations/sources';
-          default:
+        default:
           return '/options';
       }
     case 'home':
@@ -158,47 +159,36 @@ const parsePathname = (pathname: string): AppLocation | null => {
   switch (path) {
     case '/':
     case '/home':
-      return { tab: 'home', morePanel: 'downloads', legalSub: 'sources', fromLegacyQuery: false };
+      return { tab: 'home', morePanel: 'downloads', fromLegacyQuery: false };
     case '/ecouter':
     case '/listen':
-      return { tab: 'listen', morePanel: 'downloads', legalSub: 'sources', fromLegacyQuery: false };
+      return { tab: 'listen', morePanel: 'downloads', fromLegacyQuery: false };
     case '/bibliotheque':
     case '/favorites':
     case '/library':
-      return {
-        tab: 'favorites',
-        morePanel: 'downloads',
-        legalSub: 'sources',
-        fromLegacyQuery: false,
-      };
+      return { tab: 'favorites', morePanel: 'downloads', fromLegacyQuery: false };
     case '/quiz':
-      return { tab: 'quiz', morePanel: 'downloads', legalSub: 'sources', fromLegacyQuery: false };
+      return { tab: 'quiz', morePanel: 'downloads', fromLegacyQuery: false };
     case '/apprendre':
     case '/learn':
-      return { tab: 'learn', morePanel: 'downloads', legalSub: 'sources', fromLegacyQuery: false };
+      return { tab: 'learn', morePanel: 'downloads', fromLegacyQuery: false };
     case '/radio':
-      return { tab: 'radio', morePanel: 'downloads', legalSub: 'sources', fromLegacyQuery: false };
+      return { tab: 'radio', morePanel: 'downloads', fromLegacyQuery: false };
     case '/compte':
     case '/account':
-      return { tab: 'account', morePanel: 'downloads', legalSub: 'sources', fromLegacyQuery: false };
+      return { tab: 'account', morePanel: 'downloads', fromLegacyQuery: false };
     case '/a-propos':
     case '/about':
-      return { tab: 'more', morePanel: 'about', legalSub: 'sources', fromLegacyQuery: false };
+      return { tab: 'more', morePanel: 'about', fromLegacyQuery: false };
     case '/comparer':
     case '/compare':
-      return { tab: 'more', morePanel: 'compare', legalSub: 'sources', fromLegacyQuery: false };
+      return { tab: 'more', morePanel: 'compare', fromLegacyQuery: false };
     case '/telechargements':
     case '/downloads':
-      return { tab: 'more', morePanel: 'downloads', legalSub: 'sources', fromLegacyQuery: false };
+      return { tab: 'more', morePanel: 'downloads', fromLegacyQuery: false };
     case '/options':
     case '/priorities':
-      return { tab: 'more', morePanel: 'priorities', legalSub: 'sources', fromLegacyQuery: false };
-    case '/informations/sources':
-      return { tab: 'more', morePanel: 'legal', legalSub: 'sources', fromLegacyQuery: false };
-    case '/informations/confidentialite':
-      return { tab: 'more', morePanel: 'legal', legalSub: 'privacy', fromLegacyQuery: false };
-    case '/informations/conditions':
-      return { tab: 'more', morePanel: 'legal', legalSub: 'terms', fromLegacyQuery: false };
+      return { tab: 'more', morePanel: 'priorities', fromLegacyQuery: false };
     default:
       return null;
   }
@@ -212,30 +202,30 @@ const parseLegacyQuery = (search: string): AppLocation | null => {
 
   if (!tab && !panelParam && !sectionParam) return null;
 
+  // Legal legacy → leave to Next redirects / caller; treat as home cleanup
   if (
-    tab === 'compare' ||
-    tab === 'about' ||
+    legacyLegalHref(tab) ||
+    legacyLegalHref(sectionParam) ||
+    panelParam === 'legal' ||
+    tab === 'legal' ||
     tab === 'sources' ||
     tab === 'privacy' ||
-    tab === 'terms' ||
-    tab === 'downloads' ||
-    tab === 'legal'
+    tab === 'terms'
   ) {
+    return { tab: 'home', morePanel: 'downloads', fromLegacyQuery: true };
+  }
+
+  if (tab === 'compare' || tab === 'about' || tab === 'downloads') {
     const resolved = resolveMoreNavigation(tab);
     let panel = resolved.panel;
     if (sectionParam === 'downloads') panel = 'downloads';
-    const legalSub =
-      panel === 'legal' && isLegalSub(sectionParam)
-        ? sectionParam
-        : (resolved.legalSub ?? 'sources');
-    return { tab: 'more', morePanel: panel, legalSub, fromLegacyQuery: true };
+    return { tab: 'more', morePanel: panel, fromLegacyQuery: true };
   }
 
   if (tab === 'account' || tab === 'profile' || panelParam === 'account' || panelParam === 'profile') {
     return {
       tab: 'account',
       morePanel: 'downloads',
-      legalSub: 'sources',
       fromLegacyQuery: true,
     };
   }
@@ -244,11 +234,7 @@ const parseLegacyQuery = (search: string): AppLocation | null => {
     const resolved = resolveMoreNavigation(panelParam);
     let panel = resolved.panel;
     if (sectionParam === 'downloads') panel = 'downloads';
-    const legalSub =
-      panel === 'legal' && isLegalSub(sectionParam)
-        ? sectionParam
-        : (resolved.legalSub ?? 'sources');
-    return { tab: 'more', morePanel: panel, legalSub, fromLegacyQuery: true };
+    return { tab: 'more', morePanel: panel, fromLegacyQuery: true };
   }
 
   if (tab) {
@@ -258,14 +244,12 @@ const parseLegacyQuery = (search: string): AppLocation | null => {
       return {
         tab: 'more',
         morePanel: resolved.panel,
-        legalSub: resolved.legalSub ?? 'sources',
         fromLegacyQuery: true,
       };
     }
     return {
       tab: mapped,
       morePanel: 'downloads',
-      legalSub: 'sources',
       fromLegacyQuery: true,
     };
   }
@@ -279,7 +263,6 @@ export const parseLocation = (
 ): AppLocation => {
   const fromPath = parsePathname(pathname);
   if (fromPath) {
-    // Clean path but leftover ?tab= → still treat as legacy for cleanup
     const hasLegacy =
       new URLSearchParams(search).has('tab') ||
       new URLSearchParams(search).has('panel') ||
@@ -291,13 +274,12 @@ export const parseLocation = (
   const fromQuery = parseLegacyQuery(search);
   if (fromQuery) return fromQuery;
 
-  // Unknown path on SPA shell → home (Vercel should 404 unknown before this)
-  return { tab: 'home', morePanel: 'downloads', legalSub: 'sources', fromLegacyQuery: false };
+  return { tab: 'home', morePanel: 'downloads', fromLegacyQuery: false };
 };
 
 export const getInitialAppLocation = (): AppLocation => {
   if (typeof window === 'undefined') {
-    return { tab: 'home', morePanel: 'downloads', legalSub: 'sources', fromLegacyQuery: false };
+    return { tab: 'home', morePanel: 'downloads', fromLegacyQuery: false };
   }
   return parseLocation(window.location.pathname, window.location.search);
 };

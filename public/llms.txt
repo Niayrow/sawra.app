@@ -12,7 +12,7 @@ Sawra permet d’écouter le Coran en ligne avec de grands récitateurs (sources
 - [Quiz Coran](https://sawra.app/quiz): Devinez la sourate à partir d’un verset
 - [Apprendre](https://sawra.app/apprendre): Flou, écoute et révélation verset par verset
 - [Radio Coran](https://sawra.app/radio): Stations en continu
-- [À propos](https://sawra.app/a-propos): Changelog v1.7 et fonctionnalités
+- [À propos](https://sawra.app/a-propos): Changelog v1.0 et fonctionnalités
 - [Comparer récitateurs](https://sawra.app/comparer): Comparaison de voix sur une sourate
 - [Options](https://sawra.app/options): Navbar flottante ou pleine (ordinateur)
 
@@ -21,23 +21,21 @@ Sawra permet d’écouter le Coran en ligne avec de grands récitateurs (sources
 - [Politique de confidentialité](https://sawra.app/privacy): Données locales, compte, analytics, suppression
 - [Conditions d’utilisation](https://sawra.app/terms): Règles d’usage du service
 - [Sources & licences](https://sawra.app/sources): Provenance audio mp3quran.net + métadonnées
-- [Informations (app)](https://sawra.app/informations/sources): Sources, confidentialité et conditions dans l’app
 
 ## Produit
 
 - [Sawra — écouter le Coran](https://sawra.app/): Streaming audio, téléchargements hors-ligne, Bibliothèque, Quiz, Apprendre, PWA
 - [GoMuslimLife](https://gomuslimlife.com/): Compte partagé pour synchroniser favoris, signets, historique et reprise entre appareils
 
-## Fonctionnalités v1.7
+## Fonctionnalités v1.0
 
-- Site Next.js avec métadonnées SEO par URL
-- Pages distinctes : Options, À propos, Comparer, Téléchargements, Légal
+- Streaming, favoris, hors-ligne et PWA
+- Pages distinctes : Options, À propos, Comparer, Téléchargements
 - Signets de versets avec notes personnelles
 - Historique d’écoute et streak (compte requis, sync cloud)
 - Quiz Coran et page Apprendre
 - Radio Coran en continu
 - Suppression du compte (confirmation « supprimer »)
-- Retrait de l’onglet Moments (vidéos YouTube)
 
 ## Optional
 

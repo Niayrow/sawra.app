@@ -21,9 +21,10 @@ import { ReciterCategoryGrid, ReciterCategoryModal } from './components/ReciterC
 import { ListenRadioCta } from './components/ListenRadioCta';
 import { ListenReciterHeader } from './components/ListenReciterHeader';
 import { BatchDownloadToast } from './components/BatchDownloadToast';
-import { NavDesktopStyleToggle } from './components/NavDesktopStyleToggle';
 import { DownloadedSurahsPage } from './components/DownloadedSurahsPage';
 import { HomeFooter } from './components/HomeFooter';
+import { PwaInstallBanner } from './components/PwaInstallBanner';
+import { AppOptionsEffects } from './components/AppOptionsEffects';
 import { CloudSync } from './components/CloudSync';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { AuthPromptModal } from './components/AuthPromptModal';
@@ -39,12 +40,13 @@ import {
 } from './utils/navDesktopStyle';
 import { capturePostHogEvent, capturePostHogPageview } from './utils/posthog';
 import {
-  isLegalSub,
+  isLegalPath,
+  isSpaPath,
+  legacyLegalHref,
   mapLegacyTab,
   parseLocation,
   pathForView,
   resolveMoreNavigation,
-  type LegalSub,
   type MorePanel,
   type TabId,
 } from './utils/routes';
@@ -53,11 +55,9 @@ const SurahList = lazy(() => import('./components/SurahList').then((module) => (
 const GlobalPlayerV2 = lazy(() => import('./components/GlobalPlayerV2').then((module) => ({ default: module.GlobalPlayerV2 })));
 // Legacy player kept for reference: ./components/GlobalPlayer
 const AboutPanel = lazy(() => import('./components/AboutPanel').then((module) => ({ default: module.AboutPanel })));
+const OptionsPanel = lazy(() => import('./components/OptionsPanel').then((module) => ({ default: module.OptionsPanel })));
 const ReciterCompare = lazy(() => import('./components/ReciterCompare').then((module) => ({ default: module.ReciterCompare })));
 const AccountPanel = lazy(() => import('./components/AccountPanel').then((module) => ({ default: module.AccountPanel })));
-const SourcesPanel = lazy(() => import('./components/TrustLegalPanels').then((module) => ({ default: module.SourcesPanel })));
-const PrivacyPanel = lazy(() => import('./components/TrustLegalPanels').then((module) => ({ default: module.PrivacyPanel })));
-const TermsPanel = lazy(() => import('./components/TrustLegalPanels').then((module) => ({ default: module.TermsPanel })));
 const QuizPage = lazy(() => import('./components/QuizPage').then((module) => ({ default: module.QuizPage })));
 const LearnPage = lazy(() => import('./components/LearnPage').then((module) => ({ default: module.LearnPage })));
 const RadioPage = lazy(() => import('./components/RadioPage').then((module) => ({ default: module.RadioPage })));
@@ -718,7 +718,6 @@ const AppContent: React.FC = () => {
     if (activeTab !== 'radio') setRadioTheaterOpen(false);
   }, [activeTab]);
   const [morePanel, setMorePanel] = useState<MorePanel>(() => parsedPath.morePanel);
-  const [legalSub, setLegalSub] = useState<LegalSub>(() => parsedPath.legalSub);
   const [listenStep, setListenStep] = useState<ListenStep>('reciters');
   const [categoryModalId, setCategoryModalId] = useState<ReciterCategoryId | null>(null);
   const [reciterSearch, setReciterSearch] = useState<string>('');
@@ -765,6 +764,25 @@ const AppContent: React.FC = () => {
   const applyDeepLink = useCallback((rawUrl: string) => {
     try {
       const url = new URL(rawUrl, window.location.origin);
+      const pathNorm = url.pathname.replace(/\/+$/, '') || '/';
+
+      if (isLegalPath(pathNorm)) {
+        router.push(pathNorm);
+        return;
+      }
+      if (pathNorm === '/informations/sources') {
+        router.push('/sources');
+        return;
+      }
+      if (pathNorm === '/informations/confidentialite') {
+        router.push('/privacy');
+        return;
+      }
+      if (pathNorm === '/informations/conditions') {
+        router.push('/terms');
+        return;
+      }
+
       const parsed = parseLocation(url.pathname, url.search);
 
       if (url.protocol === 'sawra:' || url.pathname.includes('/surah')) {
@@ -781,7 +799,6 @@ const AppContent: React.FC = () => {
       ) {
         setActiveTab(parsed.tab);
         setMorePanel(parsed.morePanel);
-        setLegalSub(parsed.legalSub);
         return;
       }
 
@@ -789,25 +806,24 @@ const AppContent: React.FC = () => {
       const panelParam = url.searchParams.get('panel');
       const sectionParam = url.searchParams.get('section');
 
+      const legalHref =
+        legacyLegalHref(sectionParam) ||
+        legacyLegalHref(tab) ||
+        (panelParam === 'legal' ? '/sources' : null);
+      if (legalHref) {
+        router.push(legalHref);
+        return;
+      }
+
       const openMore = (raw: string | null) => {
         const resolved = resolveMoreNavigation(raw);
         let panel = resolved.panel;
         if (sectionParam === 'downloads') panel = 'downloads';
         setMorePanel(panel);
-        if (resolved.legalSub) setLegalSub(resolved.legalSub);
-        if (panel === 'legal' && isLegalSub(sectionParam)) setLegalSub(sectionParam);
         setActiveTab('more');
       };
 
-      if (
-        tab === 'compare' ||
-        tab === 'about' ||
-        tab === 'sources' ||
-        tab === 'privacy' ||
-        tab === 'terms' ||
-        tab === 'downloads' ||
-        tab === 'legal'
-      ) {
+      if (tab === 'compare' || tab === 'about' || tab === 'downloads') {
         openMore(tab);
         return;
       }
@@ -845,7 +861,7 @@ const AppContent: React.FC = () => {
         setActiveTab('listen');
       }
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     let removeListener: (() => void) | undefined;
@@ -872,25 +888,29 @@ const AppContent: React.FC = () => {
   // URL → état (retour navigateur, liens externes). Ne pas dépendre de activeTab
   // sinon on écrase une navigation utilisateur avant le replace.
   useEffect(() => {
+    const current = pathname.replace(/\/+$/, '') || '/';
+    // Pages hors shell (légal, etc.) : ne pas écraser l’état SPA pendant la transition.
+    if (!isSpaPath(current) || isLegalPath(current)) return;
     setActiveTab(parsedPath.tab);
     setMorePanel(parsedPath.morePanel);
-    setLegalSub(parsedPath.legalSub);
   }, [pathname, parsedPath]);
 
   // État → URL (clics navbar / onglets). pathname lu au moment de l’effet, hors deps.
   useEffect(() => {
-    const nextPath = pathForView(activeTab, morePanel, legalSub);
     const current = pathname.replace(/\/+$/, '') || '/';
+    // Ne pas ramener vers /options quand l’utilisateur ouvre /privacy, /terms, /sources…
+    if (!isSpaPath(current) || isLegalPath(current)) return;
+    const nextPath = pathForView(activeTab, morePanel);
     const normalizedNext = nextPath.replace(/\/+$/, '') || '/';
     if (current !== normalizedNext) {
       router.replace(nextPath, { scroll: false });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- sync état→URL uniquement
-  }, [activeTab, morePanel, legalSub, router]);
+  }, [activeTab, morePanel, router, pathname]);
 
   useEffect(() => {
     capturePostHogPageview();
-  }, [activeTab, morePanel, legalSub]);
+  }, [activeTab, morePanel]);
 
   useEffect(() => {
     if (!isLoadingReciters) {
@@ -1095,23 +1115,12 @@ const AppContent: React.FC = () => {
     });
   }, [cachedUrls, getAvailableSurahs, reciters]);
 
-  const handleNavigate = (
-    tab: TabId,
-    panel?: MorePanel,
-    options?: { legalSub?: LegalSub }
-  ) => {
+  const handleNavigate = (tab: TabId, panel?: MorePanel) => {
     setActiveTab(tab);
     if (panel) setMorePanel(panel);
-    if (options?.legalSub) setLegalSub(options.legalSub);
     if (tab === 'listen') {
       setListenStep(activeReciter ? 'surahs' : 'reciters');
     }
-  };
-
-  const openLegal = (section: LegalSub) => {
-    setMorePanel('legal');
-    setLegalSub(section);
-    setActiveTab('more');
   };
 
   const handleExploreVoices = () => {
@@ -1199,11 +1208,15 @@ const AppContent: React.FC = () => {
   };
 
   const navigateToPath = useCallback((href: string) => {
+    const pathNorm = href.split('?')[0].replace(/\/+$/, '') || '/';
+    if (isLegalPath(pathNorm)) {
+      router.push(pathNorm);
+      return;
+    }
     const parsed = parseLocation(href, '');
     setActiveTab(parsed.tab);
     setMorePanel(parsed.morePanel);
-    setLegalSub(parsed.legalSub);
-  }, []);
+  }, [router]);
 
   const navActiveTab =
     activeTab === 'radio' || activeTab === 'quiz' || activeTab === 'learn'
@@ -1245,6 +1258,7 @@ const AppContent: React.FC = () => {
         : 'md:pb-12'
     }`}>
       <CloudSync favorites={favorites} setFavorites={setFavorites} />
+      <AppOptionsEffects />
       <AuthPromptModal
         open={showAuthPrompt && !user}
         onClose={dismissAuthPrompt}
@@ -1459,6 +1473,7 @@ const AppContent: React.FC = () => {
               </section>
             )}
 
+            <PwaInstallBanner />
             <HomeFooter onNavigate={navigateToPath} />
 
             {exploreFusionEnabled && exploreFusionSpacerPx > 0 && (
@@ -1760,7 +1775,6 @@ const AppContent: React.FC = () => {
                 setListenStep('reciters');
               }}
               onResume={handleResumeListening}
-              onOpenLegal={() => openLegal('privacy')}
             />
           </Suspense>
         )}
@@ -1803,22 +1817,15 @@ const AppContent: React.FC = () => {
           </div>
         )}
 
-        {/* Pages distinctes (Options / À propos / Comparer / Téléchargements / Légal) */}
+        {/* Pages distinctes (Options / À propos / Comparer / Téléchargements) */}
         {activeTab === 'more' && morePanel === 'priorities' && (
           <div className="flex flex-col gap-5 max-md:pt-4 md:pt-3 md:max-w-xl md:mx-auto md:w-full">
-            <section className="glass-panel rounded-3xl border border-[#30455c]/60 p-5">
-              <span className="brand-chip-cool inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest">
-                Options
-              </span>
-              <h2 className="mt-3 text-lg font-black text-[#f6f8fb]">Préférences d’interface</h2>
-              <p className="mt-1.5 text-[12px] leading-relaxed text-[#95a7ba]">
-                Choisissez le style de la barre de navigation et de la barre de lecture sur ordinateur.
-              </p>
-              <NavDesktopStyleToggle
-                value={navDesktopStyle}
-                onChange={handleNavDesktopStyleChange}
+            <Suspense fallback={<div className="shimmer-loader h-40 rounded-2xl border border-slate-900" />}>
+              <OptionsPanel
+                navDesktopStyle={navDesktopStyle}
+                onNavDesktopStyleChange={handleNavDesktopStyleChange}
               />
-            </section>
+            </Suspense>
           </div>
         )}
 
@@ -1840,47 +1847,6 @@ const AppContent: React.FC = () => {
           </div>
         )}
 
-        {activeTab === 'more' && morePanel === 'legal' && (
-          <div className="flex flex-col gap-4 max-md:pt-4 md:pt-3">
-            <section className="glass-panel rounded-3xl border border-[#30455c]/60 px-5 py-4">
-              <span className="brand-chip-cool inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest">
-                Informations
-              </span>
-              <h2 className="mt-3 text-lg font-black text-[#f6f8fb]">Sources &amp; légal</h2>
-            </section>
-            <div
-              className="flex gap-1 rounded-2xl border border-[#30455c]/50 bg-[#0f1928]/80 p-1"
-              role="tablist"
-              aria-label="Informations légales"
-            >
-              {([
-                { id: 'sources' as const, label: 'Sources' },
-                { id: 'privacy' as const, label: 'Confidentialité' },
-                { id: 'terms' as const, label: 'Conditions' },
-              ]).map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={legalSub === item.id}
-                  onClick={() => setLegalSub(item.id)}
-                  className={`min-h-10 flex-1 rounded-xl px-2 py-2 text-[11px] sm:text-xs font-bold transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] ${
-                    legalSub === item.id
-                      ? 'bg-[#e2d0ba]/14 text-[#e6d5c2]'
-                      : 'text-[#95a7ba] hover:text-[#e6edf5]'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-            <Suspense fallback={<div className="shimmer-loader h-40 rounded-2xl border border-slate-900" />}>
-              {legalSub === 'sources' && <SourcesPanel />}
-              {legalSub === 'privacy' && <PrivacyPanel />}
-              {legalSub === 'terms' && <TermsPanel />}
-            </Suspense>
-          </div>
-        )}
 
         {activeTab === 'more' && morePanel === 'compare' && (
           <div className="flex flex-col gap-5 max-md:pt-4 md:pt-3">
@@ -1902,7 +1868,7 @@ const AppContent: React.FC = () => {
         {activeTab === 'more' && morePanel === 'about' && (
           <div className="flex flex-col gap-5 max-md:pt-4 md:pt-3">
             <Suspense fallback={<div className="shimmer-loader h-40 rounded-2xl border border-slate-900" />}>
-              <AboutPanel onOpenLegal={openLegal} />
+              <AboutPanel />
             </Suspense>
           </div>
         )}

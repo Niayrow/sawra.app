@@ -22,22 +22,23 @@ export const metadata: Metadata = {
 export default function SourcesPage() {
   return (
     <LegalDocument title="Sources & licences" updated={LEGAL_UPDATED_LABEL}>
-      <p>
-        Provenance audio et métadonnées de Sawra (v1.7).{' '}
-        <Link href="/informations/sources">Version interactive dans l’app</Link>.
-      </p>
+      <p>Provenance des récitations et du texte sur Sawra (v1.0).</p>
 
       <h2>1. Source audio</h2>
       <p>
-        Catalogue public <a href="https://www.mp3quran.net">mp3quran.net</a> (API v3 et serveurs audio).
-        Sawra n’héberge pas les MP3 : le lecteur charge les URL du catalogue.
+        Catalogue public <a href="https://www.mp3quran.net">mp3quran.net</a>. Sawra n’héberge pas les
+        fichiers audio : le lecteur lit les adresses fournies par ce catalogue.
       </p>
 
-      <h2>2. Métadonnées & sync versets</h2>
+      <h2>2. Streaming, hors-ligne & texte</h2>
       <p>
-        Noms de récitateurs, moshaf et listes de sourates viennent de l’API mp3quran. Texte / timings
-        pour la lecture verset par verset s’appuient aussi sur des sources publiques associées (dont
-        api.quran.com lorsque disponible). Un catalogue de secours local peut s’afficher hors réseau.
+        En ligne, une connexion est nécessaire. Hors-ligne : uniquement les sourates que vous avez
+        téléchargées sur cet appareil (cache local).
+      </p>
+      <p>
+        Noms de récitateurs et listes de sourates viennent de mp3quran. Texte arabe et timings verset
+        par verset s’appuient aussi sur des sources publiques associées (dont api.quran.com lorsque
+        disponible). Un catalogue de secours local peut s’afficher hors réseau.
       </p>
 
       <h2>3. Licences</h2>
@@ -52,7 +53,7 @@ export default function SourcesPage() {
       </p>
 
       <p>
-        <Link href="/informations/sources">Ouvrir dans l’app →</Link>
+        Voir aussi : <Link href="/privacy">Confidentialité</Link> · <Link href="/terms">Conditions</Link>
       </p>
     </LegalDocument>
   );

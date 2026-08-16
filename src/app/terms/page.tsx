@@ -22,16 +22,13 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <LegalDocument title="Conditions d’utilisation" updated={LEGAL_UPDATED_LABEL}>
-      <p>
-        Règles d’usage de Sawra (v1.7).{' '}
-        <Link href="/informations/conditions">Version interactive dans l’app</Link>.
-      </p>
+      <p>Règles d’usage de Sawra (v1.0).</p>
 
       <h2>1. Service</h2>
       <p>
-        Lecteur coranique gratuit (web Next.js / PWA, apps natives en préparation) : streaming,
-        hors-ligne local, Bibliothèque, Quiz, Apprendre, Radio, et sync multi-appareils avec un compte
-        GoMuslimLife.
+        Lecteur coranique gratuit (site web et PWA ; applications mobiles en préparation) : streaming,
+        hors-ligne local, Bibliothèque, Quiz, Apprendre, Radio, et synchronisation multi-appareils avec
+        un compte GoMuslimLife.
       </p>
 
       <h2>2. Usage</h2>
@@ -39,7 +36,7 @@ export default function TermsPage() {
         <li>Écoute personnelle et familiale.</li>
         <li>Pas d’extraction massive ni de contournement des sources audio.</li>
         <li>Pas d’usage commercial des enregistrements sans accord des ayants droit.</li>
-        <li>Pas d’abus technique (surcharge API, scraping agressif).</li>
+        <li>Pas d’abus technique (surcharge des services, scraping agressif).</li>
         <li>Respect des lois applicables et du caractère sacré du contenu.</li>
       </ul>
 
@@ -56,7 +53,7 @@ export default function TermsPage() {
         <a href="https://gomuslimlife.com">GoMuslimLife.com</a>.
       </p>
       <p>
-        <Link href="/informations/conditions">Ouvrir dans l’app →</Link>
+        Voir aussi : <Link href="/privacy">Confidentialité</Link> · <Link href="/sources">Sources</Link>
       </p>
     </LegalDocument>
   );

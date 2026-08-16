@@ -16,9 +16,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/privacy', priority: 0.5, changeFrequency: 'monthly' as const },
     { path: '/terms', priority: 0.4, changeFrequency: 'monthly' as const },
     { path: '/sources', priority: 0.4, changeFrequency: 'monthly' as const },
-    { path: '/informations/sources', priority: 0.4, changeFrequency: 'monthly' as const },
-    { path: '/informations/confidentialite', priority: 0.4, changeFrequency: 'monthly' as const },
-    { path: '/informations/conditions', priority: 0.4, changeFrequency: 'monthly' as const },
   ];
 
   return urls.map((item) => ({

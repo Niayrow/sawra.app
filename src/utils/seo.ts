@@ -1,7 +1,7 @@
 /**
  * SEO documents (titles, descriptions, canonicals) consumed by Next.js generateMetadata.
  */
-import { pathForView, type LegalSub, type MorePanel, type TabId } from './routes';
+import { pathForView, type MorePanel, type TabId } from './routes';
 
 export type SeoBreadcrumb = {
   name: string;
@@ -17,6 +17,8 @@ export type SeoDoc = {
   breadcrumbs?: SeoBreadcrumb[];
 };
 
+export type LegalSub = 'sources' | 'privacy' | 'terms';
+
 const SITE_ORIGIN = 'https://sawra.app';
 
 const absoluteUrl = (path: string) => {
@@ -25,8 +27,13 @@ const absoluteUrl = (path: string) => {
   return `${SITE_ORIGIN}${normalized}`;
 };
 
-const path = (tab: TabId, morePanel?: MorePanel | null, legalSub?: LegalSub | null) =>
-  pathForView(tab, morePanel, legalSub);
+const path = (tab: TabId, morePanel?: MorePanel | null) => pathForView(tab, morePanel);
+
+const LEGAL_HREF: Record<LegalSub, string> = {
+  sources: '/sources',
+  privacy: '/privacy',
+  terms: '/terms',
+};
 
 export const SEO_HOME: SeoDoc = {
   title: 'Sawra — Écouter le Coran en ligne gratuitement | Sans publicité',
@@ -91,7 +98,7 @@ const SEO_BY_VIEW: Record<SeoViewKey, SeoDoc> = {
     ],
   },
   about: {
-    title: 'À propos de Sawra — Lecteur coranique gratuit v1.6',
+    title: 'À propos de Sawra — Lecteur coranique gratuit v1.0',
     description:
       'Sawra est un lecteur coranique web et PWA : streaming mp3quran.net, Bibliothèque, Quiz, Apprendre, hors-ligne, sync, 100 % gratuit et sans publicité.',
     path: path('more', 'about'),
@@ -127,44 +134,44 @@ const SEO_BY_VIEW: Record<SeoViewKey, SeoDoc> = {
     title: 'Sources, confidentialité et conditions — Sawra',
     description:
       'Sources audio (mp3quran.net), politique de confidentialité et conditions d’utilisation de Sawra.',
-    path: path('more', 'legal', 'sources'),
-    canonical: absoluteUrl(path('more', 'legal', 'sources')),
+    path: LEGAL_HREF.sources,
+    canonical: absoluteUrl(LEGAL_HREF.sources),
     breadcrumbs: [
       { name: 'Accueil', path: '/' },
-      { name: 'Informations légales', path: path('more', 'legal', 'sources') },
+      { name: 'Informations légales', path: LEGAL_HREF.sources },
     ],
   },
   'legal-sources': {
     title: 'Sources & licences audio — Sawra',
     description:
       'Provenance des enregistrements Coran (mp3quran.net), statut des fichiers et conditions d’usage sur Sawra.',
-    path: path('more', 'legal', 'sources'),
-    canonical: absoluteUrl(path('more', 'legal', 'sources')),
+    path: LEGAL_HREF.sources,
+    canonical: absoluteUrl(LEGAL_HREF.sources),
     breadcrumbs: [
       { name: 'Accueil', path: '/' },
-      { name: 'Sources & licences', path: path('more', 'legal', 'sources') },
+      { name: 'Sources & licences', path: LEGAL_HREF.sources },
     ],
   },
   'legal-privacy': {
     title: 'Confidentialité — Sawra | Données et compte',
     description:
       'Politique de confidentialité Sawra : stockage local, sync compte GoMuslimLife, historique, streak, suppression de compte. Gratuit, sans pub.',
-    path: path('more', 'legal', 'privacy'),
-    canonical: absoluteUrl(path('more', 'legal', 'privacy')),
+    path: LEGAL_HREF.privacy,
+    canonical: absoluteUrl(LEGAL_HREF.privacy),
     breadcrumbs: [
       { name: 'Accueil', path: '/' },
-      { name: 'Confidentialité', path: path('more', 'legal', 'privacy') },
+      { name: 'Confidentialité', path: LEGAL_HREF.privacy },
     ],
   },
   'legal-terms': {
     title: 'Conditions d’utilisation — Sawra',
     description:
       'Règles d’usage de Sawra : écoute personnelle, hors-ligne, sync compte, limites techniques. Lecteur coranique gratuit.',
-    path: path('more', 'legal', 'terms'),
-    canonical: absoluteUrl(path('more', 'legal', 'terms')),
+    path: LEGAL_HREF.terms,
+    canonical: absoluteUrl(LEGAL_HREF.terms),
     breadcrumbs: [
       { name: 'Accueil', path: '/' },
-      { name: 'Conditions', path: path('more', 'legal', 'terms') },
+      { name: 'Conditions', path: LEGAL_HREF.terms },
     ],
   },
   priorities: {
@@ -213,8 +220,6 @@ const SEO_BY_VIEW: Record<SeoViewKey, SeoDoc> = {
     ],
   },
 };
-
-export type { LegalSub };
 
 export const resolveSeoForView = (
   tab: string,

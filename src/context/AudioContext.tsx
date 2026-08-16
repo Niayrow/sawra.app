@@ -318,7 +318,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
   const [sleepTimer, setSleepTimer] = useState<number | null>(null);
   const [playerTheme, setPlayerThemeState] = useState<string>(() => {
-    return readStorage(`${LOCAL_STORAGE_PREFIX}player_theme`) || 'emerald';
+    return readStorage(`${LOCAL_STORAGE_PREFIX}player_theme`) || 'amber';
   });
   // IDs of user-selected (checked) surahs; empty = play all
   const [selectedSurahIds, setSelectedSurahIdsState] = useState<Set<number>>(() => {

@@ -2,10 +2,11 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 're
 import { createPortal } from 'react-dom';
 import { useAudio } from '../context/AudioContext';
 import {
-  Play, Pause, SkipForward, SkipBack, ChevronDown, Volume2, VolumeX,
+  ChevronDown, VolumeX, Volume2,
   Disc, ListMusic, Search, X, Settings, Sparkles, Check, Moon, Repeat,
-  Repeat1, Clock, RotateCcw, RotateCw, Gauge, SlidersHorizontal, MonitorSmartphone,
-  SlidersVertical, BookOpen, Headphones
+  Repeat1, Clock, RotateCcw, RotateCw, Gauge, MonitorSmartphone,
+  Headphones, Play, Pause, SkipBack, SkipForward, SlidersHorizontal,
+  BookOpenText, AudioLines,
 } from '../icons/motion';
 import { PLAYER_THEMES, PLAYER_THEME_IDS, type PlayerThemeId } from './player/playerThemes';
 import {
@@ -14,6 +15,7 @@ import {
   type SeekStepSeconds,
 } from './player/playerV2Prefs';
 import { AudioEffectsPanel } from './player/AudioEffectsPanel';
+import { PlayerTooltip } from './player/PlayerTooltip';
 import { AUDIO_EFFECT_PRESETS, effectsNeedProcessing } from '../audio/effectsTypes';
 import { ReciterPortrait } from './ReciterPortrait';
 import { SURAHS } from '../data/surahs';
@@ -308,8 +310,8 @@ export const GlobalPlayerV2: React.FC<{
   const [liveRemotePos, setLiveRemotePos] = useState(0);
   const remoteClockAnchorRef = useRef<{ pos: number; at: number; key: string } | null>(null);
 
-  const theme = PLAYER_THEMES[(playerTheme as PlayerThemeId)] || PLAYER_THEMES.emerald;
-  const density = DENSITY_META[prefs.density] || DENSITY_META.expanded;
+  const theme = PLAYER_THEMES[(playerTheme as PlayerThemeId)] || PLAYER_THEMES.amber;
+  const density = DENSITY_META[prefs.density] || DENSITY_META.compact;
   const isCompactBar = prefs.density === 'compact';
   const ayahBarVariant = prefs.density === 'comfortable' ? 'link' : 'full';
   const readerTopRadius =
@@ -804,7 +806,7 @@ export const GlobalPlayerV2: React.FC<{
             }`}
             aria-label="Lecture"
           >
-            <Play className="h-4 w-4 fill-current ml-0.5" />
+            <Play size={16} color="currentColor" className="ml-0.5" />
           </button>
           <button
             type="button"
@@ -894,48 +896,49 @@ export const GlobalPlayerV2: React.FC<{
         >
         {/* Track info */}
         <div className={`flex items-center min-w-0 flex-1 md:col-span-1 md:pt-0 ${density.rowGapClass}`}>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              if (showReciterPicker && !reciterPickerClosing) closeReciterPicker();
-              else openReciterPicker();
-            }}
-            className="group/disc relative shrink-0"
-            title="Changer de récitateur"
-            aria-label="Changer de récitateur"
-            aria-expanded={showReciterPicker && !reciterPickerClosing}
-          >
-            <span
-              className="pointer-events-none absolute -inset-0.5 rounded-[0.85rem] bg-[#e2d0ba]/0 ring-1 ring-[#e2d0ba]/0 transition-all duration-300 group-hover/disc:bg-[#e2d0ba]/[0.07] group-hover/disc:ring-[#e2d0ba]/25 group-active/disc:scale-95"
-              aria-hidden
-            />
-            <span
-              className="player-disc-hint pointer-events-none absolute -inset-[3px] rounded-[0.9rem] ring-1 ring-[#e2d0ba]/25 md:hidden"
-              aria-hidden
-            />
-            <div className={`relative ${density.coverClass} bg-[#07111d] border border-[#46607b]/50 md:border-[#bfa078]/30 overflow-hidden flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-[width,height] duration-300 group-active/disc:scale-95 md:shadow-[0_8px_24px_rgba(0,0,0,0.35)]`}>
-              {hasCover && currentTrack ? (
-                <ReciterPortrait reciter={currentTrack.reciter} alt="" />
-              ) : (
-                <Disc className={`${density.discIconClass} ${theme.glowDisc} ${playbackStatus === 'playing' ? 'animate-[spin_10s_linear_infinite]' : ''}`} />
-              )}
-            </div>
-            <span
-              className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-[#bfa078]/35 bg-[#111d2d] text-[#e6d5c2]/90 shadow-md"
-              aria-hidden
+          <PlayerTooltip label="Changer de récitateur" accentColor={theme.sliderAccentColor} className="inline-flex shrink-0">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (showReciterPicker && !reciterPickerClosing) closeReciterPicker();
+                else openReciterPicker();
+              }}
+              className="group/disc relative shrink-0"
+              aria-label="Changer de récitateur"
+              aria-expanded={showReciterPicker && !reciterPickerClosing}
             >
-              <Headphones className="w-2.5 h-2.5" strokeWidth={2.5} />
-            </span>
-          </button>
+              <span
+                className="pointer-events-none absolute -inset-0.5 rounded-[0.85rem] bg-[#e2d0ba]/0 ring-1 ring-[#e2d0ba]/0 transition-all duration-300 group-hover/disc:bg-[#e2d0ba]/[0.07] group-hover/disc:ring-[#e2d0ba]/25 group-active/disc:scale-95"
+                aria-hidden
+              />
+              <span
+                className="player-disc-hint pointer-events-none absolute -inset-[3px] rounded-[0.9rem] ring-1 ring-[#e2d0ba]/25 md:hidden"
+                aria-hidden
+              />
+              <div className={`relative ${density.coverClass} bg-[#07111d] border border-[#46607b]/50 md:border-[#bfa078]/30 overflow-hidden flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-[width,height] duration-300 group-active/disc:scale-95 md:shadow-[0_8px_24px_rgba(0,0,0,0.35)]`}>
+                {hasCover && currentTrack ? (
+                  <ReciterPortrait reciter={currentTrack.reciter} alt="" />
+                ) : (
+                  <Disc className={`${density.discIconClass} ${theme.glowDisc} ${playbackStatus === 'playing' ? 'animate-[spin_10s_linear_infinite]' : ''}`} />
+                )}
+              </div>
+              <span
+                className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full border border-[#bfa078]/35 bg-[#111d2d] text-[#e6d5c2]/90 shadow-md"
+                aria-hidden
+              >
+                <Headphones className="w-2.5 h-2.5" strokeWidth={2.5} />
+              </span>
+            </button>
+          </PlayerTooltip>
 
-          <button
-            type="button"
-            onClick={togglePlaylist}
-            className="min-w-0 flex-1 overflow-hidden text-left rounded-xl px-0.5 py-1 md:hidden"
-            title="Liste des sourates"
-            aria-label="Ouvrir la liste des sourates"
-          >
+          <PlayerTooltip label="Liste des sourates" accentColor={theme.sliderAccentColor} className="min-w-0 flex-1 md:hidden">
+            <button
+              type="button"
+              onClick={togglePlaylist}
+              className="min-w-0 w-full overflow-hidden text-left rounded-xl px-0.5 py-1"
+              aria-label="Ouvrir la liste des sourates"
+            >
             <div className="flex min-w-0 items-center gap-1.5">
               <MarqueeText
                 text={currentTrack.surah.name}
@@ -949,23 +952,25 @@ export const GlobalPlayerV2: React.FC<{
                 className="min-w-0"
               />
             </p>
-          </button>
+            </button>
+          </PlayerTooltip>
 
-          <button
-            type="button"
-            onClick={togglePlaylist}
-            className="hidden md:block min-w-0 flex-1 text-left rounded-2xl px-1.5 py-1 tap-feedback hover:bg-[#111d2d]/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078]"
-            title="Liste des sourates"
-            aria-label="Ouvrir la liste des sourates"
-          >
-            <p className={`text-[15px] font-bold text-[#f6f8fb] truncate leading-tight ${theme.accentTextHover}`}>
-              {String(currentTrack.surah.id).padStart(3, '0')}. {currentTrack.surah.name}
-            </p>
-            <p className="mt-0.5 flex min-w-0 items-center gap-2 text-[13px] text-[#aab7c5]">
-              <span className="truncate">{currentTrack.reciter.name}</span>
-              <AyahSyncBadge moshaf={currentTrack.moshaf} compact />
-            </p>
-          </button>
+          <PlayerTooltip label="Liste des sourates" accentColor={theme.sliderAccentColor} className="hidden md:block min-w-0 flex-1">
+            <button
+              type="button"
+              onClick={togglePlaylist}
+              className="w-full min-w-0 text-left rounded-2xl px-1.5 py-1 tap-feedback hover:bg-[#111d2d]/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078]"
+              aria-label="Ouvrir la liste des sourates"
+            >
+              <p className={`text-[15px] font-bold text-[#f6f8fb] truncate leading-tight ${theme.accentTextHover}`}>
+                {String(currentTrack.surah.id).padStart(3, '0')}. {currentTrack.surah.name}
+              </p>
+              <p className="mt-0.5 flex min-w-0 items-center gap-2 text-[13px] text-[#aab7c5]">
+                <span className="truncate">{currentTrack.reciter.name}</span>
+                <AyahSyncBadge moshaf={currentTrack.moshaf} compact />
+              </p>
+            </button>
+          </PlayerTooltip>
 
           {/* Mobile transport — prev / play / next only (tools sit on progress row) */}
           <div
@@ -983,7 +988,7 @@ export const GlobalPlayerV2: React.FC<{
               className={`${density.skipBtnClass} rounded-full bg-[#111d2d] border border-[#30455c] text-[#e6edf5] flex items-center justify-center tap-feedback disabled:pointer-events-none disabled:grayscale transition-[width,height] duration-300`}
               aria-label="Précédent"
             >
-              <SkipBack className="w-4 h-4 fill-current" />
+              <SkipBack size={16} color="currentColor" />
             </button>
             <button
               type="button"
@@ -1001,9 +1006,9 @@ export const GlobalPlayerV2: React.FC<{
               aria-label={playbackStatus === 'playing' ? 'Pause' : 'Lecture'}
             >
               {playbackStatus === 'playing' ? (
-                <Pause className="w-4.5 h-4.5 fill-current" />
+                <Pause size={18} color="currentColor" />
               ) : (
-                <Play className="w-4.5 h-4.5 fill-current ml-0.5" />
+                <Play size={18} color="currentColor" className="ml-0.5" />
               )}
             </button>
             <button
@@ -1017,7 +1022,7 @@ export const GlobalPlayerV2: React.FC<{
               className={`${density.skipBtnClass} rounded-full bg-[#111d2d] border border-[#30455c] text-[#e6edf5] flex items-center justify-center tap-feedback disabled:pointer-events-none disabled:grayscale transition-[width,height] duration-300`}
               aria-label="Suivant"
             >
-              <SkipForward className="w-4 h-4 fill-current" />
+              <SkipForward size={16} color="currentColor" />
             </button>
             <button
               type="button"
@@ -1050,7 +1055,7 @@ export const GlobalPlayerV2: React.FC<{
               className="h-10 w-10 text-[#c8d1db] hover:text-[#f6f8fb] rounded-full hover:bg-[#111d2d]/70 disabled:pointer-events-none flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078]"
               aria-label="Précédent"
             >
-              <SkipBack className="w-5 h-5 fill-current" />
+              <SkipBack size={20} color="currentColor" />
             </button>
             <button
               type="button"
@@ -1067,9 +1072,9 @@ export const GlobalPlayerV2: React.FC<{
               aria-label={playbackStatus === 'playing' ? 'Pause' : 'Lecture'}
             >
               {playbackStatus === 'playing' ? (
-                <Pause className="w-5 h-5 fill-current" />
+                <Pause size={20} color="currentColor" />
               ) : (
-                <Play className="w-5 h-5 fill-current ml-0.5" />
+                <Play size={20} color="currentColor" className="ml-0.5" />
               )}
             </button>
             <button
@@ -1082,15 +1087,13 @@ export const GlobalPlayerV2: React.FC<{
               className="h-10 w-10 text-[#c8d1db] hover:text-[#f6f8fb] rounded-full hover:bg-[#111d2d]/70 disabled:pointer-events-none flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078]"
               aria-label="Suivant"
             >
-              <SkipForward className="w-5 h-5 fill-current" />
+              <SkipForward size={20} color="currentColor" />
             </button>
           </div>
           {!remoteSession && (
             <div className="flex w-full flex-col gap-1">
               <div className="flex w-full items-center gap-2 text-[10px] font-mono font-semibold text-[#95a7ba]">
-                {!isCompactBar ? (
-                  <span className="w-9 shrink-0 text-right tabular-nums text-[#e6d5c2]">{formatTime(currentTime)}</span>
-                ) : null}
+                <span className="w-9 shrink-0 text-right tabular-nums text-[#e6d5c2]">{formatTime(currentTime)}</span>
                 <input
                   type="range"
                   min={0}
@@ -1106,9 +1109,7 @@ export const GlobalPlayerV2: React.FC<{
                   aria-valuenow={Math.floor(currentTime)}
                   aria-valuetext={`${formatTime(currentTime)} sur ${formatDuration(duration)}`}
                 />
-                {!isCompactBar ? (
-                  <span className="w-9 shrink-0 tabular-nums">{formatDuration(duration)}</span>
-                ) : null}
+                <span className="w-9 shrink-0 tabular-nums">{formatDuration(duration)}</span>
               </div>
               {!isCompactBar ? (
                 <AyahProgressIndicator
@@ -1129,45 +1130,48 @@ export const GlobalPlayerV2: React.FC<{
         {/* Right tools — desktop: essentials only */}
         <div className="hidden md:flex items-center justify-end gap-1 shrink-0 md:col-span-1 min-w-0">
           {sleepTimer !== null && (
-            <span
-              className={`hidden lg:inline-flex h-9 items-center gap-1 rounded-xl border px-2 text-[11px] font-mono font-bold ${theme.accentBgLight} ${theme.accentBorder} ${theme.accentText}`}
-              title="Minuteur sommeil"
-            >
-              <Clock className="w-3.5 h-3.5 animate-pulse" />
-              {formatSleepTime(sleepTimer)}
-            </span>
+            <PlayerTooltip label="Minuteur sommeil" accentColor={theme.sliderAccentColor} className="hidden lg:inline-flex">
+              <span
+                className={`inline-flex h-9 items-center gap-1 rounded-xl border px-2 text-[11px] font-mono font-bold ${theme.accentBgLight} ${theme.accentBorder} ${theme.accentText}`}
+              >
+                <Clock className="w-3.5 h-3.5 animate-pulse" />
+                {formatSleepTime(sleepTimer)}
+              </span>
+            </PlayerTooltip>
           )}
 
-          <button
-            type="button"
-            onClick={toggleReader}
-            className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] ${
-              isReaderOpen && !isReaderClosing
-                ? `${theme.accentText} ${theme.accentBgLight}`
-                : 'text-[#aab7c5] hover:text-[#f6f8fb] hover:bg-[#111d2d]/70'
-            }`}
-            title={isReaderOpen ? 'Fermer la lecture' : 'Lire le Coran'}
-            aria-label={isReaderOpen ? 'Fermer la lecture' : 'Lire le Coran'}
-            aria-pressed={isReaderOpen && !isReaderClosing}
-          >
-            <BookOpen className="w-4.5 h-4.5" />
-          </button>
+          <PlayerTooltip label={isReaderOpen ? 'Fermer la lecture' : 'Lire le Coran'} accentColor={theme.sliderAccentColor} className="inline-flex shrink-0">
+            <button
+              type="button"
+              onClick={toggleReader}
+              className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] ${
+                isReaderOpen && !isReaderClosing
+                  ? `${theme.accentText} ${theme.accentBgLight}`
+                  : 'text-[#aab7c5] hover:text-[#f6f8fb] hover:bg-[#111d2d]/70'
+              }`}
+              aria-label={isReaderOpen ? 'Fermer la lecture' : 'Lire le Coran'}
+              aria-pressed={isReaderOpen && !isReaderClosing}
+            >
+              <BookOpenText size={18} color="currentColor" />
+            </button>
+          </PlayerTooltip>
 
           <div ref={volumeWrapRef} className="relative shrink-0">
-            <button
-              ref={volumeBtnRef}
-              type="button"
-              onClick={() => setShowVolumePopover((open) => !open)}
-              className={`h-10 w-10 rounded-xl flex items-center justify-center text-[#aab7c5] hover:text-[#f6f8fb] hover:bg-[#111d2d]/70 shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] ${
-                showVolumePopover || isMuted || volume === 0 ? theme.accentText : ''
-              }`}
-              title="Volume"
-              aria-label="Volume"
-              aria-expanded={showVolumePopover}
-              aria-haspopup="dialog"
-            >
-              {isMuted || volume === 0 ? <VolumeX className="w-4.5 h-4.5" /> : <Volume2 className="w-4.5 h-4.5" />}
-            </button>
+            <PlayerTooltip label="Volume" accentColor={theme.sliderAccentColor} className="inline-flex shrink-0" disabled={showVolumePopover}>
+              <button
+                ref={volumeBtnRef}
+                type="button"
+                onClick={() => setShowVolumePopover((open) => !open)}
+                className={`h-10 w-10 rounded-xl flex items-center justify-center text-[#aab7c5] hover:text-[#f6f8fb] hover:bg-[#111d2d]/70 shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] ${
+                  showVolumePopover || isMuted || volume === 0 ? theme.accentText : ''
+                }`}
+                aria-label="Volume"
+                aria-expanded={showVolumePopover}
+                aria-haspopup="dialog"
+              >
+                {isMuted || volume === 0 ? <VolumeX className="w-4.5 h-4.5" /> : <Volume2 size={18} color="currentColor" />}
+              </button>
+            </PlayerTooltip>
 
             {showVolumePopover &&
               volumePopoverPos &&
@@ -1191,7 +1195,7 @@ export const GlobalPlayerV2: React.FC<{
                     }`}
                     aria-label={isMuted || volume === 0 ? 'Activer le son' : 'Couper le son'}
                   >
-                    {isMuted || volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                    {isMuted || volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 size={16} color="currentColor" />}
                   </button>
                   <input
                     type="range"
@@ -1219,90 +1223,94 @@ export const GlobalPlayerV2: React.FC<{
               )}
           </div>
 
-          <button
-            type="button"
-            onClick={openEffects}
-            className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] ${
-              showEffects
-                ? `${theme.accentText} ${theme.accentBgLight}`
-                : 'text-[#aab7c5] hover:text-[#f6f8fb] hover:bg-[#111d2d]/70'
-            }`}
-            title="Effets audio"
-            aria-label="Ouvrir les effets audio"
-          >
-            <SlidersVertical
-              className={`w-4.5 h-4.5 ${
-                !showEffects && effectsActive ? theme.accentText : ''
+          <PlayerTooltip label="Effets audio" accentColor={theme.sliderAccentColor} className="inline-flex shrink-0">
+            <button
+              type="button"
+              onClick={openEffects}
+              className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] ${
+                showEffects
+                  ? `${theme.accentText} ${theme.accentBgLight}`
+                  : 'text-[#aab7c5] hover:text-[#f6f8fb] hover:bg-[#111d2d]/70'
               }`}
-            />
-          </button>
+              aria-label="Ouvrir les effets audio"
+            >
+              <AudioLines
+                size={18}
+                color="currentColor"
+                className={!showEffects && effectsActive ? theme.accentText : ''}
+              />
+            </button>
+          </PlayerTooltip>
 
-          <button
-            type="button"
-            onClick={openPersonalize}
-            className={`h-10 w-10 rounded-xl flex items-center justify-center text-[#aab7c5] hover:text-[#f6f8fb] hover:bg-[#111d2d]/70 shrink-0 ${
-              showPersonalize ? `${theme.accentText} ${theme.accentBgLight}` : ''
-            }`}
-            title="Plus d’options"
-            aria-label="Plus d’options"
-          >
-            <SlidersHorizontal className="w-4.5 h-4.5" />
-          </button>
+          <PlayerTooltip label="Plus d’options" accentColor={theme.sliderAccentColor} className="inline-flex shrink-0">
+            <button
+              type="button"
+              onClick={openPersonalize}
+              className={`h-10 w-10 rounded-xl flex items-center justify-center text-[#aab7c5] hover:text-[#f6f8fb] hover:bg-[#111d2d]/70 shrink-0 ${
+                showPersonalize ? `${theme.accentText} ${theme.accentBgLight}` : ''
+              }`}
+              aria-label="Plus d’options"
+            >
+              <SlidersHorizontal size={18} color="currentColor" />
+            </button>
+          </PlayerTooltip>
         </div>
         </div>
 
         {/* Mobile tools + progress / duration */}
         <div className={`relative z-[1] flex items-center md:hidden ${density.toolsClass}`}>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleReader();
-            }}
-            className={`h-9 w-9 shrink-0 rounded-full border flex items-center justify-center tap-feedback ${
-              isReaderOpen && !isReaderClosing
-                ? `${theme.accentBgLight} ${theme.accentBorderActive} ${theme.accentText}`
-                : 'bg-[#111d2d] border-[#30455c] text-[#e6edf5]'
-            }`}
-            aria-label={isReaderOpen ? 'Fermer la lecture' : 'Lire le Coran'}
-            title={isReaderOpen ? 'Fermer la lecture' : 'Lire le Coran'}
-            aria-pressed={isReaderOpen && !isReaderClosing}
-          >
-            <BookOpen className="w-3.5 h-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              openEffects();
-            }}
-            className={`h-9 w-9 shrink-0 rounded-full border flex items-center justify-center tap-feedback ${
-              showEffects
-                ? `${theme.accentBgLight} ${theme.accentBorderActive} ${theme.accentText}`
-                : 'bg-[#111d2d] border-[#30455c]'
-            }`}
-            aria-label="Effets audio"
-            title="Effets audio"
-          >
-            <SlidersVertical
-              className={`w-3.5 h-3.5 ${
-                showEffects
-                  ? ''
-                  : effectsActive
-                    ? theme.accentText
-                    : 'text-[#e6edf5]'
+          <PlayerTooltip label={isReaderOpen ? 'Fermer la lecture' : 'Lire le Coran'} accentColor={theme.sliderAccentColor} className="inline-flex shrink-0">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleReader();
+              }}
+              className={`h-9 w-9 shrink-0 rounded-full border flex items-center justify-center tap-feedback ${
+                isReaderOpen && !isReaderClosing
+                  ? `${theme.accentBgLight} ${theme.accentBorderActive} ${theme.accentText}`
+                  : 'bg-[#111d2d] border-[#30455c] text-[#e6edf5]'
               }`}
-            />
-          </button>
+              aria-label={isReaderOpen ? 'Fermer la lecture' : 'Lire le Coran'}
+              aria-pressed={isReaderOpen && !isReaderClosing}
+            >
+              <BookOpenText size={14} color="currentColor" />
+            </button>
+          </PlayerTooltip>
+          <PlayerTooltip label="Effets audio" accentColor={theme.sliderAccentColor} className="inline-flex shrink-0">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                openEffects();
+              }}
+              className={`h-9 w-9 shrink-0 rounded-full border flex items-center justify-center tap-feedback ${
+                showEffects
+                  ? `${theme.accentBgLight} ${theme.accentBorderActive} ${theme.accentText}`
+                  : 'bg-[#111d2d] border-[#30455c]'
+              }`}
+              aria-label="Effets audio"
+            >
+              <AudioLines
+                size={14}
+                color="currentColor"
+                className={
+                  showEffects
+                    ? ''
+                    : effectsActive
+                      ? theme.accentText
+                      : 'text-[#e6edf5]'
+                }
+              />
+            </button>
+          </PlayerTooltip>
 
           {!remoteSession ? (
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <div className="flex min-w-0 items-center gap-2">
-                {!isCompactBar ? (
-                  <span className="w-9 shrink-0 text-right text-[11px] font-mono font-semibold tabular-nums text-[#e6d5c2]" aria-live="polite">
-                    {formatTime(currentTime)}
-                  </span>
-                ) : null}
+                <span className="w-9 shrink-0 text-right text-[11px] font-mono font-semibold tabular-nums text-[#e6d5c2]" aria-live="polite">
+                  {formatTime(currentTime)}
+                </span>
                 <input
                   type="range"
                   min={0}
@@ -1320,11 +1328,9 @@ export const GlobalPlayerV2: React.FC<{
                   aria-valuenow={Math.floor(currentTime)}
                   aria-valuetext={`${formatTime(currentTime)} sur ${formatDuration(duration)}`}
                 />
-                {!isCompactBar ? (
-                  <span className="w-9 shrink-0 text-[11px] font-mono font-semibold tabular-nums text-[#95a7ba]">
-                    {formatDuration(duration)}
-                  </span>
-                ) : null}
+                <span className="w-9 shrink-0 text-[11px] font-mono font-semibold tabular-nums text-[#95a7ba]">
+                  {formatDuration(duration)}
+                </span>
               </div>
               {!isCompactBar ? (
                 <AyahProgressIndicator
@@ -1429,21 +1435,22 @@ export const GlobalPlayerV2: React.FC<{
               </p>
             </button>
 
-            <button
-              type="button"
-              onClick={openReciterPicker}
-              className="mx-auto mb-7 block w-28 h-28 rounded-full border border-[#bfa078]/35 bg-[#111d2d]/60 overflow-hidden shadow-[0_0_28px_rgba(191,160,120,0.12)] tap-feedback"
-              aria-label="Changer de récitateur"
-              title="Changer de récitateur"
-            >
-              {hasCover && currentTrack ? (
-                <ReciterPortrait reciter={currentTrack.reciter} alt="" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center">
-                  <Disc className={`w-12 h-12 ${theme.glowDisc} ${playbackStatus === 'playing' ? 'animate-[spin_12s_linear_infinite]' : ''}`} />
-                </div>
-              )}
-            </button>
+            <PlayerTooltip label="Changer de récitateur" accentColor={theme.sliderAccentColor} className="mx-auto mb-7 block" side="bottom">
+              <button
+                type="button"
+                onClick={openReciterPicker}
+                className="block w-28 h-28 rounded-full border border-[#bfa078]/35 bg-[#111d2d]/60 overflow-hidden shadow-[0_0_28px_rgba(191,160,120,0.12)] tap-feedback"
+                aria-label="Changer de récitateur"
+              >
+                {hasCover && currentTrack ? (
+                  <ReciterPortrait reciter={currentTrack.reciter} alt="" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    <Disc className={`w-12 h-12 ${theme.glowDisc} ${playbackStatus === 'playing' ? 'animate-[spin_12s_linear_infinite]' : ''}`} />
+                  </div>
+                )}
+              </button>
+            </PlayerTooltip>
 
             <div className="w-full mb-6">
               <input
@@ -1491,7 +1498,7 @@ export const GlobalPlayerV2: React.FC<{
                 className="w-12 h-12 rounded-full border border-[#30455c] bg-[#111d2d] text-[#e6edf5] flex items-center justify-center tap-feedback"
                 aria-label="Précédent"
               >
-                <SkipBack className="w-6 h-6 fill-current" />
+                <SkipBack size={24} color="currentColor" />
               </button>
               <button
                 type="button"
@@ -1500,9 +1507,9 @@ export const GlobalPlayerV2: React.FC<{
                 aria-label={playbackStatus === 'playing' ? 'Pause' : 'Lecture'}
               >
                 {playbackStatus === 'playing' ? (
-                  <Pause className="w-8 h-8 fill-current" />
+                  <Pause size={32} color="currentColor" />
                 ) : (
-                  <Play className="w-8 h-8 fill-current ml-1" />
+                  <Play size={32} color="currentColor" className="ml-1" />
                 )}
               </button>
               <button
@@ -1511,7 +1518,7 @@ export const GlobalPlayerV2: React.FC<{
                 className="w-12 h-12 rounded-full border border-[#30455c] bg-[#111d2d] text-[#e6edf5] flex items-center justify-center tap-feedback"
                 aria-label="Suivant"
               >
-                <SkipForward className="w-6 h-6 fill-current" />
+                <SkipForward size={24} color="currentColor" />
               </button>
               <button
                 type="button"
@@ -1532,7 +1539,7 @@ export const GlobalPlayerV2: React.FC<{
                   : 'border-[#bfa078]/40 bg-[#bfa078]/10 text-[#e2d0ba]'
               }`}
             >
-              <BookOpen className="w-5 h-5" />
+              <BookOpenText size={20} color="currentColor" />
               {isReaderOpen ? 'Fermer la lecture' : 'Lire le Coran'}
             </button>
 
@@ -1558,10 +1565,10 @@ export const GlobalPlayerV2: React.FC<{
                     : 'border-[#30455c] text-[#d0d9e3]'
                 }`}
               >
-                <SlidersVertical
-                  className={`w-4 h-4 ${
-                    !showEffects && effectsActive ? theme.accentText : ''
-                  }`}
+                <AudioLines
+                  size={16}
+                  color="currentColor"
+                  className={!showEffects && effectsActive ? theme.accentText : ''}
                 />
                 Effets
               </button>
@@ -1570,7 +1577,7 @@ export const GlobalPlayerV2: React.FC<{
                 onClick={() => setShowVolumePopover(true)}
                 className="h-12 rounded-2xl border border-[#30455c] text-xs font-bold text-[#d0d9e3] flex items-center justify-center gap-1.5 tap-feedback"
               >
-                {isMuted || volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                {isMuted || volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 size={16} color="currentColor" />}
                 Volume
               </button>
             </div>
@@ -1601,7 +1608,7 @@ export const GlobalPlayerV2: React.FC<{
                 </div>
                 <div className="flex items-center gap-3">
                   <button type="button" onClick={toggleMute} className="h-11 w-11 rounded-full border border-[#30455c] flex items-center justify-center text-[#d0d9e3]" aria-label={isMuted || volume === 0 ? 'Activer le son' : 'Couper le son'}>
-                    {isMuted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                    {isMuted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 size={20} color="currentColor" />}
                   </button>
                   <input
                     type="range"
@@ -1664,16 +1671,18 @@ export const GlobalPlayerV2: React.FC<{
                     const t = PLAYER_THEMES[id];
                     const active = playerTheme === id;
                     return (
-                      <button
-                        key={id}
-                        type="button"
-                        onClick={() => setPlayerTheme(id)}
-                        className={`h-10 rounded-xl border flex items-center justify-center ${active ? `ring-2 ${t.accentRing} ${t.accentBorderActive}` : 'border-[#30455c]'}`}
-                        style={{ backgroundColor: `${t.sliderAccentColor}22` }}
-                        title={t.name}
-                      >
-                        <span className="h-4 w-4 rounded-full" style={{ backgroundColor: t.sliderAccentColor }} />
-                      </button>
+                      <PlayerTooltip key={id} label={t.name} accentColor={t.sliderAccentColor} side="bottom" className="block w-full">
+                        <button
+                          type="button"
+                          onClick={() => setPlayerTheme(id)}
+                          className={`h-10 w-full rounded-xl border flex items-center justify-center ${active ? `ring-2 ${t.accentRing} ${t.accentBorderActive}` : 'border-[#30455c]'}`}
+                          style={{ backgroundColor: `${t.sliderAccentColor}22` }}
+                          aria-label={t.name}
+                          aria-pressed={active}
+                        >
+                          <span className="h-4 w-4 rounded-full" style={{ backgroundColor: t.sliderAccentColor }} />
+                        </button>
+                      </PlayerTooltip>
                     );
                   })}
                 </div>
@@ -1853,7 +1862,11 @@ export const GlobalPlayerV2: React.FC<{
                   }`}
                 >
                   <span className="flex items-center gap-2.5 text-sm text-[#e6edf5]">
-                    <SlidersVertical className={`w-4 h-4 ${effectsActive ? theme.accentText : 'text-[#95a7ba]'}`} />
+                    <AudioLines
+                      size={16}
+                      color="currentColor"
+                      className={effectsActive ? theme.accentText : 'text-[#95a7ba]'}
+                    />
                     Effets audio
                     {effectsActive && activeEffectLabel && (
                       <span className={`text-[10px] font-bold ${theme.accentText}`}>
@@ -2118,20 +2131,25 @@ export const GlobalPlayerV2: React.FC<{
                           )}
                         </button>
 
-                        <button
-                          type="button"
-                          onClick={() => toggleSurahInPlaylist(surah.id)}
-                          className={`mr-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all ${
-                            inLoop
-                              ? `${theme.accent} text-[#111d2d]`
-                              : 'text-[#8295aa] hover:bg-[#162538] hover:text-[#f6f8fb]'
-                          }`}
-                          aria-pressed={inLoop}
-                          title={inLoop ? 'Retirer de la boucle' : 'Ajouter à la boucle'}
-                          aria-label={inLoop ? `Retirer ${surah.name} de la boucle` : `Ajouter ${surah.name} à la boucle`}
+                        <PlayerTooltip
+                          label={inLoop ? 'Retirer de la boucle' : 'Ajouter à la boucle'}
+                          accentColor={theme.sliderAccentColor}
+                          className="inline-flex shrink-0"
                         >
-                          <Repeat className="h-3.5 w-3.5" />
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleSurahInPlaylist(surah.id)}
+                            className={`mr-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-all ${
+                              inLoop
+                                ? `${theme.accent} text-[#111d2d]`
+                                : 'text-[#8295aa] hover:bg-[#162538] hover:text-[#f6f8fb]'
+                            }`}
+                            aria-pressed={inLoop}
+                            aria-label={inLoop ? `Retirer ${surah.name} de la boucle` : `Ajouter ${surah.name} à la boucle`}
+                          >
+                            <Repeat className="h-3.5 w-3.5" />
+                          </button>
+                        </PlayerTooltip>
                       </div>
                     </li>
                   );

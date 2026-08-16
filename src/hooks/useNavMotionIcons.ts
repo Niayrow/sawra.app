@@ -28,8 +28,9 @@ const STATIC_ICONS = {
 } as const;
 
 /**
- * Serves static Lucide icons immediately, then upgrades to
- * lucide-react-motion only after real user interaction (keeps LCP light).
+ * Serves static / AnimateIcons from the main barrel immediately, then upgrades
+ * navbar icons from a separate AnimateIcons chunk after real user interaction
+ * (keeps the initial parse lighter).
  */
 export function useNavMotionIcons() {
   const [mod, setMod] = useState<NavMotionModule | null>(null);

@@ -141,7 +141,7 @@ export const GlobalPlayer: React.FC = () => {
   const currentSurahRowRef = useRef<HTMLButtonElement | null>(null);
 
   // Active Theme resolver
-  const theme = THEMES[playerTheme] || THEMES.emerald;
+  const theme = THEMES[playerTheme] || THEMES.amber;
 
   // Format Sleep Timer Countdown
   const formatSleepTime = (seconds: number) => {

@@ -11,7 +11,7 @@ export interface PlayerV2Prefs {
 }
 
 export const DEFAULT_PLAYER_V2_PREFS: PlayerV2Prefs = {
-  density: 'comfortable',
+  density: 'compact',
   seekStep: 10,
   showArabic: true,
   showGlow: true,

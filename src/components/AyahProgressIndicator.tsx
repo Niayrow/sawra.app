@@ -8,6 +8,8 @@ type AyahProgressIndicatorProps = {
   onOpenPicker?: () => void;
   accentColor?: string;
   className?: string;
+  /** full = verset x/x + barre ; link = petit texte « Changer le verset » */
+  variant?: 'full' | 'link';
 };
 
 export const AyahProgressIndicator: React.FC<AyahProgressIndicatorProps> = ({
@@ -18,8 +20,25 @@ export const AyahProgressIndicator: React.FC<AyahProgressIndicatorProps> = ({
   onOpenPicker,
   accentColor = '#bfa078',
   className = '',
+  variant = 'full',
 }) => {
   if (!available || activeAyah == null || totalAyahs <= 0) return null;
+
+  if (variant === 'link') {
+    if (!onOpenPicker) return null;
+    return (
+      <div className={`flex w-full min-w-0 items-center justify-center ${className}`}>
+        <button
+          type="button"
+          onClick={onOpenPicker}
+          className="rounded-md px-1 py-0.5 text-center text-[10px] font-semibold leading-none text-[#8ea1b3] underline-offset-2 hover:text-[#e2d0ba] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#bfa078]"
+          aria-label="Changer le verset"
+        >
+          Changer le verset
+        </button>
+      </div>
+    );
+  }
 
   const label = `Verset ${activeAyah} / ${totalAyahs}`;
   const progressPct =

@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'sawra-pwa-v116-next-20260814';
+const CACHE_VERSION = 'sawra-pwa-v118-logo-transparent-20260817';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const OFFLINE_URL = '/offline.html';
@@ -23,6 +23,7 @@ const APP_SHELL_ASSETS = [
   '/icons/maskable-512x512.png',
   '/icons/logo.png',
   '/icons/sansfond.webp',
+  '/icons/appicon.webp',
   '/icons/artwork.png',
   '/og-image.png',
   '/img/mecca.webp',

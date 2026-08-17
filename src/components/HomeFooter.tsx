@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Headphones,
   BookOpen,
@@ -9,8 +9,12 @@ import {
   Compass,
   Settings,
   Share,
+  Smartphone,
   ExternalLink,
 } from '../icons/motion';
+import { usePwaInstall } from '../hooks/usePwaInstall';
+import { PwaInstallModal } from './PwaInstallModal';
+import { SawraBrandMark } from './SawraBrandMark';
 
 const GOMUSLIMLIFE_URL = 'https://gomuslimlife.com';
 
@@ -37,7 +41,7 @@ const DISCOVER: FooterLink[] = [
   { label: 'Comparer', href: '/comparer', hint: 'Voix côte à côte', icon: GitCompare },
   { label: 'Hors ligne', href: '/telechargements', hint: 'Sourates téléchargées', icon: Download },
   { label: 'À propos', href: '/a-propos', hint: 'FAQ & nouveautés', icon: Compass },
-  { label: 'Options', href: '/options', hint: 'Navbar flottante / pleine', icon: Settings },
+  { label: 'Options', href: '/options', hint: 'Lecture, texte, apparence…', icon: Settings },
 ];
 
 const LEGAL = [
@@ -111,25 +115,28 @@ const DestinationTile: React.FC<{
 };
 
 export const HomeFooter: React.FC<HomeFooterProps> = ({ onNavigate }) => {
-  const installPwa = () => {
-    const isStandalone =
-      window.matchMedia('(display-mode: standalone)').matches ||
-      // @ts-expect-error iOS Safari
-      Boolean(window.navigator.standalone);
-    if (isStandalone) {
-      alert('Sawra est déjà installé sur cet appareil.');
-      return;
+  const pwa = usePwaInstall();
+  const [installOpen, setInstallOpen] = useState(false);
+
+  const installPwa = async () => {
+    if (pwa.standalone) return;
+    if (pwa.canNativeInstall) {
+      const outcome = await pwa.promptNativeInstall();
+      if (outcome === 'accepted') return;
+      if (outcome === 'dismissed') return;
     }
-    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-    alert(
-      isIos
-        ? 'Sur iPhone/iPad : ouvrez Safari → Partager → « Sur l’écran d’accueil ».'
-        : 'Sur Android/Chrome : menu ⋮ → « Installer l’application » ou « Ajouter à l’écran d’accueil ».',
-    );
+    setInstallOpen(true);
   };
+
+  const InstallIcon = pwa.platform === 'ios' ? Share : Smartphone;
 
   return (
     <footer className="home-footer relative overflow-hidden rounded-[1.6rem] border border-[#30455c]/45">
+      <PwaInstallModal
+        open={installOpen}
+        platform={pwa.platform}
+        onClose={() => setInstallOpen(false)}
+      />
       <div className="home-footer__atmosphere" aria-hidden>
         <span className="home-footer__orb home-footer__orb--gold" />
         <span className="home-footer__orb home-footer__orb--steel" />
@@ -139,38 +146,31 @@ export const HomeFooter: React.FC<HomeFooterProps> = ({ onNavigate }) => {
       <div className="relative z-[1] flex flex-col gap-5 p-4 sm:p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex items-start gap-3">
-            <img
-              src="/icons/sansfond.webp"
-              alt=""
-              width="48"
-              height="48"
-              loading="lazy"
-              decoding="async"
-              className="h-12 w-12 shrink-0 object-contain drop-shadow-[0_8px_24px_rgba(191,160,120,0.28)]"
-              draggable={false}
-              aria-hidden
-            />
+            <SawraBrandMark size="lg" asLink className="shrink-0" />
             <div className="min-w-0 pt-0.5">
-              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#bfa078]/85">
-                Sawra
-              </p>
-              <p className="mt-1 text-[1.05rem] font-black tracking-tight text-[#f6f8fb]">
+              <p className="text-[1.05rem] font-black tracking-tight text-[#f6f8fb]">
                 Le Coran, simplement.
               </p>
               <p className="mt-1 max-w-[16rem] text-[11px] leading-relaxed text-[#95a7ba]">
-                Gratuit · sans pub · PWA installable
+                {pwa.standalone
+                  ? 'Gratuit · sans pub · installé sur cet appareil'
+                  : pwa.canSuggest
+                    ? `Gratuit · sans pub · ${pwa.hint}`
+                    : 'Gratuit · sans pub · PWA installable'}
               </p>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={installPwa}
-            className="home-footer__install inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-[#bfa078]/35 bg-[#e2d0ba]/14 px-4 py-2.5 text-[12px] font-bold text-[#e6d5c2] shadow-[0_0_28px_rgba(191,160,120,0.12)] transition-all hover:bg-[#e2d0ba]/22 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] tap-feedback sm:min-w-[13.5rem]"
-          >
-            <Share className="h-3.5 w-3.5" aria-hidden />
-            Écran d’accueil
-          </button>
+          {!pwa.standalone && (
+            <button
+              type="button"
+              onClick={() => void installPwa()}
+              className="home-footer__install inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-[#bfa078]/35 bg-[#e2d0ba]/14 px-4 py-2.5 text-[12px] font-bold text-[#e6d5c2] shadow-[0_0_28px_rgba(191,160,120,0.12)] transition-all hover:bg-[#e2d0ba]/22 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] tap-feedback sm:min-w-[13.5rem]"
+            >
+              <InstallIcon className="h-3.5 w-3.5" aria-hidden />
+              {pwa.buttonLabel}
+            </button>
+          )}
         </div>
 
         <div className="grid gap-4 lg:grid-cols-[1.35fr_1fr]">
@@ -238,6 +238,12 @@ export const HomeFooter: React.FC<HomeFooterProps> = ({ onNavigate }) => {
       </div>
 
       <div className="relative z-[1] flex flex-col items-center gap-2 border-t border-[#30455c]/35 bg-[#07111d]/40 px-4 py-3.5 text-center sm:px-5">
+        <SawraBrandMark
+          size="sm"
+          showTagline={false}
+          asLink
+          className="opacity-90 hover:opacity-100"
+        />
         <p className="text-[10px] font-black uppercase tracking-[0.22em] text-[#6d8298]">
           Sawra · {new Date().getFullYear()}
         </p>

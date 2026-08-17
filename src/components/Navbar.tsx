@@ -38,7 +38,7 @@ interface NavbarProps {
   onOpenLearn?: () => void;
 }
 
-const LOGO_SRC = '/icons/appicon.webp';
+const LOGO_SRC = '/icons/sansfond.webp';
 
 /** Compact account chip when signed in — replaces the Connexion tab. */
 export const ConnectedBadge: React.FC<{

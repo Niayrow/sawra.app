@@ -1,7 +1,7 @@
 import React from 'react';
 import { Settings } from '../icons/motion';
 
-const LOGO_SRC = '/icons/appicon.webp';
+const LOGO_SRC = '/icons/sansfond.webp';
 
 type MobileAppHeaderProps = {
   onHome: () => void;

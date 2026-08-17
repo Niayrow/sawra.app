@@ -1,7 +1,7 @@
 """
 Génère toutes les icônes site / PWA / Android / iOS à partir de :
-  - public/icons/sansfond.png  → logo UI (fond transparent)
-  - public/icons/app-icon-source.png → icône app (cadre doré)
+  - public/icons/site-logo-source.png → logo UI + PWA (fond transparent)
+  - public/icons/app-icon-source.png → source brute (référence / recadrage)
 """
 from __future__ import annotations
 
@@ -16,8 +16,8 @@ icons = public / "icons"
 SITE_SRC = icons / "sansfond.png"
 APP_SRC = icons / "app-icon-source.png"
 
-# Fond sombre aligné sur l'icône (noir premium)
-APP_BG = (8, 8, 8)  # #080808
+# Fond app (splash / OG / adaptive Android) — thème Sawra, pas de noir sur l’icône
+APP_BG = (7, 17, 29)  # #07111d
 
 
 def knock_out_black(im: Image.Image, threshold: int = 28) -> Image.Image:
@@ -88,6 +88,15 @@ def fit_cover_rgb(img: Image.Image, size: int) -> Image.Image:
     """Redimensionne une app icon opaque pour remplir le carré."""
     sq = crop_square(img.convert("RGBA"))
     return resize_rgba(sq, size).convert("RGB")
+
+
+def fit_contain_transparent(img: Image.Image, size: int, ratio: float = 1.0) -> Image.Image:
+    """Centre le logo sur fond transparent (PWA / stores)."""
+    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    content = resize_rgba(img.convert("RGBA"), int(size * ratio))
+    offset = ((size - content.width) // 2, (size - content.height) // 2)
+    canvas.alpha_composite(content, dest=offset)
+    return canvas
 
 
 def fit_contain_on_bg(img: Image.Image, size: int, ratio: float = 1.0, bg=APP_BG) -> Image.Image:
@@ -162,29 +171,41 @@ print("favicon.ico (icons + public)")
 
 resize_rgba(site, 1024).save(icons / "icon-1024.png", "PNG", optimize=True)
 
-# --- Opaque app / PWA (source appicon) — dézoomé pour safe zone OS ---
-# ~0.70 laisse de la marge quand Chrome/Android/iOS masquent les coins
-PWA_ZOOM = 0.70
-MASKABLE_ZOOM = 0.66
+# --- PWA / app icons (fond transparent) ---
+# ~0.88 : logo bien visible ; marge pour coins arrondis OS
+PWA_ZOOM = 0.88
+MASKABLE_ZOOM = 0.72
 
-opaque = {
+pwa_targets = {
     icons / "apple-touch-icon.png": 180,
     icons / "android-chrome-192x192.png": 192,
     icons / "android-chrome-512x512.png": 512,
     icons / "artwork.png": 512,
     icons / "app icon.png": 1024,
+    icons / "appicon.png": 1024,
     public / "apple-touch-icon.png": 180,
     public / "icon.png": 512,
     public / "appicon.png": 1024,
 }
 
-for path, size in opaque.items():
-    fit_contain_on_bg(app_tight, size, PWA_ZOOM).save(path, "PNG", optimize=True)
-    print(f"appicon {path.relative_to(ROOT)} {size} zoom={PWA_ZOOM}")
+for path, size in pwa_targets.items():
+    fit_contain_transparent(site, size, PWA_ZOOM).save(path, "PNG", optimize=True)
+    print(f"pwa {path.relative_to(ROOT)} {size} zoom={PWA_ZOOM} transparent")
 
-fit_contain_on_bg(app_tight, 192, MASKABLE_ZOOM).save(icons / "maskable-192x192.png", "PNG", optimize=True)
-fit_contain_on_bg(app_tight, 512, MASKABLE_ZOOM).save(icons / "maskable-512x512.png", "PNG", optimize=True)
-print(f"maskable 192/512 zoom={MASKABLE_ZOOM}")
+# UI legacy (WebP) — même logo transparent
+webp_im = fit_contain_transparent(site, 192, PWA_ZOOM)
+webp_im.save(icons / "appicon.webp", "WEBP", quality=86, method=6)
+print(f"pwa {icons / 'appicon.webp'} {webp_im.size} transparent")
+
+# Transparent UI logo (WebP)
+sansfond_webp = icons / "sansfond.webp"
+webp_logo = resize_rgba(site, 320)
+webp_logo.save(sansfond_webp, "WEBP", quality=82, method=6)
+print(f"logo {sansfond_webp.relative_to(ROOT)} {webp_logo.size}")
+
+fit_contain_transparent(site, 192, MASKABLE_ZOOM).save(icons / "maskable-192x192.png", "PNG", optimize=True)
+fit_contain_transparent(site, 512, MASKABLE_ZOOM).save(icons / "maskable-512x512.png", "PNG", optimize=True)
+print(f"maskable 192/512 zoom={MASKABLE_ZOOM} transparent")
 
 # OG image
 og = Image.new("RGBA", (1200, 630), (*APP_BG, 255))
@@ -203,8 +224,8 @@ ios_icon = (
     / "AppIcon.appiconset"
     / "AppIcon-512@2x.png"
 )
-fit_contain_on_bg(app_tight, 1024, PWA_ZOOM).save(ios_icon, "PNG", optimize=True)
-print(f"ios {ios_icon.relative_to(ROOT)}")
+fit_contain_transparent(site, 1024, PWA_ZOOM).save(ios_icon, "PNG", optimize=True)
+print(f"ios {ios_icon.relative_to(ROOT)} transparent")
 
 # --- Android ---
 android_res = ROOT / "android" / "app" / "src" / "main" / "res"
@@ -219,27 +240,24 @@ android_sizes = {
 for folder, sizes in android_sizes.items():
     dens = android_res / folder
     dens.mkdir(parents=True, exist_ok=True)
-    launcher = fit_contain_on_bg(app_tight, sizes["launcher"], PWA_ZOOM)
+    launcher = fit_contain_transparent(site, sizes["launcher"], PWA_ZOOM)
     launcher.save(dens / "ic_launcher.png", "PNG", optimize=True)
     launcher.save(dens / "ic_launcher_round.png", "PNG", optimize=True)
 
-    # Adaptive foreground : logo plat transparent, plus petit (safe zone)
+    # Adaptive foreground : logo transparent (safe zone)
     fg_size = sizes["foreground"]
-    fg = Image.new("RGBA", (fg_size, fg_size), (0, 0, 0, 0))
-    content = resize_rgba(site, int(fg_size * 0.58))
-    offset = ((fg_size - content.width) // 2, (fg_size - content.height) // 2)
-    fg.alpha_composite(content, dest=offset)
+    fg = fit_contain_transparent(site, fg_size, 0.58)
     fg.save(dens / "ic_launcher_foreground.png", "PNG", optimize=True)
     print(f"android {folder}")
 
 (android_res / "values" / "ic_launcher_background.xml").write_text(
     '<?xml version="1.0" encoding="utf-8"?>\n'
     "<resources>\n"
-    '    <color name="ic_launcher_background">#080808</color>\n'
+    '    <color name="ic_launcher_background">#07111d</color>\n'
     "</resources>\n",
     encoding="utf-8",
 )
-print("android background #080808")
+print("android background #07111d")
 
 # drawable background legacy
 drawable_bg = android_res / "drawable" / "ic_launcher_background.xml"

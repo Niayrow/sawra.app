@@ -28,7 +28,7 @@ interface NavbarDesktopClassicProps {
   onOpenLearn?: () => void;
 }
 
-const LOGO_SRC = '/icons/appicon.webp';
+const LOGO_SRC = '/icons/sansfond.webp';
 
 export const NavbarDesktopClassic: React.FC<NavbarDesktopClassicProps> = ({
   activeTab,

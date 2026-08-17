@@ -15,6 +15,7 @@ const STATIC_SHELL = [
   '/site.webmanifest',
   '/favicon.ico',
   '/icons/sansfond.webp',
+  '/icons/appicon.webp',
   '/icons/favicon-16x16.png',
   '/icons/favicon-32x32.png',
   '/icons/apple-touch-icon.png',

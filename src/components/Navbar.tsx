@@ -171,10 +171,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   const fusionProgress = reciterFusion?.progress ?? exploreFusion?.progress ?? 0;
   const isFusing =
     (Boolean(reciterFusion) || Boolean(exploreFusion)) && fusionProgress > 0.01;
-  const fusionStyle =
-    reciterFusion || exploreFusion
-      ? ({ ['--fusion-p' as string]: String(fusionProgress) } as React.CSSProperties)
-      : undefined;
 
   const canPractice = Boolean(onOpenQuiz && onOpenLearn);
 
@@ -217,7 +213,6 @@ export const Navbar: React.FC<NavbarProps> = ({
       )}
 
       <nav
-        style={useClassicDesktop ? undefined : fusionStyle}
         className={`fixed z-50 glass-panel-opaque backdrop-blur-2xl transition-[box-shadow] duration-300 ease-out overflow-visible md:overflow-visible nav-reciter-fusion-shell
           left-0 right-0 w-full max-w-none translate-x-0 bottom-0
           h-[calc(4.35rem+env(safe-area-inset-bottom,0px))] pb-[env(safe-area-inset-bottom,0px)]

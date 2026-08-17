@@ -1,23 +1,32 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 
 const DESKTOP_MIN = 768;
-/** Scroll distance after sticky to complete the navbar merge (long pages). */
 export const MERGE_SCROLL_RANGE = 460;
-/** Faster merge when the page is short — less empty spacer needed. */
 const SHORT_MERGE_SCROLL_RANGE = 280;
-/** Extra room so the header can reach sticky before the merge scroll. */
 const FUSION_STICK_BUFFER = 100;
+const FUSION_VAR = '--fusion-p';
+
+function collectTargets(header: HTMLElement | null) {
+  const nodes: HTMLElement[] = [];
+  if (header) nodes.push(header);
+  document
+    .querySelectorAll<HTMLElement>(
+      '.nav-reciter-fusion-shell, .nav-desktop-classic-root, .home-explore-fusion',
+    )
+    .forEach((node) => {
+      if (node !== header) nodes.push(node);
+    });
+  return nodes;
+}
 
 /**
- * Desktop-only fusion progress (0→1).
- * Uses a sentinel placed just above the sticky header:
- * once the sentinel leaves the viewport under the navbar, further scroll
- * drives the merge into the navbar capsule.
+ * Desktop fusion 0→1, same math as the home "Explorer les voix" button.
  *
- * Short pages get a compact merge range + a minimal bottom spacer so fusion
- * can finish. Long pages keep the full MERGE_SCROLL_RANGE and spacerPx = 0.
+ * `--fusion-p` is written on the header + navbar nodes only (never <html>),
+ * so a 114-surah list is not restyled on every wheel tick.
+ * React `progress` only flips at 0 / fusing / done for className + dock.
  */
-export function useReciterNavFusion(enabled: boolean) {
+export function useReciterNavFusion(enabled: boolean, resetKey = '') {
   const [progress, setProgress] = useState(0);
   const [spacerPx, setSpacerPx] = useState(0);
   const headerRef = useRef<HTMLElement | null>(null);
@@ -26,6 +35,8 @@ export function useReciterNavFusion(enabled: boolean) {
   const stickScrollY = useRef(0);
   const mergeRangeRef = useRef(MERGE_SCROLL_RANGE);
   const spacerPxRef = useRef(0);
+  const lastCssRef = useRef(-1);
+  const targetsRef = useRef<HTMLElement[]>([]);
   const rafId = useRef<number | null>(null);
 
   const setHeaderRef = useCallback((node: HTMLElement | null) => {
@@ -41,15 +52,51 @@ export function useReciterNavFusion(enabled: boolean) {
   }, [spacerPx]);
 
   useEffect(() => {
+    stuckRef.current = false;
+    stickScrollY.current = 0;
+    mergeRangeRef.current = MERGE_SCROLL_RANGE;
+    lastCssRef.current = -1;
+
+    const applyCss = (value: number) => {
+      if (value === lastCssRef.current) return;
+      lastCssRef.current = value;
+      if (targetsRef.current.length === 0) {
+        targetsRef.current = collectTargets(headerRef.current);
+      }
+      const text = String(value);
+      for (const node of targetsRef.current) {
+        node.style.setProperty(FUSION_VAR, text);
+      }
+    };
+
+    const clearCss = () => {
+      for (const node of targetsRef.current) {
+        node.style.removeProperty(FUSION_VAR);
+      }
+      document.documentElement.style.removeProperty(FUSION_VAR);
+      targetsRef.current = [];
+      lastCssRef.current = -1;
+    };
+
     if (!enabled) {
-      stuckRef.current = false;
-      stickScrollY.current = 0;
-      mergeRangeRef.current = MERGE_SCROLL_RANGE;
+      clearCss();
       setProgress(0);
       setSpacerPx(0);
       spacerPxRef.current = 0;
       return;
     }
+
+    targetsRef.current = collectTargets(headerRef.current);
+    applyCss(0);
+    setProgress(0);
+    setSpacerPx(0);
+    spacerPxRef.current = 0;
+
+    const publish = (next: number) => {
+      applyCss(next);
+      const ui = next <= 0.01 ? 0 : next >= 0.98 ? 1 : 0.5;
+      setProgress((prev) => (prev === ui ? prev : ui));
+    };
 
     const updateSpacer = () => {
       if (window.innerWidth < DESKTOP_MIN) {
@@ -74,8 +121,6 @@ export function useReciterNavFusion(enabled: boolean) {
         ? parseFloat(getComputedStyle(header).top) || 96
         : 96;
 
-      // ScrollY when the sticky header actually docks — fusion needs
-      // mergeRange *after* this point, not just a tall page overall.
       let stickAt = scrollY;
       if (sentinel) {
         stickAt = scrollY + (sentinel.getBoundingClientRect().bottom - stickyTop);
@@ -98,13 +143,17 @@ export function useReciterNavFusion(enabled: boolean) {
 
       if (window.innerWidth < DESKTOP_MIN) {
         stuckRef.current = false;
-        setProgress((prev) => (prev === 0 ? prev : 0));
+        publish(0);
         return;
       }
 
       const sentinel = sentinelRef.current;
       const header = headerRef.current;
       if (!sentinel || !header) return;
+
+      if (!targetsRef.current.includes(header)) {
+        targetsRef.current = collectTargets(header);
+      }
 
       const stickyTop = parseFloat(getComputedStyle(header).top) || 96;
       const sentinelBottom = sentinel.getBoundingClientRect().bottom;
@@ -113,7 +162,7 @@ export function useReciterNavFusion(enabled: boolean) {
 
       if (!isStuck) {
         stuckRef.current = false;
-        setProgress((prev) => (prev === 0 ? prev : 0));
+        publish(0);
         return;
       }
 
@@ -124,8 +173,7 @@ export function useReciterNavFusion(enabled: boolean) {
       }
 
       const delta = Math.max(0, scrollY - stickScrollY.current);
-      const next = Math.min(1, delta / Math.max(1, mergeRangeRef.current));
-      setProgress((prev) => (Math.abs(prev - next) < 0.008 ? prev : next));
+      publish(Math.min(1, delta / Math.max(1, mergeRangeRef.current)));
     };
 
     const schedule = () => {
@@ -137,12 +185,10 @@ export function useReciterNavFusion(enabled: boolean) {
     window.addEventListener('scroll', schedule, { passive: true });
     window.addEventListener('resize', schedule, { passive: true });
 
-    const ro = typeof ResizeObserver !== 'undefined'
-      ? new ResizeObserver(schedule)
-      : null;
+    const ro =
+      typeof ResizeObserver !== 'undefined' ? new ResizeObserver(schedule) : null;
     if (ro) {
       ro.observe(document.documentElement);
-      if (headerRef.current) ro.observe(headerRef.current);
     }
 
     return () => {
@@ -150,8 +196,9 @@ export function useReciterNavFusion(enabled: boolean) {
       window.removeEventListener('resize', schedule);
       ro?.disconnect();
       if (rafId.current != null) window.cancelAnimationFrame(rafId.current);
+      clearCss();
     };
-  }, [enabled]);
+  }, [enabled, resetKey]);
 
   return { progress, spacerPx, setHeaderRef, setSentinelRef };
 }

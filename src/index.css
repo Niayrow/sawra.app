@@ -4139,23 +4139,19 @@ html, body {
 
 @keyframes batch-toast-in {
   from {
-    opacity: 0;
-    transform: translate3d(0, 12px, 0) scale(0.94);
+    transform: translate3d(0, -100%, 0);
   }
   to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: translate3d(0, 0, 0);
   }
 }
 
 @keyframes batch-toast-out {
   from {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: translate3d(0, 0, 0);
   }
   to {
-    opacity: 0;
-    transform: translate3d(0, 8px, 0) scale(0.96);
+    transform: translate3d(0, -100%, 0);
   }
 }
 
@@ -4164,15 +4160,25 @@ html, body {
   100% { transform: translateX(220%); }
 }
 
+.batch-download-panel {
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
 .batch-toast-enter {
-  animation: batch-toast-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
-  will-change: transform, opacity;
+  animation: batch-toast-in 0.52s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .batch-toast-exit {
-  animation: batch-toast-out 0.28s cubic-bezier(0.7, 0, 0.84, 0) both;
+  animation: batch-toast-out 0.42s cubic-bezier(0.4, 0, 0.2, 1) both;
   pointer-events: none;
-  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .batch-toast-enter,
+  .batch-toast-exit {
+    animation-duration: 0.01ms;
+  }
 }
 
 .batch-toast-bar-sheen {
@@ -4180,24 +4186,78 @@ html, body {
 }
 
 .batch-download-layer {
-  overscroll-behavior: none;
-  touch-action: none;
+  pointer-events: none;
 }
 
-.batch-toast-scrim {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: rgba(2, 6, 12, 0.78);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  opacity: 0;
-  pointer-events: auto;
-  transition: opacity 0.28s ease;
+:root {
+  --fusion-p: 0;
+  --batch-download-banner-h: 0px;
+  --batch-download-banner-gap: 0.4rem;
 }
 
-.batch-toast-scrim.is-on {
-  opacity: 1;
+html[data-batch-download-banner] .mobile-app-header {
+  top: calc(var(--batch-download-banner-h) + var(--batch-download-banner-gap));
+  padding-top: 0;
+}
+
+html[data-batch-download-banner] .nav-desktop-classic-root {
+  top: calc(var(--batch-download-banner-h) + var(--batch-download-banner-gap));
+}
+
+@media (max-width: 767px) {
+  .mobile-app-shell {
+    transition: padding-top 0.52s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .listen-surah-header {
+    transition: top 0.52s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  html[data-batch-download-banner] .mobile-app-shell:not([data-hide-nav='true']) {
+    padding-top: calc(
+      var(--mobile-app-header-h, 3.15rem) + var(--batch-download-banner-h) +
+        var(--batch-download-banner-gap)
+    ) !important;
+  }
+
+  html[data-batch-download-banner] .listen-surah-header {
+    top: calc(
+      var(--mobile-app-header-h, 3.15rem) + var(--batch-download-banner-h) +
+        var(--batch-download-banner-gap)
+    ) !important;
+  }
+}
+
+@media (min-width: 768px) {
+  .mobile-app-shell {
+    transition: padding-top 0.52s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  nav.nav-reciter-fusion-shell {
+    transition:
+      top 0.52s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.3s ease-out;
+  }
+
+  html[data-batch-download-banner] nav.nav-reciter-fusion-shell {
+    top: calc(1.5rem + var(--batch-download-banner-h) + var(--batch-download-banner-gap));
+  }
+
+  html[data-batch-download-banner] [data-nav-desktop='classic'].mobile-app-shell:not([data-hide-nav='true']) {
+    padding-top: calc(5.75rem + var(--batch-download-banner-h) + var(--batch-download-banner-gap)) !important;
+  }
+
+  html[data-batch-download-banner] [data-nav-desktop='dock'].mobile-app-shell:not([data-hide-nav='true']) {
+    padding-top: calc(7rem + var(--batch-download-banner-h) + var(--batch-download-banner-gap)) !important;
+  }
+
+  html[data-batch-download-banner] [data-nav-desktop='classic'] .listen-surah-header,
+  html[data-batch-download-banner] [data-nav-desktop='classic'] .home-explore-fusion {
+    top: calc(
+      4.15rem + var(--fusion-p, 0) * 5.25rem + var(--batch-download-banner-h) +
+        var(--batch-download-banner-gap)
+    ) !important;
+  }
 }
 
 @keyframes auth-mode-fade {
@@ -6532,6 +6592,10 @@ html, body {
     --fusion-p: 0;
   }
 
+  .listen-surahs-panel {
+    overflow-anchor: none;
+  }
+
   .reciter-fusion-card {
     /* Physically travel up into the navbar zone while shrinking */
     transform: translateY(calc(var(--fusion-p) * -88px))
@@ -6942,6 +7006,9 @@ html, body {
   background: rgba(11, 20, 33, 0.94);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  transition:
+    top 0.52s cubic-bezier(0.16, 1, 0.3, 1),
+    padding-top 0.52s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .mobile-app-header__inner {
@@ -7367,6 +7434,7 @@ html, body {
 
 .nav-desktop-classic-root {
   --fusion-p: 0;
+  transition: top 0.52s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Fusion receive strip — same motion language as V1 dock, scoped to classic only */

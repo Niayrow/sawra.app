@@ -45,10 +45,6 @@ export const NavbarDesktopClassic: React.FC<NavbarDesktopClassicProps> = ({
   const fusionProgress = reciterFusion?.progress ?? exploreFusion?.progress ?? 0;
   const isFusing =
     (Boolean(reciterFusion) || Boolean(exploreFusion)) && fusionProgress > 0.01;
-  const fusionStyle =
-    reciterFusion || exploreFusion
-      ? ({ ['--fusion-p' as string]: String(fusionProgress) } as React.CSSProperties)
-      : undefined;
 
   const mainTabs: Array<{ id: Exclude<NavTabId, 'more'>; label: string; icon: NavTabIcon }> = [
     { id: 'home', label: 'Accueil', icon: icons.home },
@@ -106,7 +102,6 @@ export const NavbarDesktopClassic: React.FC<NavbarDesktopClassicProps> = ({
       className={`nav-desktop-classic-root fixed inset-x-0 top-0 z-50 hidden md:block ${
         isFusing ? 'is-fusing' : ''
       }`}
-      style={fusionStyle}
     >
       <nav
         className="nav-desktop-classic glass-panel-opaque backdrop-blur-2xl border-b border-[#bfa078]/18"

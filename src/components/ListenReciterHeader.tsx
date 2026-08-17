@@ -56,7 +56,9 @@ export const ListenReciterHeader: React.FC<ListenReciterHeaderProps> = ({
   sectionRef,
 }) => {
   const { cachedUrls } = useAudio();
-  const { progress, spacerPx, setHeaderRef, setSentinelRef } = useReciterNavFusion(fusionEnabled);
+  const fusionResetKey = `${activeReciter.id}:${activeMoshaf?.id ?? 0}`;
+  const { progress, spacerPx, setHeaderRef, setSentinelRef } =
+    useReciterNavFusion(fusionEnabled, fusionResetKey);
 
   React.useEffect(() => {
     onFusionProgressChange(progress);
@@ -97,10 +99,6 @@ export const ListenReciterHeader: React.FC<ListenReciterHeaderProps> = ({
     return count;
   }, [activeMoshaf, cachedUrls]);
 
-  const mergeStyle = {
-    ['--fusion-p' as string]: String(progress),
-  } as React.CSSProperties;
-
   const controlsDisabled = progress >= 0.92;
 
   return (
@@ -116,7 +114,6 @@ export const ListenReciterHeader: React.FC<ListenReciterHeaderProps> = ({
         className={`listen-surah-header relative sticky top-0 z-30 md:top-24 md:scroll-mt-6 ${
           fusionEnabled && progress > 0.01 ? 'is-fusing' : ''
         }`}
-        style={fusionEnabled ? mergeStyle : undefined}
       >
         <div
           className={`listen-surah-header-inner reciter-fusion-card brand-card backdrop-blur-md flex flex-col gap-3 px-4 py-3 rounded-none md:rounded-2xl md:shadow-lg md:shadow-black/20 md:gap-0 md:flex-row md:items-center md:justify-between md:p-5 max-[390px]:gap-2 max-[390px]:px-3 max-[390px]:py-2 ${
@@ -196,11 +193,13 @@ export const ListenReciterHeader: React.FC<ListenReciterHeaderProps> = ({
               onClick={onChangeReciter}
               aria-label="Changer de récitateur"
               title="Changer de récitateur"
-              className="brand-button-secondary shrink-0 rounded-full px-4 py-3 text-[12px] font-bold transition-colors tap-feedback md:px-5 md:py-3 md:text-[13px] max-[390px]:flex max-[390px]:h-9 max-[390px]:w-9 max-[390px]:items-center max-[390px]:justify-center max-[390px]:px-0 max-[390px]:py-0"
+              className="brand-button-secondary inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full px-4 py-3 text-[12px] font-bold leading-none transition-colors tap-feedback md:px-5 md:py-3 md:text-[13px] max-[390px]:h-9 max-[390px]:w-9 max-[390px]:gap-0 max-[390px]:px-0 max-[390px]:py-0"
               tabIndex={controlsDisabled ? -1 : 0}
             >
               <span className="max-[390px]:hidden">Changer</span>
-              <RefreshCw className="hidden h-3.5 w-3.5 max-[390px]:block" aria-hidden />
+              <span className="relative inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center" aria-hidden>
+                <RefreshCw className="h-3.5 w-3.5" />
+              </span>
             </button>
           </div>
         </div>

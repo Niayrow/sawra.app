@@ -567,10 +567,6 @@ const HomeExploreFusionButton: React.FC<{
     return () => window.clearInterval(id);
   }, [cloudOpen, portraitPool.length, refreshCloud]);
 
-  const mergeStyle = {
-    ['--fusion-p' as string]: String(progress),
-  } as React.CSSProperties;
-
   const showCloud = cloudOpen && cloudReciters.length > 0 && progress < 0.35;
 
   return (
@@ -585,7 +581,6 @@ const HomeExploreFusionButton: React.FC<{
         className={`home-hero__explore-wrap home-explore-fusion min-w-0 ${
           enabled && progress > 0.01 ? 'is-fusing' : ''
         }`}
-        style={enabled ? mergeStyle : undefined}
         onMouseEnter={() => {
           if (window.matchMedia('(hover: hover)').matches) {
             setCloudOpen(true);

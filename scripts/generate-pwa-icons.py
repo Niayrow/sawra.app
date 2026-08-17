@@ -16,8 +16,10 @@ icons = public / "icons"
 SITE_SRC = icons / "sansfond.png"
 APP_SRC = icons / "app-icon-source.png"
 
-# Fond app (splash / OG / adaptive Android) — thème Sawra, pas de noir sur l’icône
+# Fond splash / OG / adaptive Android — thème Sawra
 APP_BG = (7, 17, 29)  # #07111d
+# Fond icône PWA / apple-touch : opaque (iOS/Android remplissent l’alpha en blanc)
+ICON_BG = (0, 0, 0)  # #000000
 
 
 def knock_out_black(im: Image.Image, threshold: int = 28) -> Image.Image:
@@ -171,7 +173,7 @@ print("favicon.ico (icons + public)")
 
 resize_rgba(site, 1024).save(icons / "icon-1024.png", "PNG", optimize=True)
 
-# --- PWA / app icons (fond transparent) ---
+# --- PWA / app icons (fond noir opaque) ---
 # ~0.88 : logo bien visible ; marge pour coins arrondis OS
 PWA_ZOOM = 0.88
 MASKABLE_ZOOM = 0.72
@@ -189,13 +191,13 @@ pwa_targets = {
 }
 
 for path, size in pwa_targets.items():
-    fit_contain_transparent(site, size, PWA_ZOOM).save(path, "PNG", optimize=True)
-    print(f"pwa {path.relative_to(ROOT)} {size} zoom={PWA_ZOOM} transparent")
+    fit_contain_on_bg(site, size, PWA_ZOOM, bg=ICON_BG).save(path, "PNG", optimize=True)
+    print(f"pwa {path.relative_to(ROOT)} {size} zoom={PWA_ZOOM} bg=#000000")
 
-# UI legacy (WebP) — même logo transparent
-webp_im = fit_contain_transparent(site, 192, PWA_ZOOM)
+# UI legacy (WebP) — même logo, fond noir
+webp_im = fit_contain_on_bg(site, 192, PWA_ZOOM, bg=ICON_BG)
 webp_im.save(icons / "appicon.webp", "WEBP", quality=86, method=6)
-print(f"pwa {icons / 'appicon.webp'} {webp_im.size} transparent")
+print(f"pwa {icons / 'appicon.webp'} {webp_im.size} bg=#000000")
 
 # Transparent UI logo (WebP)
 sansfond_webp = icons / "sansfond.webp"
@@ -203,9 +205,9 @@ webp_logo = resize_rgba(site, 320)
 webp_logo.save(sansfond_webp, "WEBP", quality=82, method=6)
 print(f"logo {sansfond_webp.relative_to(ROOT)} {webp_logo.size}")
 
-fit_contain_transparent(site, 192, MASKABLE_ZOOM).save(icons / "maskable-192x192.png", "PNG", optimize=True)
-fit_contain_transparent(site, 512, MASKABLE_ZOOM).save(icons / "maskable-512x512.png", "PNG", optimize=True)
-print(f"maskable 192/512 zoom={MASKABLE_ZOOM} transparent")
+fit_contain_on_bg(site, 192, MASKABLE_ZOOM, bg=ICON_BG).save(icons / "maskable-192x192.png", "PNG", optimize=True)
+fit_contain_on_bg(site, 512, MASKABLE_ZOOM, bg=ICON_BG).save(icons / "maskable-512x512.png", "PNG", optimize=True)
+print(f"maskable 192/512 zoom={MASKABLE_ZOOM} bg=#000000")
 
 # OG image
 og = Image.new("RGBA", (1200, 630), (*APP_BG, 255))
@@ -224,8 +226,8 @@ ios_icon = (
     / "AppIcon.appiconset"
     / "AppIcon-512@2x.png"
 )
-fit_contain_transparent(site, 1024, PWA_ZOOM).save(ios_icon, "PNG", optimize=True)
-print(f"ios {ios_icon.relative_to(ROOT)} transparent")
+fit_contain_on_bg(site, 1024, PWA_ZOOM, bg=ICON_BG).save(ios_icon, "PNG", optimize=True)
+print(f"ios {ios_icon.relative_to(ROOT)} bg=#000000")
 
 # --- Android ---
 android_res = ROOT / "android" / "app" / "src" / "main" / "res"

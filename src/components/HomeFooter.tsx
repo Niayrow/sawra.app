@@ -41,7 +41,7 @@ const DISCOVER: FooterLink[] = [
   { label: 'Comparer', href: '/comparer', hint: 'Voix côte à côte', icon: GitCompare },
   { label: 'Hors ligne', href: '/telechargements', hint: 'Sourates téléchargées', icon: Download },
   { label: 'À propos', href: '/a-propos', hint: 'FAQ & nouveautés', icon: Compass },
-  { label: 'Options', href: '/options', hint: 'Lecture, texte, apparence…', icon: Settings },
+  { label: 'Options', href: '/options', hint: 'Hors-ligne, idées, confidentialité', icon: Settings },
 ];
 
 const LEGAL = [

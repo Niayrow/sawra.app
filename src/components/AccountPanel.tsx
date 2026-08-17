@@ -9,7 +9,7 @@ import { useAuth } from '../context/AuthContext';
 type AuthMode = 'signin' | 'signup';
 
 const DISCOVER_LINKS: Array<{ label: string; href: string; hint: string }> = [
-  { label: 'Options', href: '/options', hint: 'Lecture, texte, apparence…' },
+  { label: 'Options', href: '/options', hint: 'Hors-ligne, idées, confidentialité' },
   { label: 'À propos', href: '/a-propos', hint: 'Version, FAQ et nouveautés' },
   { label: 'Comparer', href: '/comparer', hint: 'Plusieurs récitateurs côte à côte' },
   { label: 'Téléchargements', href: '/telechargements', hint: 'Sourates hors ligne' },

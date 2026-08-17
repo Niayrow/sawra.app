@@ -1,57 +1,28 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-  BookOpen,
-  Gauge,
-  HardDrive,
-  Headphones,
-  Settings,
-  Shield,
-  Smartphone,
-  Sparkles,
-  Trash2,
-} from '../icons/motion';
+import { HardDrive, Settings, Shield, Smartphone, Sparkles, Trash2 } from '../icons/motion';
 import { useAudio } from '../context/AudioContext';
+import { useAuth } from '../context/AuthContext';
 import { useAppOptions } from '../utils/appOptions';
 import {
-  READER_FONT_SCALES,
-  useReaderPrefs,
-  type ReaderFontScale,
-} from './reader/readerPrefs';
-import {
-  type PlayerBarDensity,
-  type SeekStepSeconds,
-} from './player/playerV2Prefs';
-import { PLAYER_THEME_IDS, PLAYER_THEMES, type PlayerThemeId } from './player/playerThemes';
+  SUGGESTION_MAX_LENGTH,
+  SUGGESTION_MIN_LENGTH,
+  submitSuggestion,
+  type SuggestionKind,
+} from '../utils/suggestions';
 import { NavDesktopStyleToggle } from './NavDesktopStyleToggle';
 import type { NavDesktopStyle } from '../utils/navDesktopStyle';
-import {
-  LEARN_SPEEDS,
-  loadLearnPrefs,
-  saveLearnPrefs,
-  type LearnPrefs,
-  type LearnSpeed,
-} from '../utils/learnPrefs';
-import {
-  LEARN_REPEAT_COUNTS as REPEAT_COUNTS,
-  clampLearnWindowSize,
-  type LearnRepeatCount,
-  LEARN_WINDOW_SIZE_MAX,
-} from '../utils/learnSession';
 
 type OptionsPanelProps = {
   navDesktopStyle: NavDesktopStyle;
   onNavDesktopStyleChange: (style: NavDesktopStyle) => void;
 };
 
-const SPEED_OPTIONS = [0.75, 1, 1.25, 1.5] as const;
-const DENSITY_OPTIONS: { id: PlayerBarDensity; label: string }[] = [
-  { id: 'compact', label: 'Compact' },
-  { id: 'comfortable', label: 'Confort' },
-  { id: 'expanded', label: 'Élargi' },
+const SUGGEST_KIND_OPTIONS: { id: SuggestionKind; label: string }[] = [
+  { id: 'feature', label: 'Fonctionnalité' },
+  { id: 'improvement', label: 'Amélioration' },
 ];
-const SEEK_OPTIONS: SeekStepSeconds[] = [5, 10, 15];
 
 function Section({
   icon: Icon,
@@ -124,77 +95,21 @@ function ToggleRow({
   );
 }
 
-function ChipGroup<T extends string | number>({
-  label,
-  hint,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  hint?: string;
-  value: T;
-  options: { value: T; label: string }[];
-  onChange: (value: T) => void;
-}) {
-  return (
-    <div className="rounded-2xl border border-[#30455c]/55 bg-[#0f1928]/75 px-3.5 py-3.5">
-      <p className="text-[13px] font-bold text-[#f6f8fb]">{label}</p>
-      {hint ? <p className="mt-0.5 text-[11px] leading-snug text-[#95a7ba]">{hint}</p> : null}
-      <div
-        className="mt-3 flex flex-wrap gap-1.5"
-        role="group"
-        aria-label={label}
-      >
-        {options.map((opt) => (
-          <button
-            key={String(opt.value)}
-            type="button"
-            onClick={() => onChange(opt.value)}
-            aria-pressed={value === opt.value}
-            className={`min-h-9 rounded-full border px-3 py-1.5 text-[12px] font-bold transition-colors ${
-              value === opt.value
-                ? 'border-[#bfa078]/45 bg-[#e2d0ba]/18 text-[#e6d5c2]'
-                : 'border-[#30455c]/70 bg-[#0c1522]/80 text-[#95a7ba] hover:text-[#e6edf5]'
-            }`}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export const OptionsPanel: React.FC<OptionsPanelProps> = ({
   navDesktopStyle,
   onNavDesktopStyleChange,
 }) => {
-  const {
-    playbackSpeed,
-    setPlaybackSpeed,
-    repeatMode,
-    setRepeatMode,
-    playerTheme,
-    setPlayerTheme,
-    playerV2Prefs,
-    setPlayerV2Prefs,
-    cacheInfo,
-    clearCache,
-  } = useAudio();
-  const [readerPrefs, setReaderPrefs] = useReaderPrefs();
+  const { cacheInfo, clearCache } = useAudio();
+  const { user } = useAuth();
   const [appOpts, setAppOpts] = useAppOptions();
-  const [learnPrefs, setLearnPrefsState] = useState<LearnPrefs>(() => loadLearnPrefs());
   const [clearing, setClearing] = useState(false);
   const [clearDone, setClearDone] = useState(false);
-
-  const updateLearn = (partial: Partial<LearnPrefs>) => {
-    setLearnPrefsState((prev) => {
-      const next = { ...prev, ...partial };
-      saveLearnPrefs(next);
-      return next;
-    });
-  };
+  const [suggestKind, setSuggestKind] = useState<SuggestionKind>('feature');
+  const [suggestMessage, setSuggestMessage] = useState('');
+  const [suggestHoneypot, setSuggestHoneypot] = useState('');
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestDone, setSuggestDone] = useState(false);
+  const [suggestError, setSuggestError] = useState<string | null>(null);
 
   const handleClearCache = async () => {
     if (
@@ -214,6 +129,30 @@ export const OptionsPanel: React.FC<OptionsPanelProps> = ({
     }
   };
 
+  const handleSubmitSuggestion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (suggesting) return;
+    setSuggesting(true);
+    setSuggestError(null);
+    setSuggestDone(false);
+    try {
+      const result = await submitSuggestion({
+        kind: suggestKind,
+        message: suggestMessage,
+        userId: user?.id ?? null,
+        honeypot: suggestHoneypot,
+      });
+      if (!result.ok) {
+        setSuggestError(result.message);
+        return;
+      }
+      setSuggestDone(true);
+      setSuggestMessage('');
+    } finally {
+      setSuggesting(false);
+    }
+  };
+
   const cacheLabel = cacheInfo
     ? cacheInfo.count > 0
       ? `${cacheInfo.count} fichier${cacheInfo.count > 1 ? 's' : ''} · ${cacheInfo.totalSizeMb.toFixed(1)} Mo`
@@ -228,195 +167,16 @@ export const OptionsPanel: React.FC<OptionsPanelProps> = ({
         </span>
         <h1 className="mt-3 text-lg font-black text-[#f6f8fb]">Préférences</h1>
         <p className="mt-1.5 text-[12px] leading-relaxed text-[#95a7ba]">
-          Apparence, lecture, texte, apprendre, hors-ligne et confidentialité — enregistrés sur cet
-          appareil.
+          Navbar, hors-ligne, confidentialité et suggestions.
         </p>
       </section>
 
       <Section
         icon={Settings}
-        title="Apparence"
-        hint="Chrome desktop, barre de lecture et thème."
+        title="Navbar & barre de lecture"
+        hint="Sur ordinateur : flottantes ensemble, ou pleine largeur ensemble."
       >
         <NavDesktopStyleToggle value={navDesktopStyle} onChange={onNavDesktopStyleChange} />
-        <ChipGroup
-          label="Densité de la barre"
-          hint="Change clairement la taille du lecteur (jaquette, boutons, marges) sur mobile et ordinateur."
-          value={playerV2Prefs.density}
-          options={DENSITY_OPTIONS.map((d) => ({ value: d.id, label: d.label }))}
-          onChange={(density) => setPlayerV2Prefs((p) => ({ ...p, density }))}
-        />
-        <ChipGroup
-          label="Thème du lecteur"
-          value={playerTheme as PlayerThemeId}
-          options={PLAYER_THEME_IDS.map((id) => ({
-            value: id,
-            label: PLAYER_THEMES[id].name,
-          }))}
-          onChange={(theme) => setPlayerTheme(theme)}
-        />
-        <ToggleRow
-          label="Halo / glow du lecteur"
-          pressed={playerV2Prefs.showGlow}
-          onToggle={() => setPlayerV2Prefs((p) => ({ ...p, showGlow: !p.showGlow }))}
-        />
-        <ToggleRow
-          label="Contrôles rapides"
-          hint="Boutons secondaires sur la barre (vitesse, etc.)."
-          pressed={playerV2Prefs.showQuickControls}
-          onToggle={() =>
-            setPlayerV2Prefs((p) => ({ ...p, showQuickControls: !p.showQuickControls }))
-          }
-        />
-        <ToggleRow
-          label="Volume toujours visible"
-          pressed={playerV2Prefs.alwaysShowVolume}
-          onToggle={() =>
-            setPlayerV2Prefs((p) => ({ ...p, alwaysShowVolume: !p.alwaysShowVolume }))
-          }
-        />
-        <ToggleRow
-          label="Réduire les animations"
-          hint="Moins de motion dans l’interface."
-          pressed={appOpts.reduceMotion}
-          onToggle={() => setAppOpts({ reduceMotion: !appOpts.reduceMotion })}
-        />
-        <ToggleRow
-          label="Contraste renforcé"
-          pressed={appOpts.highContrast}
-          onToggle={() => setAppOpts({ highContrast: !appOpts.highContrast })}
-        />
-      </Section>
-
-      <Section icon={Headphones} title="Lecture" hint="Comportement audio et reprise.">
-        <ChipGroup
-          label="Vitesse"
-          value={playbackSpeed}
-          options={SPEED_OPTIONS.map((s) => ({
-            value: s,
-            label: s === 1 ? '1×' : `${s}×`,
-          }))}
-          onChange={(speed) => setPlaybackSpeed(speed)}
-        />
-        <ChipGroup
-          label="Pas de seek"
-          hint="Reculer / avancer depuis le lecteur."
-          value={playerV2Prefs.seekStep}
-          options={SEEK_OPTIONS.map((s) => ({ value: s, label: `${s} s` }))}
-          onChange={(seekStep) => setPlayerV2Prefs((p) => ({ ...p, seekStep }))}
-        />
-        <ChipGroup
-          label="Fin de sourate"
-          hint="Que faire quand une sourate se termine."
-          value={repeatMode === 'one' ? 'one' : repeatMode === 'all' ? 'all' : 'none'}
-          options={[
-            { value: 'none' as const, label: 'S’arrêter' },
-            { value: 'all' as const, label: 'Sourate suivante' },
-            { value: 'one' as const, label: 'Boucler' },
-          ]}
-          onChange={(mode) => setRepeatMode(mode)}
-        />
-        <ToggleRow
-          label="Reprendre au lancement"
-          hint="Relance automatiquement la dernière écoute (peut être bloqué par le navigateur)."
-          pressed={appOpts.autoResumeOnLaunch}
-          onToggle={() => setAppOpts({ autoResumeOnLaunch: !appOpts.autoResumeOnLaunch })}
-        />
-        <ToggleRow
-          label="Garder l’écran allumé"
-          hint="Pendant la lecture (Wake Lock, si supporté)."
-          pressed={appOpts.wakeLockWhilePlaying}
-          onToggle={() =>
-            setAppOpts({ wakeLockWhilePlaying: !appOpts.wakeLockWhilePlaying })
-          }
-        />
-      </Section>
-
-      <Section icon={BookOpen} title="Texte" hint="Lecteur de sourate synchronisé.">
-        <ChipGroup
-          label="Taille du texte"
-          value={readerPrefs.fontScale}
-          options={READER_FONT_SCALES.map((scale) => ({
-            value: scale,
-            label: scale === 1 ? 'Normal' : `${scale}×`,
-          }))}
-          onChange={(fontScale) => setReaderPrefs({ fontScale: fontScale as ReaderFontScale })}
-        />
-        <ToggleRow
-          label="Arabe"
-          pressed={readerPrefs.showArabic}
-          onToggle={() => setReaderPrefs({ showArabic: !readerPrefs.showArabic })}
-        />
-        <ToggleRow
-          label="Français"
-          pressed={readerPrefs.showFrench}
-          onToggle={() => setReaderPrefs({ showFrench: !readerPrefs.showFrench })}
-        />
-        <ToggleRow
-          label="Phonétique"
-          pressed={readerPrefs.showPhonetic}
-          onToggle={() => setReaderPrefs({ showPhonetic: !readerPrefs.showPhonetic })}
-        />
-        <ToggleRow
-          label="Ouvrir le lecteur à la lecture"
-          pressed={readerPrefs.autoOpenOnPlay}
-          onToggle={() => setReaderPrefs({ autoOpenOnPlay: !readerPrefs.autoOpenOnPlay })}
-        />
-        <ToggleRow
-          label="Surlignage du verset"
-          hint="Suit l’audio quand les timings existent."
-          pressed={readerPrefs.syncHighlight}
-          onToggle={() => setReaderPrefs({ syncHighlight: !readerPrefs.syncHighlight })}
-        />
-      </Section>
-
-      <Section icon={Sparkles} title="Apprendre" hint="Réglages par défaut du mode Apprendre.">
-        <ChipGroup
-          label="Versets à répéter"
-          hint="Nombre de versets lus ensemble. « Tous » couvre la sourate entière."
-          value={learnPrefs.windowSize}
-          options={[
-            ...[1, 2, 3, 5, 7, 10].map((n) => ({ value: n, label: String(n) })),
-            { value: LEARN_WINDOW_SIZE_MAX, label: 'Tous' },
-          ]}
-          onChange={(windowSize) =>
-            updateLearn({ windowSize: clampLearnWindowSize(windowSize) })
-          }
-        />
-        <ChipGroup
-          label="Répétitions des versets"
-          hint="Combien de fois relire le ou les versets sélectionnés."
-          value={learnPrefs.repeats}
-          options={REPEAT_COUNTS.map((n) => ({
-            value: n,
-            label: n === 0 ? '∞' : `${n}×`,
-          }))}
-          onChange={(repeats) => updateLearn({ repeats: repeats as LearnRepeatCount })}
-        />
-        <ChipGroup
-          label="Vitesse Apprendre"
-          value={learnPrefs.speed}
-          options={LEARN_SPEEDS.map((s) => ({
-            value: s,
-            label: s === 1 ? '1×' : `${s}×`,
-          }))}
-          onChange={(speed) => updateLearn({ speed: speed as LearnSpeed })}
-        />
-        <ToggleRow
-          label="Avancer automatiquement"
-          pressed={learnPrefs.autoAdvance}
-          onToggle={() => updateLearn({ autoAdvance: !learnPrefs.autoAdvance })}
-        />
-        <ToggleRow
-          label="Phonétique (Apprendre)"
-          pressed={learnPrefs.showPhonetic}
-          onToggle={() => updateLearn({ showPhonetic: !learnPrefs.showPhonetic })}
-        />
-        <ToggleRow
-          label="Français (Apprendre)"
-          pressed={learnPrefs.showFr}
-          onToggle={() => updateLearn({ showFr: !learnPrefs.showFr })}
-        />
       </Section>
 
       <Section icon={HardDrive} title="Hors-ligne" hint="Cache audio sur cet appareil.">
@@ -436,6 +196,93 @@ export const OptionsPanel: React.FC<OptionsPanelProps> = ({
             <p className="mt-2 text-[11px] text-[#4ade80]">Cache vidé.</p>
           ) : null}
         </div>
+      </Section>
+
+      <Section
+        icon={Sparkles}
+        title="Suggérer une idée"
+        hint="Une amélioration ou une fonctionnalité à ajouter."
+      >
+        <form className="relative flex flex-col gap-3" onSubmit={(e) => void handleSubmitSuggestion(e)}>
+          <div
+            className="flex w-full items-center gap-1 rounded-full border border-[#30455c]/70 bg-[#0c1522]/90 p-1"
+            role="group"
+            aria-label="Type de suggestion"
+          >
+            {SUGGEST_KIND_OPTIONS.map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => {
+                  setSuggestKind(opt.id);
+                  setSuggestDone(false);
+                }}
+                aria-pressed={suggestKind === opt.id}
+                className={`min-h-10 flex-1 rounded-full px-3 py-2 text-[12px] font-bold transition-colors ${
+                  suggestKind === opt.id
+                    ? 'bg-[#e2d0ba]/18 text-[#e6d5c2]'
+                    : 'text-[#95a7ba] hover:text-[#e6edf5]'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          <label className="block">
+            <span className="sr-only">Votre suggestion</span>
+            <textarea
+              value={suggestMessage}
+              onChange={(e) => {
+                setSuggestMessage(e.target.value.slice(0, SUGGESTION_MAX_LENGTH));
+                setSuggestDone(false);
+                setSuggestError(null);
+              }}
+              rows={4}
+              maxLength={SUGGESTION_MAX_LENGTH}
+              placeholder={
+                suggestKind === 'feature'
+                  ? 'Décrivez la fonctionnalité que vous aimeriez…'
+                  : 'Décrivez ce qui pourrait mieux marcher…'
+              }
+              className="w-full resize-none rounded-2xl border border-[#30455c]/55 bg-[#0c1522]/70 px-3.5 py-3 text-sm text-[#e6edf5] placeholder:text-[#8295aa] focus:border-[#bfa078]/45 focus:outline-none focus:ring-2 focus:ring-[#bfa078]/20"
+            />
+            <span className="mt-1 block text-right text-[10px] text-[#8899ad]">
+              {suggestMessage.length}/{SUGGESTION_MAX_LENGTH}
+            </span>
+          </label>
+
+          <div className="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden>
+            <label>
+              Site web
+              <input
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                value={suggestHoneypot}
+                onChange={(e) => setSuggestHoneypot(e.target.value)}
+              />
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            disabled={suggesting || suggestMessage.trim().length < SUGGESTION_MIN_LENGTH}
+            className="brand-button-primary inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-[13px] font-bold disabled:opacity-45 tap-feedback"
+          >
+            {suggesting ? 'Envoi…' : 'Envoyer'}
+          </button>
+
+          {suggestError ? (
+            <p className="text-[11px] text-[#f2a3a3]">{suggestError}</p>
+          ) : null}
+          {suggestDone ? (
+            <p className="text-[11px] text-[#4ade80]">Merci, votre suggestion a bien été envoyée.</p>
+          ) : null}
+          <p className="text-[10px] leading-snug text-[#6d8298]">
+            Le message est envoyé à l’équipe Sawra. Compte facultatif.
+          </p>
+        </form>
       </Section>
 
       <Section
@@ -478,8 +325,7 @@ export const OptionsPanel: React.FC<OptionsPanelProps> = ({
 
       <p className="flex items-center justify-center gap-2 text-center text-[10px] text-[#6d8298]">
         <Smartphone className="h-3 w-3" aria-hidden />
-        <Gauge className="h-3 w-3" aria-hidden />
-        Réglages locaux · sync cloud si compte connecté (volume, thème, boucle…)
+        Réglages locaux sur cet appareil
       </p>
     </div>
   );

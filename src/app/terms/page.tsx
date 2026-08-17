@@ -49,7 +49,8 @@ export default function TermsPage() {
 
       <h2>4. Contact</h2>
       <p>
-        Éditeur : <a href="https://sofianeweb.fr">sofianeweb.fr</a> · compte :{' '}
+        Vous pouvez proposer une amélioration ou une fonctionnalité depuis Options. Éditeur :{' '}
+        <a href="https://sofianeweb.fr">sofianeweb.fr</a> · compte :{' '}
         <a href="https://gomuslimlife.com">GoMuslimLife.com</a>.
       </p>
       <p>

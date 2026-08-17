@@ -63,7 +63,15 @@ export default function PrivacyPage() {
         vend pas vos données et n’utilise pas de publicité ciblée.
       </p>
 
-      <h2>4. Audio & hors-ligne</h2>
+      <h2>4. Suggestions</h2>
+      <p>
+        Depuis Options, vous pouvez envoyer une idée d’amélioration ou de fonctionnalité. Le message
+        (et, si vous êtes connecté, l’identifiant de compte) est transmis à l’équipe via Supabase
+        pour être lu. Ce n’est pas du tracking : rien n’est envoyé tant que vous ne validez pas le
+        formulaire.
+      </p>
+
+      <h2>5. Audio & hors-ligne</h2>
       <p>
         Récitations via <a href="https://www.mp3quran.net">mp3quran.net</a> — Sawra n’héberge pas les
         fichiers audio. Les téléchargements restent locaux tant que le cache n’est pas vidé (pas de

@@ -4682,6 +4682,7 @@ html, body {
 .home-hero {
   position: relative;
   isolation: isolate;
+  overflow: visible;
   border-radius: 1.5rem;
   min-height: 0;
   box-shadow:
@@ -4794,6 +4795,7 @@ html, body {
   flex-direction: column;
   gap: 1.55rem;
   padding: 1.75rem 1.25rem 1.4rem;
+  overflow: visible;
 }
 
 .home-hero__copy {
@@ -4856,25 +4858,140 @@ html, body {
   color: rgba(208, 217, 227, 0.86);
 }
 
+.home-hero__status {
+  margin: 0 0 0.55rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(226, 208, 186, 0.18);
+  background: rgba(226, 208, 186, 0.08);
+  padding: 0.28rem 0.62rem;
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: #e2d0ba;
+}
+
+.home-hero__status::before {
+  content: '';
+  display: block;
+  height: 0.42rem;
+  width: 0.42rem;
+  border-radius: 9999px;
+  background: #e2d0ba;
+  box-shadow: 0 0 10px rgba(226, 208, 186, 0.58);
+}
+
+.home-hero__resume-card {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  overflow: hidden;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(191, 160, 120, 0.38);
+  background:
+    radial-gradient(circle at 92% 8%, rgba(255, 255, 255, 0.42), transparent 30%),
+    linear-gradient(135deg, #ead0bb 0%, #d7b28f 54%, #b98d6e 100%);
+  padding: 0.95rem;
+  text-align: left;
+  color: #132031;
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.24),
+    0 0 0 1px rgba(255, 255, 255, 0.16) inset;
+}
+
+.home-hero__resume-body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.home-hero__resume-kicker {
+  margin-bottom: 0.26rem;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: rgba(19, 32, 49, 0.72);
+}
+
+.home-hero__resume-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1.05rem;
+  font-weight: 950;
+  letter-spacing: -0.01em;
+  line-height: 1.08;
+  color: #091321;
+}
+
+.home-hero__resume-meta {
+  margin-top: 0.22rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.73rem;
+  font-weight: 750;
+  line-height: 1.25;
+  color: rgba(30, 49, 69, 0.86);
+}
+
+.home-hero__primary-action {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 950;
+  color: #091321;
+}
+
+.home-hero__primary-play {
+  display: inline-flex;
+  height: 2.35rem;
+  width: 2.35rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: #132031;
+  color: #f1e8dc;
+  box-shadow: 0 7px 18px rgba(19, 32, 49, 0.34);
+}
+
 .home-hero__shortcut-short { display: inline; }
 .home-hero__shortcut-full { display: none; }
 
 .home-hero__shortcuts {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.5rem;
+  position: relative;
+  overflow: visible;
 }
 
 .home-hero__shortcuts .home-hero__explore-wrap,
 .home-hero__shortcuts .home-hero__quiz-wrap,
-.home-hero__shortcuts .home-hero__learn {
+.home-hero__shortcuts .home-hero__learn,
+.home-hero__shortcuts .home-hero__library {
   min-width: 0;
   width: 100%;
 }
 
 .home-hero__shortcuts .hero-explore-btn,
 .home-hero__shortcuts .home-hero__quiz,
-.home-hero__shortcuts .home-hero__learn {
+.home-hero__shortcuts .home-hero__learn,
+.home-hero__shortcuts .home-hero__library {
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -4887,14 +5004,16 @@ html, body {
 
 .home-hero__shortcuts .hero-explore-btn__icon,
 .home-hero__shortcuts .home-hero__quiz-icon,
-.home-hero__shortcuts .home-hero__learn-icon {
+.home-hero__shortcuts .home-hero__learn-icon,
+.home-hero__shortcuts .home-hero__library-icon {
   height: 2rem;
   width: 2rem;
 }
 
 .home-hero__shortcuts .hero-explore-btn__body,
 .home-hero__shortcuts .home-hero__quiz-text,
-.home-hero__shortcuts .home-hero__learn-text {
+.home-hero__shortcuts .home-hero__learn-text,
+.home-hero__shortcuts .home-hero__library-text {
   display: flex;
   flex: 0 1 auto;
   flex-direction: column;
@@ -4903,7 +5022,8 @@ html, body {
 
 .home-hero__shortcuts .hero-explore-btn__title,
 .home-hero__shortcuts .home-hero__quiz-title,
-.home-hero__shortcuts .home-hero__learn-title {
+.home-hero__shortcuts .home-hero__learn-title,
+.home-hero__shortcuts .home-hero__library-title {
   font-size: 0.72rem;
   letter-spacing: 0;
 }
@@ -4911,9 +5031,11 @@ html, body {
 .home-hero__shortcuts .hero-explore-btn__meta,
 .home-hero__shortcuts .home-hero__quiz-meta,
 .home-hero__shortcuts .home-hero__learn-meta,
+.home-hero__shortcuts .home-hero__library-meta,
 .home-hero__shortcuts .hero-explore-btn__chevron,
 .home-hero__shortcuts .home-hero__quiz-chevron,
 .home-hero__shortcuts .home-hero__learn-arrow,
+.home-hero__shortcuts .home-hero__library-arrow,
 .home-hero__shortcuts .hero-explore-btn__sheen,
 .home-hero__shortcuts .home-hero__quiz-sheen,
 .home-hero__shortcuts .home-hero__learn-sheen {
@@ -4933,55 +5055,96 @@ html, body {
 }
 
 @media (max-width: 767px) {
-  .home-hero__content {
-    gap: 0;
-    padding: 1.15rem 1.15rem 1.05rem;
+  .home-hero {
+    border-radius: 1.5rem;
+    box-shadow:
+      0 0 0 1px rgba(226, 208, 186, 0.12),
+      0 18px 48px rgba(0, 0, 0, 0.22);
   }
 
-  .home-hero__brand {
-    margin: 0 0 0.28rem;
-    font-size: 1.55rem;
+  .home-hero__wash {
+    background:
+      radial-gradient(ellipse 78% 70% at 88% 0%, rgba(191, 160, 120, 0.18), transparent 48%),
+      linear-gradient(180deg, rgba(22, 37, 56, 0.92) 0%, rgba(13, 23, 37, 0.96) 100%);
+  }
+
+  .home-hero__mesh {
+    opacity: 0.18;
+    background-size: 22px 22px;
+  }
+
+  .home-hero__orb,
+  .home-hero__rail,
+  .home-hero__spark {
+    display: none;
+  }
+
+  .home-hero__content {
+    gap: 0.8rem;
+    padding: 1rem 0.95rem 0.95rem;
+  }
+
+  .home-hero__copy {
+    max-width: none;
   }
 
   .home-hero__title {
-    font-size: 1.32rem;
+    font-size: 1.38rem;
+    letter-spacing: 0;
   }
 
   .home-hero__lede {
-    margin-top: 0.38rem;
+    margin-top: 0.32rem;
+    max-width: none;
     font-size: 0.8rem;
     line-height: 1.4;
   }
 
   .home-fusion-scope {
-    margin-top: 0.85rem;
+    margin-top: 0.55rem;
     gap: 0.55rem;
   }
 
-  .home-hero__cta {
-    padding: 0.78rem 0.9rem;
-    border-radius: 1.1rem;
+  .home-hero__quick-actions > .home-hero__cta {
+    display: none;
   }
 
-  .home-hero__cta-title {
-    font-size: 0.86rem;
+  .home-hero__quick-actions .home-hero__shortcuts {
+    padding-inline: 0.95rem;
   }
 
-  .home-hero__cta-play {
-    height: 2.35rem;
-    width: 2.35rem;
+  .home-hero__resume-card {
+    min-height: 5.25rem;
+  }
+
+  .home-hero__primary-action > span:first-child {
+    display: none;
   }
 }
 
+.home-hero__explore-wrap,
 .home-hero__quiz-wrap {
   position: relative;
   z-index: 1;
   width: 100%;
+  overflow: visible;
 }
 
-.home-hero__quiz-wrap:hover,
-.home-hero__quiz-wrap:focus-within {
-  z-index: 8;
+.home-hero__explore-wrap .hero-explore-btn,
+.home-hero__quiz-wrap .home-hero__quiz {
+  position: relative;
+  z-index: 1;
+}
+
+@media (hover: hover) {
+  .home-hero__shortcuts:has(.explore-bubbles.is-visible, .quiz-bubbles.is-visible) {
+    z-index: 50;
+  }
+
+  .home-hero__explore-wrap:has(.explore-bubbles.is-visible),
+  .home-hero__quiz-wrap:has(.quiz-bubbles.is-visible) {
+    z-index: 51;
+  }
 }
 
 .home-hero__quiz {
@@ -5231,6 +5394,94 @@ html, body {
   transform: translateX(3px);
 }
 
+.home-hero__library {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(143, 163, 176, 0.32);
+  background:
+    linear-gradient(145deg, rgba(27, 45, 67, 0.94) 0%, rgba(14, 26, 40, 0.96) 55%, rgba(10, 18, 30, 1) 100%);
+  padding: 0.9rem 1rem;
+  text-align: left;
+  color: #f6f8fb;
+  box-shadow:
+    inset 0 1px 0 rgba(241, 232, 220, 0.06),
+    0 10px 24px rgba(0, 0, 0, 0.2);
+  transition: filter 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+}
+
+.home-hero__library::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 88% 18%, rgba(143, 163, 176, 0.14), transparent 36%),
+    radial-gradient(circle at 12% 88%, rgba(226, 208, 186, 0.08), transparent 42%);
+  pointer-events: none;
+}
+
+.home-hero__library:hover {
+  border-color: rgba(226, 208, 186, 0.4);
+  filter: brightness(1.04);
+}
+
+.home-hero__library:active {
+  transform: scale(0.985);
+}
+
+.home-hero__library-icon {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  height: 2.35rem;
+  width: 2.35rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: rgba(226, 208, 186, 0.12);
+  color: #e2d0ba;
+}
+
+.home-hero__library-text {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.home-hero__library-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.home-hero__library-meta {
+  font-size: 0.72rem;
+  color: rgba(208, 217, 227, 0.78);
+}
+
+.home-hero__library-arrow {
+  position: relative;
+  z-index: 2;
+  color: rgba(226, 208, 186, 0.75);
+  transition: transform 0.25s ease;
+}
+
+.home-hero__library:hover .home-hero__library-arrow {
+  transform: translateX(3px);
+}
+
 .home-hero__actions {
   display: flex;
   flex-direction: column;
@@ -5410,7 +5661,7 @@ html, body {
   position: absolute;
   inset-inline: 0;
   bottom: calc(100% - 0.35rem);
-  z-index: 5;
+  z-index: 10;
   height: 11.5rem;
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -5530,7 +5781,7 @@ html, body {
   position: absolute;
   inset-inline: 0;
   bottom: calc(100% - 0.35rem);
-  z-index: 5;
+  z-index: 10;
   height: 11.5rem;
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -5768,9 +6019,22 @@ html, body {
     border-radius: 2rem;
   }
 
+  .home-hero__resume-card {
+    max-width: 32rem;
+    min-height: 5.35rem;
+    border-radius: 1.35rem;
+    padding: 1rem 1.05rem;
+  }
+
   .home-hero__content {
+    align-items: center;
     gap: 1.9rem;
     padding: 2.5rem 2.35rem 2rem;
+  }
+
+  .home-hero__copy {
+    align-items: center;
+    text-align: center;
   }
 
   .home-hero__brand {
@@ -5788,6 +6052,10 @@ html, body {
     font-size: 1.02rem;
   }
 
+  .home-hero__quick-actions > .home-hero__cta {
+    display: none;
+  }
+
   .home-fusion-scope {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -5797,7 +6065,9 @@ html, body {
   }
 
   .home-hero__shortcuts {
-    display: contents;
+    display: grid;
+    max-width: 48rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .home-hero__shortcut-short { display: none; }
@@ -5857,27 +6127,32 @@ html, body {
 
   .home-hero__quiz,
   .home-hero__learn,
+  .home-hero__library,
   .hero-explore-btn {
     grid-column: auto;
     border-radius: 1.2rem;
     padding: 0.85rem 0.9rem;
-    align-items: flex-start;
+    align-items: center;
     min-width: 0;
     width: 100%;
   }
 
   .home-hero__quiz-wrap .home-hero__quiz { flex: 1; width: 100%; }
   .home-hero__quiz-icon,
-  .home-hero__learn-icon { height: 2.2rem; width: 2.2rem; border-radius: 9999px; }
+  .home-hero__learn-icon,
+  .home-hero__library-icon { height: 2.2rem; width: 2.2rem; border-radius: 9999px; }
   .home-hero__quiz-title,
   .home-hero__learn-title,
+  .home-hero__library-title,
   .hero-explore-btn__title { font-size: 0.88rem; }
   .home-hero__quiz-meta,
   .home-hero__learn-meta,
+  .home-hero__library-meta,
   .hero-explore-btn__meta { display: block; font-size: 0.68rem; }
   .hero-explore-btn__chevron,
   .home-hero__quiz-chevron,
-  .home-hero__quiz-arrow { margin-top: 0.1rem; }
+  .home-hero__quiz-arrow,
+  .home-hero__library-arrow { margin-top: 0.1rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -6130,6 +6405,14 @@ html, body {
 
   .home-explore-fusion {
     --fusion-p: 0;
+    position: sticky;
+    top: 6rem;
+    align-self: start;
+    z-index: 1;
+  }
+
+  .home-explore-fusion.is-fusing {
+    z-index: 20;
   }
 
   .home-explore-fusion-card {

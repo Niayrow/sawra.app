@@ -581,7 +581,7 @@ const HomeExploreFusionButton: React.FC<{
       />
       <div
         ref={(node) => setHeaderRef(node)}
-        className={`home-hero__explore-wrap home-explore-fusion min-w-0 md:sticky md:top-24 md:z-20 md:self-start ${
+        className={`home-hero__explore-wrap home-explore-fusion min-w-0 ${
           enabled && progress > 0.01 ? 'is-fusing' : ''
         }`}
         style={enabled ? mergeStyle : undefined}
@@ -1236,6 +1236,12 @@ const AppContent: React.FC = () => {
     !radioTheaterOpen;
   const playerPillMode = playerVisible && mobilePlayerChrome === 'pill';
   const playerFullDock = playerVisible && mobilePlayerChrome === 'full';
+  const currentTrackProgress = currentTrack
+    ? getProgress(currentTrack.reciter.id, currentTrack.moshaf.id, currentTrack.surah.id)
+    : undefined;
+  const currentTrackMeta = currentTrack
+    ? `${currentTrack.reciter.name}${currentTrackProgress?.ayah != null ? ` · verset ${currentTrackProgress.ayah}` : ''}`
+    : 'Choisissez une voix et lancez l’écoute';
 
   if (showLoadingHome) {
     // Keep the HTML #boot-splash as the LCP element; React stays empty until ready.
@@ -1332,53 +1338,48 @@ const AppContent: React.FC = () => {
               </div>
 
               <div className="home-hero__content">
-                <header className="home-hero__copy">
-                  <p className="home-hero__brand home-hero__enter home-hero__enter--1">
-                    <span className="reciter-name-gradient is-selected home-hero__brand-glow">Sawra</span>
+                <header className="home-hero__copy home-hero__enter home-hero__enter--1">
+                  <p className="home-hero__status">
+                    {currentTrack ? 'Lecture en cours' : 'Accueil'}
                   </p>
-                  <h2 className="home-hero__title home-hero__enter home-hero__enter--2">
-                    Le Coran,
-                    <span className="home-hero__title-line">
-                      <span className="home-hero__accent">simplement.</span>
-                    </span>
+                  <h2 className="home-hero__title">
+                    {currentTrack ? 'Reprendre' : 'Écouter maintenant'}
                   </h2>
-                  <p className="home-hero__lede home-hero__enter home-hero__enter--3">
-                    Reprenez votre lecture, trouvez une belle voix.
+                  <p className="home-hero__lede">
+                    {currentTrack
+                      ? 'Votre dernière écoute est prête.'
+                      : 'Trouvez une voix et commencez en quelques secondes.'}
                   </p>
                 </header>
-              </div>
-            </section>
 
-            <div className="home-fusion-scope home-hero__enter home-hero__enter--4">
-                  <button
-                    type="button"
-                    onClick={currentTrack ? handleResumeListening : () => handleNavigate('listen')}
-                    className="home-hero__cta tap-feedback"
-                    aria-label={
-                      currentTrack
-                        ? `Continuer la lecture : ${currentTrack.surah.name} avec ${currentTrack.reciter.name}`
-                        : 'Continuer la lecture'
-                    }
-                  >
-                    <span className="home-hero__cta-sheen" aria-hidden />
-                    <span className="home-hero__cta-text">
-                      <span className="home-hero__cta-title">Continuer la lecture</span>
-                      <span className="home-hero__cta-meta">
-                        {currentTrack
-                          ? `${currentTrack.surah.name}${
-                              getProgress(currentTrack.reciter.id, currentTrack.moshaf.id, currentTrack.surah.id)?.ayah != null
-                                ? ` · v. ${getProgress(currentTrack.reciter.id, currentTrack.moshaf.id, currentTrack.surah.id)!.ayah}`
-                                : ''
-                            } · ${currentTrack.reciter.name}`
-                          : 'Choisissez une voix et lancez l’écoute'}
-                      </span>
+                <button
+                  type="button"
+                  onClick={currentTrack ? handleResumeListening : () => handleNavigate('listen')}
+                  className="home-hero__resume-card home-hero__enter home-hero__enter--2 tap-feedback"
+                  aria-label={
+                    currentTrack
+                      ? `Continuer la lecture : ${currentTrack.surah.name} avec ${currentTrack.reciter.name}`
+                      : 'Commencer l’écoute'
+                  }
+                >
+                  <span className="home-hero__resume-body">
+                    <span className="home-hero__resume-kicker">
+                      {currentTrackProgress?.ayah != null ? `Verset ${currentTrackProgress.ayah}` : 'Prêt'}
                     </span>
-                    <span className="home-hero__cta-play" aria-hidden>
+                    <span className="home-hero__resume-title">
+                      {currentTrack ? currentTrack.surah.name : 'Choisir une sourate'}
+                    </span>
+                    <span className="home-hero__resume-meta">{currentTrackMeta}</span>
+                  </span>
+                  <span className="home-hero__primary-action" aria-hidden>
+                    <span>{currentTrack ? 'Continuer' : 'Écouter'}</span>
+                    <span className="home-hero__primary-play">
                       <Play className="ml-0.5 h-4 w-4 fill-current" />
                     </span>
-                  </button>
+                  </span>
+                </button>
 
-                  <div className="home-hero__shortcuts">
+                <div className="home-hero__shortcuts home-hero__enter home-hero__enter--3">
                   <HomeExploreFusionButton
                     enabled={exploreFusionEnabled}
                     reciters={reciters ?? []}
@@ -1404,7 +1405,33 @@ const AppContent: React.FC = () => {
                     </span>
                     <ArrowRight className="home-hero__learn-arrow h-4 w-4 shrink-0" aria-hidden />
                   </button>
-                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleNavigate('favorites')}
+                    className="home-hero__library tap-feedback"
+                  >
+                    <span className="home-hero__library-icon" aria-hidden>
+                      <Heart className="h-4.5 w-4.5" />
+                    </span>
+                    <span className="home-hero__library-text">
+                      <span className="home-hero__library-title">
+                        <span className="home-hero__shortcut-short">Biblio</span>
+                        <span className="home-hero__shortcut-full">Bibliothèque</span>
+                      </span>
+                      <span className="home-hero__library-meta">
+                        {favorites.length > 0
+                          ? `${favorites.length} favori${favorites.length > 1 ? 's' : ''}`
+                          : 'Favoris et reprises'}
+                      </span>
+                    </span>
+                    <ArrowRight className="home-hero__library-arrow h-4 w-4 shrink-0" aria-hidden />
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <div className="home-fusion-scope home-hero__quick-actions">
 
               <div className="home-fusion-feed">
             {!isLoadingReciters && (

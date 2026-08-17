@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   Compass, Cloud, HardDrive, Headphones, Shield, Sparkles, Trash2, Wifi,
   MonitorSmartphone, ListMusic, Smartphone, ExternalLink, History, BookOpen, FileText,
@@ -81,7 +80,6 @@ const UPDATE_HISTORY: Array<{
 ];
 
 export const AboutPanel: React.FC = () => {
-  const router = useRouter();
   const { cacheInfo, clearCache } = useAudio();
 
   const handleClear = async () => {
@@ -285,19 +283,6 @@ export const AboutPanel: React.FC = () => {
             <a
               key={href}
               href={href}
-              onClick={(event) => {
-                if (
-                  event.metaKey ||
-                  event.ctrlKey ||
-                  event.shiftKey ||
-                  event.altKey ||
-                  event.button !== 0
-                ) {
-                  return;
-                }
-                event.preventDefault();
-                router.push(href);
-              }}
               className="flex min-h-11 items-center gap-2 rounded-2xl border border-[#30455c]/55 bg-[#111d2d]/70 px-3.5 py-3 text-left text-xs font-semibold text-[#d0d9e3] transition-colors hover:border-[#46607b]/60 hover:text-[#f6f8fb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#bfa078] tap-feedback"
             >
               <Icon className="h-4 w-4 shrink-0 text-[#e2d0ba]" aria-hidden />

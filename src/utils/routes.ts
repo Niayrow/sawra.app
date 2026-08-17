@@ -41,6 +41,12 @@ export type LegalPath = (typeof LEGAL_PATHS)[number];
 export const isLegalPath = (value: string): value is LegalPath =>
   (LEGAL_PATHS as readonly string[]).includes(value);
 
+/** Pages légales hors shell SPA : navigation document complète (évite les échecs router.push). */
+export function navigateToLegalPage(href: LegalPath): void {
+  if (typeof window === 'undefined') return;
+  window.location.assign(href);
+}
+
 export const isSpaPath = (pathname: string): boolean => {
   const path = pathname.replace(/\/+$/, '') || '/';
   return (SPA_PATHS as readonly string[]).includes(path);

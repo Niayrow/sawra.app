@@ -44,6 +44,7 @@ import {
   isSpaPath,
   legacyLegalHref,
   mapLegacyTab,
+  navigateToLegalPage,
   parseLocation,
   pathForView,
   resolveMoreNavigation,
@@ -326,7 +327,7 @@ const HomeFeaturedReciter: React.FC<HomeFeaturedReciterProps> = ({
 /** One-line memo that scrolls when it overflows (mobile). */
 const MemoMarquee: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const trackRef = useRef<HTMLParagraphElement | null>(null);
+  const trackRef = useRef<HTMLDivElement | null>(null);
   const [overflowing, setOverflowing] = useState(false);
 
   useEffect(() => {
@@ -358,14 +359,14 @@ const MemoMarquee: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <div ref={containerRef} className="memo-marquee min-w-0 flex-1 overflow-hidden sm:overflow-visible">
-      <p
+      <div
         ref={trackRef}
         className={`memo-marquee__track text-[11px] leading-none text-[#b4c0ce] sm:text-[12px] sm:leading-snug ${
           overflowing ? 'is-overflowing' : ''
         }`}
       >
         {children}
-      </p>
+      </div>
     </div>
   );
 };
@@ -768,19 +769,19 @@ const AppContent: React.FC = () => {
       const pathNorm = url.pathname.replace(/\/+$/, '') || '/';
 
       if (isLegalPath(pathNorm)) {
-        router.push(pathNorm);
+        navigateToLegalPage(pathNorm);
         return;
       }
       if (pathNorm === '/informations/sources') {
-        router.push('/sources');
+        navigateToLegalPage('/sources');
         return;
       }
       if (pathNorm === '/informations/confidentialite') {
-        router.push('/privacy');
+        navigateToLegalPage('/privacy');
         return;
       }
       if (pathNorm === '/informations/conditions') {
-        router.push('/terms');
+        navigateToLegalPage('/terms');
         return;
       }
 
@@ -812,7 +813,7 @@ const AppContent: React.FC = () => {
         legacyLegalHref(tab) ||
         (panelParam === 'legal' ? '/sources' : null);
       if (legalHref) {
-        router.push(legalHref);
+        navigateToLegalPage(legalHref);
         return;
       }
 
@@ -1211,7 +1212,7 @@ const AppContent: React.FC = () => {
   const navigateToPath = useCallback((href: string) => {
     const pathNorm = href.split('?')[0].replace(/\/+$/, '') || '/';
     if (isLegalPath(pathNorm)) {
-      router.push(pathNorm);
+      navigateToLegalPage(pathNorm);
       return;
     }
     const parsed = parseLocation(href, '');

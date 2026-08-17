@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   BookOpen,
   Gauge,
@@ -171,7 +170,6 @@ export const OptionsPanel: React.FC<OptionsPanelProps> = ({
   navDesktopStyle,
   onNavDesktopStyleChange,
 }) => {
-  const router = useRouter();
   const {
     playbackSpeed,
     setPlaybackSpeed,
@@ -470,19 +468,6 @@ export const OptionsPanel: React.FC<OptionsPanelProps> = ({
             <a
               key={link.href}
               href={link.href}
-              onClick={(event) => {
-                if (
-                  event.metaKey ||
-                  event.ctrlKey ||
-                  event.shiftKey ||
-                  event.altKey ||
-                  event.button !== 0
-                ) {
-                  return;
-                }
-                event.preventDefault();
-                router.push(link.href);
-              }}
               className="inline-flex min-h-9 items-center rounded-full border border-[#30455c]/60 bg-[#0c1522]/80 px-3 text-[11px] font-semibold text-[#95a7ba] hover:border-[#bfa078]/35 hover:text-[#e6d5c2] tap-feedback"
             >
               {link.label}

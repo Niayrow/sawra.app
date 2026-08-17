@@ -38,6 +38,7 @@ import {
   LEARN_REPEAT_COUNTS as REPEAT_COUNTS,
   clampLearnWindowSize,
   type LearnRepeatCount,
+  LEARN_WINDOW_SIZE_MAX,
 } from '../utils/learnSession';
 
 type OptionsPanelProps = {
@@ -373,15 +374,20 @@ export const OptionsPanel: React.FC<OptionsPanelProps> = ({
 
       <Section icon={Sparkles} title="Apprendre" hint="Réglages par défaut du mode Apprendre.">
         <ChipGroup
-          label="Fenêtre (versets)"
+          label="Versets à répéter"
+          hint="Nombre de versets lus ensemble. « Tous » couvre la sourate entière."
           value={learnPrefs.windowSize}
-          options={[1, 2, 3, 5, 7, 10].map((n) => ({ value: n, label: String(n) }))}
+          options={[
+            ...[1, 2, 3, 5, 7, 10].map((n) => ({ value: n, label: String(n) })),
+            { value: LEARN_WINDOW_SIZE_MAX, label: 'Tous' },
+          ]}
           onChange={(windowSize) =>
             updateLearn({ windowSize: clampLearnWindowSize(windowSize) })
           }
         />
         <ChipGroup
-          label="Répétitions"
+          label="Répétitions des versets"
+          hint="Combien de fois relire le ou les versets sélectionnés."
           value={learnPrefs.repeats}
           options={REPEAT_COUNTS.map((n) => ({
             value: n,

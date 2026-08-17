@@ -11,11 +11,14 @@ import {
   ArrowRight,
   AudioLines,
   BookOpen,
+  ChevronDown,
   Eye,
   EyeOff,
+  Gauge,
   Pause,
   Play,
   RefreshCw,
+  Repeat,
   Search,
   Settings,
   WifiOff,
@@ -321,6 +324,11 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onBack, onListenSurah }) =
             ? 'Écoutez phrase par phrase'
             : 'Touchez un verset pour l’écouter';
 
+  const activeWindowSize = loop.windowSize || windowSize;
+  const repeatVersesLabel =
+    activeWindowSize <= 1 ? 'Répétitions du verset' : 'Répétitions des versets';
+  const isFullSurahWindow = activeWindowSize >= maxWindow;
+
   const rangeLabel = (() => {
     const win = loop.ayahWindow;
     if (!win) return '—';
@@ -621,12 +629,16 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onBack, onListenSurah }) =
       {inSession && loop.config && (
         <section className="learn-page__stack learn-session">
           <div className="learn-chrome-sticky">
-            <div className="learn-session-bar">
+            <div
+              className={`learn-session-bar ${
+                loop.phase === 'listening' ? 'learn-session-bar--listening' : ''
+              }`}
+            >
               <button
                 type="button"
                 className="learn-session-bar__reciter tap-feedback"
                 aria-expanded={voicesOpen}
-                aria-label="Changer de récitateur"
+                aria-label={`Changer de récitateur — ${loop.config.reciter.name}`}
                 onClick={() => {
                   setVoicesOpen((v) => !v);
                   setSettingsOpen(false);
@@ -640,7 +652,15 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onBack, onListenSurah }) =
                   />
                 </span>
                 <span className="learn-session-bar__text min-w-0">
-                  <span className="learn-session-bar__name">{loop.config.reciter.name}</span>
+                  <span className="learn-session-bar__name-row">
+                    <span className="learn-session-bar__name">{loop.config.reciter.name}</span>
+                    <span className="learn-session-bar__voice-hint" aria-hidden>
+                      Changer
+                      <ChevronDown
+                        className={`learn-session-bar__chevron ${voicesOpen ? 'is-open' : ''}`}
+                      />
+                    </span>
+                  </span>
                   <span className="learn-session-bar__status">{statusLabel}</span>
                 </span>
               </button>
@@ -691,69 +711,84 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onBack, onListenSurah }) =
             )}
 
             <div className="learn-mini-bar">
-              <button
-                type="button"
-                disabled={!canGoPrev}
-                onClick={loop.goPrev}
-                className="learn-mini-bar__nav tap-feedback"
-                aria-label={isKursiSession ? 'Phrase précédente' : 'Versets précédents'}
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </button>
-              <span className="learn-mini-bar__range">{rangeLabel}</span>
-              <button
-                type="button"
-                disabled={!canGoNext}
-                onClick={loop.goNext}
-                className="learn-mini-bar__nav tap-feedback"
-                aria-label={isKursiSession ? 'Phrase suivante' : 'Versets suivants'}
-              >
-                <ArrowRight className="h-4 w-4" />
-              </button>
+              <div className="learn-mini-bar__cluster learn-mini-bar__cluster--nav">
+                <button
+                  type="button"
+                  disabled={!canGoPrev}
+                  onClick={loop.goPrev}
+                  className="learn-mini-bar__nav tap-feedback"
+                  aria-label={isKursiSession ? 'Phrase précédente' : 'Versets précédents'}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </button>
+                <span className="learn-mini-bar__range">{rangeLabel}</span>
+                <button
+                  type="button"
+                  disabled={!canGoNext}
+                  onClick={loop.goNext}
+                  className="learn-mini-bar__nav tap-feedback"
+                  aria-label={isKursiSession ? 'Phrase suivante' : 'Versets suivants'}
+                >
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
 
               {!isKursiSession && (
-                <>
-                  <span className="learn-mini-bar__sep" aria-hidden />
-
-                  <div className="learn-stepper learn-stepper--mini" role="group" aria-label="Nombre de versets">
-                    <button
-                      type="button"
-                      className="learn-stepper__btn tap-feedback"
-                      aria-label="Moins de versets"
-                      disabled={(loop.windowSize || windowSize) <= LEARN_WINDOW_SIZE_MIN}
-                      onClick={() => applyWindowSize((loop.windowSize || windowSize) - 1)}
-                    >
-                      −
-                    </button>
-                    <input
-                      className="learn-stepper__value"
-                      type="number"
-                      inputMode="numeric"
-                      min={LEARN_WINDOW_SIZE_MIN}
-                      max={maxWindow}
-                      value={loop.windowSize || windowSize}
-                      aria-label="Nombre de versets à lire ensemble"
-                      onChange={(e) => applyWindowSize(Number(e.target.value))}
-                    />
-                    <button
-                      type="button"
-                      className="learn-stepper__btn tap-feedback"
-                      aria-label="Plus de versets"
-                      disabled={(loop.windowSize || windowSize) >= maxWindow}
-                      onClick={() => applyWindowSize((loop.windowSize || windowSize) + 1)}
-                    >
-                      +
-                    </button>
+                <div className="learn-mini-bar__window">
+                  <div className="learn-mini-bar__cluster learn-mini-bar__cluster--stepper">
+                    <div className="learn-stepper learn-stepper--mini" role="group" aria-label="Nombre de versets">
+                      <button
+                        type="button"
+                        className="learn-stepper__btn tap-feedback"
+                        aria-label="Moins de versets"
+                        disabled={activeWindowSize <= LEARN_WINDOW_SIZE_MIN}
+                        onClick={() => applyWindowSize(activeWindowSize - 1)}
+                      >
+                        −
+                      </button>
+                      <input
+                        className="learn-stepper__value"
+                        type="number"
+                        inputMode="numeric"
+                        min={LEARN_WINDOW_SIZE_MIN}
+                        max={maxWindow}
+                        value={activeWindowSize}
+                        aria-label="Nombre de versets à lire ensemble"
+                        onChange={(e) => applyWindowSize(Number(e.target.value))}
+                      />
+                      <button
+                        type="button"
+                        className="learn-stepper__btn tap-feedback"
+                        aria-label="Plus de versets"
+                        disabled={activeWindowSize >= maxWindow}
+                        onClick={() => applyWindowSize(activeWindowSize + 1)}
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
-                </>
+                  <button
+                    type="button"
+                    className={`learn-mini-bar__all-btn tap-feedback ${isFullSurahWindow ? 'is-active' : ''}`}
+                    aria-pressed={isFullSurahWindow}
+                    aria-label="Toute la sourate"
+                    title="Toute la sourate"
+                    onClick={() => applyWindowSize(maxWindow)}
+                  >
+                    ALL
+                  </button>
+                </div>
               )}
             </div>
 
             {settingsOpen && (
               <div className="learn-settings-panel">
-                <div className="learn-settings-panel__row">
-                  <span className="learn-settings-panel__label">Répétitions</span>
-                  <div className="learn-toolbar__pills learn-toolbar__pills--mini" role="group" aria-label="Répétitions">
+                <div className="learn-settings-panel__block">
+                  <div className="learn-settings-panel__head">
+                    <Repeat className="learn-settings-panel__icon" aria-hidden />
+                    <span className="learn-settings-panel__label">{repeatVersesLabel}</span>
+                  </div>
+                  <div className="learn-seg" role="group" aria-label={repeatVersesLabel}>
                     {LEARN_REPEAT_COUNTS.map((n) => (
                       <button
                         key={n}
@@ -763,7 +798,7 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onBack, onListenSurah }) =
                           setRepeats(n);
                           loop.setRepeats(n);
                         }}
-                        className={`learn-toolbar__pill tap-feedback ${
+                        className={`learn-seg__btn tap-feedback ${
                           loop.repeats === n ? 'is-active' : ''
                         }`}
                       >
@@ -773,16 +808,19 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onBack, onListenSurah }) =
                   </div>
                 </div>
 
-                <div className="learn-settings-panel__row">
-                  <span className="learn-settings-panel__label">Vitesse</span>
-                  <div className="learn-toolbar__pills learn-toolbar__pills--mini" role="group" aria-label="Vitesse">
+                <div className="learn-settings-panel__block">
+                  <div className="learn-settings-panel__head">
+                    <Gauge className="learn-settings-panel__icon" aria-hidden />
+                    <span className="learn-settings-panel__label">Vitesse</span>
+                  </div>
+                  <div className="learn-seg" role="group" aria-label="Vitesse">
                     {LEARN_SPEEDS.map((s) => (
                       <button
                         key={s}
                         type="button"
                         aria-pressed={loop.speed === s}
                         onClick={() => loop.setSpeed(s as LearnSpeed)}
-                        className={`learn-toolbar__pill tap-feedback ${
+                        className={`learn-seg__btn tap-feedback ${
                           loop.speed === s ? 'is-active' : ''
                         }`}
                       >
@@ -792,7 +830,7 @@ export const LearnPage: React.FC<LearnPageProps> = ({ onBack, onListenSurah }) =
                   </div>
                 </div>
 
-                <div className="learn-settings-panel__row learn-settings-panel__row--toggles">
+                <div className="learn-settings-panel__toggles">
                   <button
                     type="button"
                     aria-pressed={loop.autoAdvance}

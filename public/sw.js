@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'sawra-pwa-v118-logo-transparent-20260817';
+const CACHE_VERSION = 'sawra-pwa-v119-icon-black-20260817';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const OFFLINE_URL = '/offline.html';
@@ -16,11 +16,11 @@ const APP_SHELL_ASSETS = [
   '/fonts/outfit-latin.woff2',
   '/fonts/outfit-latin-ext.woff2',
   '/icons/favicon-32x32.png',
-  '/icons/apple-touch-icon.png',
-  '/icons/android-chrome-192x192.png',
-  '/icons/android-chrome-512x512.png',
-  '/icons/maskable-192x192.png',
-  '/icons/maskable-512x512.png',
+  '/icons/apple-touch-icon-v2.png',
+  '/icons/android-chrome-192x192-v2.png',
+  '/icons/android-chrome-512x512-v2.png',
+  '/icons/maskable-192x192-v2.png',
+  '/icons/maskable-512x512-v2.png',
   '/icons/logo.png',
   '/icons/sansfond.webp',
   '/icons/appicon.webp',

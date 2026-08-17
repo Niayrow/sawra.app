@@ -178,14 +178,21 @@ resize_rgba(site, 1024).save(icons / "icon-1024.png", "PNG", optimize=True)
 PWA_ZOOM = 0.88
 MASKABLE_ZOOM = 0.72
 
+# Noms versionnés : /icons/* est en cache immutable côté CDN/navigateurs
+PWA_ASSET_TAG = "v2"
+
 pwa_targets = {
     icons / "apple-touch-icon.png": 180,
+    icons / f"apple-touch-icon-{PWA_ASSET_TAG}.png": 180,
     icons / "android-chrome-192x192.png": 192,
+    icons / f"android-chrome-192x192-{PWA_ASSET_TAG}.png": 192,
     icons / "android-chrome-512x512.png": 512,
+    icons / f"android-chrome-512x512-{PWA_ASSET_TAG}.png": 512,
     icons / "artwork.png": 512,
     icons / "app icon.png": 1024,
     icons / "appicon.png": 1024,
     public / "apple-touch-icon.png": 180,
+    public / f"apple-touch-icon-{PWA_ASSET_TAG}.png": 180,
     public / "icon.png": 512,
     public / "appicon.png": 1024,
 }
@@ -205,9 +212,14 @@ webp_logo = resize_rgba(site, 320)
 webp_logo.save(sansfond_webp, "WEBP", quality=82, method=6)
 print(f"logo {sansfond_webp.relative_to(ROOT)} {webp_logo.size}")
 
-fit_contain_on_bg(site, 192, MASKABLE_ZOOM, bg=ICON_BG).save(icons / "maskable-192x192.png", "PNG", optimize=True)
-fit_contain_on_bg(site, 512, MASKABLE_ZOOM, bg=ICON_BG).save(icons / "maskable-512x512.png", "PNG", optimize=True)
-print(f"maskable 192/512 zoom={MASKABLE_ZOOM} bg=#000000")
+for mask_name, mask_size in (
+    ("maskable-192x192.png", 192),
+    (f"maskable-192x192-{PWA_ASSET_TAG}.png", 192),
+    ("maskable-512x512.png", 512),
+    (f"maskable-512x512-{PWA_ASSET_TAG}.png", 512),
+):
+    fit_contain_on_bg(site, mask_size, MASKABLE_ZOOM, bg=ICON_BG).save(icons / mask_name, "PNG", optimize=True)
+print(f"maskable 192/512 zoom={MASKABLE_ZOOM} bg=#000000 tag={PWA_ASSET_TAG}")
 
 # OG image
 og = Image.new("RGBA", (1200, 630), (*APP_BG, 255))

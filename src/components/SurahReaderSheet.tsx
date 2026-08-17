@@ -350,7 +350,7 @@ export const SurahReaderSheet: React.FC<SurahReaderSheetProps> = ({
   return (
     <>
     <div
-      className="pointer-events-none fixed inset-0 z-[49]"
+      className="pointer-events-none fixed inset-0 z-[140]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="surah-reader-title"

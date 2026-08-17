@@ -12,7 +12,7 @@ export const NavDesktopStyleToggle: React.FC<NavDesktopStyleToggleProps> = ({
   onChange,
 }) => {
   return (
-    <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-[#30455c]/55 bg-[#0f1928]/75 px-3.5 py-3.5">
+    <div className="flex flex-col gap-3 rounded-2xl border border-[#30455c]/55 bg-[#0f1928]/75 px-3.5 py-3.5">
       <div className="min-w-0">
         <p className="text-[13px] font-bold text-[#f6f8fb]">Navbar & barre de lecture</p>
         <p className="mt-0.5 text-[11px] leading-snug text-[#95a7ba]">

@@ -83,7 +83,7 @@ export const AyahPickerSheet: React.FC<AyahPickerSheetProps> = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[80] flex flex-col justify-end md:items-center md:justify-center md:p-4"
+      className="fixed inset-0 z-[140] flex flex-col justify-end md:items-center md:justify-center md:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="ayah-picker-title"

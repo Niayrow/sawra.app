@@ -10,6 +10,7 @@ import React, {
 import { useAuth } from './AuthContext';
 import { useAudio } from './AudioContext';
 import { useActiveAyah } from '../hooks/useActiveAyah';
+import { usePageHidden } from '../hooks/usePageHidden';
 import { requestAuthPrompt } from '../utils/appEvents';
 import { capturePostHogEvent } from '../utils/posthog';
 import { isSupabaseConfigured } from '../lib/supabase';
@@ -51,8 +52,11 @@ import {
 import type { QuranAyah } from '../types';
 
 const PROGRESS_FLUSH_MS = 6500;
+const PROGRESS_FLUSH_HIDDEN_MS = 20_000;
 const LISTEN_FLUSH_MS = 3000;
+const LISTEN_FLUSH_HIDDEN_MS = 15_000;
 const LISTEN_TICK_MS = 1000;
+const LISTEN_TICK_HIDDEN_MS = 5000;
 const MAX_TICK_DELTA_S = 5;
 
 type PendingListen = {
@@ -120,11 +124,11 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const {
     currentTrack,
     playbackStatus,
-    currentTime,
     getAccurateCurrentTime,
     isSeekingNow,
   } = useAudio();
   const ayahSync = useActiveAyah({ enabled: Boolean(currentTrack) });
+  const pageHidden = usePageHidden();
 
   const [bookmarks, setBookmarks] = useState<AyahBookmark[]>(() => loadLocalBookmarks());
   const [progress, setProgress] = useState<SurahProgress[]>(() => loadLocalProgress());
@@ -368,13 +372,13 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
         tzOffsetMinutes: latest.tzOffsetMinutes ?? tzOffsetMinutes(),
       };
     }
-    paintListenDays(Date.now() - lastDaysUiFlushRef.current > 1000);
+    paintListenDays(!(typeof document !== 'undefined' && document.visibilityState === 'hidden'));
   }, [flushListenToCloud, user]);
 
   const snapshotProgress = useCallback((force: boolean) => {
     const track = currentTrack;
     if (!track || playbackStatus === 'idle') return;
-    const position = getAccurateCurrentTime() || currentTime;
+    const position = getAccurateCurrentTime();
     if (!Number.isFinite(position) || position < 0) return;
 
     const stable = resolveStableAyah({
@@ -406,7 +410,6 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [
     ayahSync.available,
     ayahSync.timings,
-    currentTime,
     currentTrack,
     getAccurateCurrentTime,
     isSeekingNow,
@@ -559,21 +562,24 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
       pendingSessionRef.current = false;
       creditListenSeconds(delta, addSession);
 
-      if (now - lastListenFlushRef.current >= LISTEN_FLUSH_MS) {
+      if (now - lastListenFlushRef.current >= (document.visibilityState === 'hidden' ? LISTEN_FLUSH_HIDDEN_MS : LISTEN_FLUSH_MS)) {
         lastListenFlushRef.current = now;
         void flushListenToCloud();
       }
-    }, LISTEN_TICK_MS);
+    }, pageHidden ? LISTEN_TICK_HIDDEN_MS : LISTEN_TICK_MS);
 
     return () => window.clearInterval(timer);
-  }, [creditListenSeconds, flushListenToCloud, playbackStatus]);
+  }, [creditListenSeconds, flushListenToCloud, pageHidden, playbackStatus]);
 
   useEffect(() => {
     if (playbackStatus !== 'playing') return;
     snapshotProgress(false);
-    const timer = window.setInterval(() => snapshotProgress(false), PROGRESS_FLUSH_MS);
+    const timer = window.setInterval(
+      () => snapshotProgress(false),
+      pageHidden ? PROGRESS_FLUSH_HIDDEN_MS : PROGRESS_FLUSH_MS,
+    );
     return () => window.clearInterval(timer);
-  }, [playbackStatus, snapshotProgress]);
+  }, [pageHidden, playbackStatus, snapshotProgress]);
 
   useEffect(() => {
     if (playbackStatus === 'paused') {

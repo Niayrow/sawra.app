@@ -185,8 +185,12 @@ const writeStorage = (key: string, value: string) => {
 const TIME_UI_FLUSH_MS = 250;
 /** Persist resume position — localStorage is sync and costly on mobile. */
 const TIMESTAMP_PERSIST_MS = 10_000;
+const TIMESTAMP_PERSIST_HIDDEN_MS = 30_000;
 const MEDIA_SESSION_FLUSH_MS = 1_000;
 const WIDGET_SYNC_MIN_MS = 2_000;
+
+const isPageHidden = () =>
+  typeof document !== 'undefined' && document.visibilityState === 'hidden';
 
 const parseSavedNumber = (key: string, fallback: number, min?: number, max?: number) => {
   const saved = readStorage(key);
@@ -764,8 +768,6 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const audio = new Audio();
     audio.preload = 'metadata';
-    // Enables Web Audio processing on CDN streams (Access-Control-Allow-Origin: *)
-    audio.crossOrigin = 'anonymous';
     audioRef.current = audio;
     
     // Set restored volume
@@ -809,9 +811,14 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
     const onTimeUpdate = () => {
       const t = audio.currentTime;
-      flushCurrentTimeUi(t);
+      currentTimeRef.current = t;
+      // Screen off still runs timeupdate (media exemption). Skip React work.
+      if (!isPageHidden()) {
+        flushCurrentTimeUi(t);
+      }
       const now = Date.now();
-      if (now - lastTimestampPersistRef.current >= TIMESTAMP_PERSIST_MS) {
+      const persistEvery = isPageHidden() ? TIMESTAMP_PERSIST_HIDDEN_MS : TIMESTAMP_PERSIST_MS;
+      if (now - lastTimestampPersistRef.current >= persistEvery) {
         persistPlaybackTimestamp(t);
       }
     };
@@ -840,6 +847,15 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     audio.addEventListener('ended', onEnded);
     audio.addEventListener('error', onError);
 
+    const onVisibility = () => {
+      if (isPageHidden()) {
+        persistPlaybackTimestamp(audio.currentTime);
+        return;
+      }
+      flushCurrentTimeUi(audio.currentTime, true);
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
     return () => {
       audio.removeEventListener('play', onPlay);
       audio.removeEventListener('pause', onPause);
@@ -850,6 +866,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       audio.removeEventListener('timeupdate', onTimeUpdate);
       audio.removeEventListener('ended', onEnded);
       audio.removeEventListener('error', onError);
+      document.removeEventListener('visibilitychange', onVisibility);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reciters, currentTrack]);
@@ -911,6 +928,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Update Media Session Position State (throttled — setPositionState is not free on mobile)
   useEffect(() => {
     if (!('mediaSession' in navigator) || !currentTrack || !audioRef.current || duration <= 0) return;
+    if (isPageHidden()) return;
     const now = Date.now();
     if (now - lastMediaSessionFlushRef.current < MEDIA_SESSION_FLUSH_MS) return;
     lastMediaSessionFlushRef.current = now;
@@ -928,6 +946,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Sync home-screen widget data (Capacitor + web fallback)
   useEffect(() => {
     if (!currentTrack) return;
+    if (isPageHidden()) return;
 
     const progressPercent = duration > 0 ? Math.round((currentTime / duration) * 100) : 0;
     const now = Date.now();
@@ -1115,8 +1134,13 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       console.warn('Failed to retrieve cached blob URL, playing online version', e);
     }
 
-    // crossOrigin is required for MediaElementSource on remote CDN streams
-    audio.crossOrigin = 'anonymous';
+    // crossOrigin is only needed for Web Audio effects, and it can block the
+    // hardware decoder path. Leave it unset for plain playback.
+    if (effectsNeedProcessing(audioEffectsRef.current)) {
+      audio.crossOrigin = 'anonymous';
+    } else {
+      audio.removeAttribute('crossorigin');
+    }
 
     audio.src = sourceToPlay;
     audio.playbackRate = playbackSpeed;

@@ -9,14 +9,17 @@ import {
 import { getLocalDeviceId, getLocalDeviceLabel } from '../lib/deviceId';
 import { SURAHS } from '../data/surahs';
 import { useActiveAyah } from '../hooks/useActiveAyah';
+import { usePageHidden } from '../hooks/usePageHidden';
 import { resolveStableAyah } from '../utils/stableAyah';
 
 const FAVORITES_KEY = 'quran_streamer_favorites';
 const POLL_MS = 800;
+const POLL_HIDDEN_MS = 30_000;
 const SETTINGS_POLL_MS = 2500;
 const PAUSE_PUSH_DELAY_MS = 500;
 const TAKEOVER_GRACE_MS = 3500;
 const HEARTBEAT_MS = 1000;
+const HEARTBEAT_HIDDEN_MS = 20_000;
 const SETTINGS_PUSH_DELAY_MS = 350;
 
 const settingsSignature = (payload: {
@@ -88,6 +91,7 @@ export const CloudSync: React.FC<CloudSyncProps> = ({ favorites, setFavorites })
     isSeekingNow,
   } = useAudio();
   const ayahSync = useActiveAyah({ enabled: Boolean(currentTrack) });
+  const pageHidden = usePageHidden();
 
   const [settingsReady, setSettingsReady] = useState(false);
   const selectedSurahKey = [...selectedSurahIds].sort((a, b) => a - b).join(',');
@@ -657,11 +661,11 @@ export const CloudSync: React.FC<CloudSyncProps> = ({ favorites, setFavorites })
       if (playbackStatusRef.current !== 'playing') return;
       lastPushKey.current = ''; // force position write
       pushPlayback(true);
-    }, HEARTBEAT_MS);
+    }, pageHidden ? HEARTBEAT_HIDDEN_MS : HEARTBEAT_MS);
 
     return () => window.clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, currentTrack?.reciter.id, currentTrack?.surah.id, playbackStatus]);
+  }, [user, currentTrack?.reciter.id, currentTrack?.surah.id, playbackStatus, pageHidden]);
 
   useEffect(() => {
     const flush = () => {
@@ -743,14 +747,29 @@ export const CloudSync: React.FC<CloudSyncProps> = ({ favorites, setFavorites })
 
     void pollPlayback();
     void pollSettings();
-    const playbackPollId = window.setInterval(() => {
-      void pollPlayback();
-    }, POLL_MS);
-    const settingsPollId = window.setInterval(() => {
-      void pollSettings();
-    }, SETTINGS_POLL_MS);
+
+    let playbackPollId = 0;
+    let settingsPollId = 0;
+
+    const startPolls = () => {
+      window.clearInterval(playbackPollId);
+      window.clearInterval(settingsPollId);
+      const hidden = document.visibilityState === 'hidden';
+      playbackPollId = window.setInterval(() => {
+        void pollPlayback();
+      }, hidden ? POLL_HIDDEN_MS : POLL_MS);
+      if (!hidden) {
+        settingsPollId = window.setInterval(() => {
+          void pollSettings();
+        }, SETTINGS_POLL_MS);
+      }
+    };
+
+    startPolls();
+    document.addEventListener('visibilitychange', startPolls);
 
     return () => {
+      document.removeEventListener('visibilitychange', startPolls);
       window.clearInterval(playbackPollId);
       window.clearInterval(settingsPollId);
       void client.removeChannel(channel);

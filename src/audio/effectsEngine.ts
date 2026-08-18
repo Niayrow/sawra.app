@@ -50,6 +50,8 @@ function createMosqueImpulse(ctx: AudioContext, durationSec = 2.6, decay = 3.1):
 export class AudioEffectsEngine {
   private nodes: EngineNodes | null = null;
   private mediaElement: HTMLAudioElement | null = null;
+  private delayConnected = false;
+  private reverbConnected = false;
 
   get isConnected(): boolean {
     return this.nodes !== null;
@@ -104,7 +106,6 @@ export class AudioEffectsEngine {
     delayWet.gain.value = 0;
 
     const convolver = ctx.createConvolver();
-    convolver.buffer = createMosqueImpulse(ctx);
     convolver.normalize = true;
 
     const reverbWet = ctx.createGain();
@@ -113,25 +114,16 @@ export class AudioEffectsEngine {
     const master = ctx.createGain();
     master.gain.value = 1;
 
-    // EQ → split dry / echo / reverb → master
+    // EQ dry path only — delay/reverb stay disconnected until actually used.
+    // Convolution in particular keeps the CPU hot even with wet gain at 0.
     source.connect(bass);
     bass.connect(treble);
-
     treble.connect(dryGain);
     dryGain.connect(master);
-
-    treble.connect(delay);
-    delay.connect(delayFeedback);
-    delayFeedback.connect(delay);
-    delay.connect(delayWet);
-    delayWet.connect(master);
-
-    treble.connect(convolver);
-    convolver.connect(reverbWet);
-    reverbWet.connect(master);
-
     master.connect(ctx.destination);
 
+    this.delayConnected = false;
+    this.reverbConnected = false;
     this.nodes = {
       ctx,
       source,
@@ -151,11 +143,51 @@ export class AudioEffectsEngine {
   apply(settings: AudioEffectsSettings): void {
     if (!this.nodes) return;
 
-    const { bass, treble, dryGain, delayFeedback, delayWet, reverbWet, delay } = this.nodes;
+    const { bass, treble, dryGain, delayFeedback, delayWet, reverbWet, delay, convolver, master } = this.nodes;
     const active = effectsNeedProcessing(settings);
 
     const now = this.nodes.ctx.currentTime;
     const ramp = 0.045;
+
+    const setDelayConnected = (on: boolean) => {
+      if (on === this.delayConnected) return;
+      if (on) {
+        treble.connect(delay);
+        delay.connect(delayFeedback);
+        delayFeedback.connect(delay);
+        delay.connect(delayWet);
+        delayWet.connect(master);
+      } else {
+        try {
+          delay.disconnect();
+          delayFeedback.disconnect();
+          delayWet.disconnect();
+        } catch {
+          // already disconnected
+        }
+      }
+      this.delayConnected = on;
+    };
+
+    const setReverbConnected = (on: boolean) => {
+      if (on === this.reverbConnected) return;
+      if (on) {
+        if (!convolver.buffer) {
+          convolver.buffer = createMosqueImpulse(this.nodes!.ctx);
+        }
+        treble.connect(convolver);
+        convolver.connect(reverbWet);
+        reverbWet.connect(master);
+      } else {
+        try {
+          convolver.disconnect();
+          reverbWet.disconnect();
+        } catch {
+          // already disconnected
+        }
+      }
+      this.reverbConnected = on;
+    };
 
     if (!active) {
       bass.gain.setTargetAtTime(0, now, ramp);
@@ -164,6 +196,8 @@ export class AudioEffectsEngine {
       delayWet.gain.setTargetAtTime(0, now, ramp);
       delayFeedback.gain.setTargetAtTime(0, now, ramp);
       reverbWet.gain.setTargetAtTime(0, now, ramp);
+      setDelayConnected(false);
+      setReverbConnected(false);
       return;
     }
 
@@ -177,10 +211,12 @@ export class AudioEffectsEngine {
     const dry = Math.max(0.42, 1 - echo * 0.35 - reverb * 0.45);
     dryGain.gain.setTargetAtTime(dry, now, ramp);
 
+    setDelayConnected(echo > 0.01);
     delay.delayTime.setTargetAtTime(0.22 + echo * 0.18, now, ramp);
     delayWet.gain.setTargetAtTime(echo * 0.55, now, ramp);
     delayFeedback.gain.setTargetAtTime(echo * 0.42, now, ramp);
 
+    setReverbConnected(reverb > 0.01);
     reverbWet.gain.setTargetAtTime(reverb * 0.7, now, ramp);
   }
 
@@ -211,5 +247,7 @@ export class AudioEffectsEngine {
     void ctx.close();
     this.nodes = null;
     this.mediaElement = null;
+    this.delayConnected = false;
+    this.reverbConnected = false;
   }
 }

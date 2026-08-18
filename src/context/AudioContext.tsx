@@ -181,6 +181,13 @@ const writeStorage = (key: string, value: string) => {
   }
 };
 
+/** UI refresh for progress bars — avoid re-rendering the whole app on every timeupdate. */
+const TIME_UI_FLUSH_MS = 250;
+/** Persist resume position — localStorage is sync and costly on mobile. */
+const TIMESTAMP_PERSIST_MS = 10_000;
+const MEDIA_SESSION_FLUSH_MS = 1_000;
+const WIDGET_SYNC_MIN_MS = 2_000;
+
 const parseSavedNumber = (key: string, fallback: number, min?: number, max?: number) => {
   const saved = readStorage(key);
   const parsed = saved === null ? NaN : Number.parseFloat(saved);
@@ -394,11 +401,30 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Audio HTML5 Reference
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const currentTimeRef = useRef(0);
+  const lastTimeUiFlushRef = useRef(0);
+  const lastTimestampPersistRef = useRef(0);
+  const lastMediaSessionFlushRef = useRef(0);
+  const lastWidgetSyncRef = useRef({ at: 0, pct: -1 });
   const seekingUntilRef = useRef(0);
   const markSeeking = () => {
     seekingUntilRef.current = Date.now() + 320;
   };
   const isSeekingNow = () => Date.now() < seekingUntilRef.current;
+
+  const persistPlaybackTimestamp = useCallback((t: number) => {
+    currentTimeRef.current = t;
+    writeStorage(`${LOCAL_STORAGE_PREFIX}timestamp`, String(t));
+    lastTimestampPersistRef.current = Date.now();
+  }, []);
+
+  const flushCurrentTimeUi = useCallback((t: number, force = false) => {
+    currentTimeRef.current = t;
+    const now = Date.now();
+    if (!force && now - lastTimeUiFlushRef.current < TIME_UI_FLUSH_MS) return;
+    lastTimeUiFlushRef.current = now;
+    setCurrentTime(t);
+  }, []);
 
   const ensureEffectsEngine = useCallback(async () => {
     const audio = audioRef.current;
@@ -769,7 +795,12 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     // Listeners for audio state sync
     const onPlay = () => setPlaybackStatus('playing');
-    const onPause = () => setPlaybackStatus('paused');
+    const onPause = () => {
+      setPlaybackStatus('paused');
+      const t = audio.currentTime;
+      flushCurrentTimeUi(t, true);
+      persistPlaybackTimestamp(t);
+    };
     const onWaiting = () => setPlaybackStatus('buffering');
     const onPlaying = () => setPlaybackStatus('playing');
     const onLoadStart = () => setPlaybackStatus('buffering');
@@ -777,9 +808,12 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setDuration(audio.duration || 0);
     };
     const onTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
-      // Persist timestamp occasionally
-      writeStorage(`${LOCAL_STORAGE_PREFIX}timestamp`, String(audio.currentTime));
+      const t = audio.currentTime;
+      flushCurrentTimeUi(t);
+      const now = Date.now();
+      if (now - lastTimestampPersistRef.current >= TIMESTAMP_PERSIST_MS) {
+        persistPlaybackTimestamp(t);
+      }
     };
     const onEnded = () => {
       if (repeatModeRef.current === 'one' && audioRef.current) {
@@ -874,18 +908,20 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTrack]);
 
-  // Update Media Session Position State
+  // Update Media Session Position State (throttled — setPositionState is not free on mobile)
   useEffect(() => {
-    if ('mediaSession' in navigator && currentTrack && audioRef.current && duration > 0) {
-      try {
-        navigator.mediaSession.setPositionState({
-          duration: duration,
-          playbackRate: playbackSpeed,
-          position: currentTime
-        });
-      } catch {
-        // Safe check for range errors
-      }
+    if (!('mediaSession' in navigator) || !currentTrack || !audioRef.current || duration <= 0) return;
+    const now = Date.now();
+    if (now - lastMediaSessionFlushRef.current < MEDIA_SESSION_FLUSH_MS) return;
+    lastMediaSessionFlushRef.current = now;
+    try {
+      navigator.mediaSession.setPositionState({
+        duration,
+        playbackRate: playbackSpeed,
+        position: currentTimeRef.current || currentTime,
+      });
+    } catch {
+      // Safe check for range errors
     }
   }, [currentTime, duration, playbackSpeed, currentTrack]);
 
@@ -894,6 +930,12 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (!currentTrack) return;
 
     const progressPercent = duration > 0 ? Math.round((currentTime / duration) * 100) : 0;
+    const now = Date.now();
+    const last = lastWidgetSyncRef.current;
+    if (now - last.at < WIDGET_SYNC_MIN_MS && last.pct === progressPercent) {
+      return;
+    }
+    lastWidgetSyncRef.current = { at: now, pct: progressPercent };
     void syncWidgetPlayback({
       reciterName: currentTrack.reciter.name,
       surahName: currentTrack.surah.name,
@@ -901,7 +943,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       surahArabic: currentTrack.surah.arabicName,
       isPlaying: playbackStatus === 'playing',
       progressPercent,
-      updatedAt: Date.now(),
+      updatedAt: now,
     });
   }, [currentTrack, playbackStatus, currentTime, duration]);
 
@@ -946,6 +988,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 const t = Number.parseFloat(savedTime);
                 if (Number.isFinite(t) && t >= 0) {
                   parsedTime = t;
+                  currentTimeRef.current = t;
                   setCurrentTime(t);
                 }
               }
@@ -988,9 +1031,9 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const safeTime = Number.isFinite(payload.positionSeconds)
       ? Math.max(0, payload.positionSeconds)
       : 0;
-    setCurrentTime(safeTime);
+    flushCurrentTimeUi(safeTime, true);
     persistSelection(reciter, moshaf, surah);
-    writeStorage(`${LOCAL_STORAGE_PREFIX}timestamp`, String(safeTime));
+    persistPlaybackTimestamp(safeTime);
     return true;
   }, [reciters]);
 
@@ -1059,7 +1102,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
 
     setPlaybackStatus('buffering');
-    setCurrentTime(safeStartAt);
+    flushCurrentTimeUi(safeStartAt, true);
     setDuration(0);
 
     let sourceToPlay = audioUrl;
@@ -1093,7 +1136,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           markSeeking();
           audio.currentTime = safeStartAt;
         }
-        setCurrentTime(safeStartAt);
+        flushCurrentTimeUi(safeStartAt, true);
       } catch {
         // Some streams reject seeking before enough metadata is available.
       }
@@ -1149,10 +1192,10 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const getAccurateCurrentTime = () => {
     const audio = audioRef.current;
-    if (audio && Number.isFinite(audio.currentTime) && audio.currentTime > 0) {
+    if (audio && Number.isFinite(audio.currentTime) && audio.currentTime >= 0) {
       return audio.currentTime;
     }
-    return currentTime;
+    return currentTimeRef.current || currentTime;
   };
 
   const registerTakeOverHandler = (handler: (() => Promise<boolean>) | null) => {
@@ -1207,6 +1250,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     }
     setPlaybackStatus('idle');
+    currentTimeRef.current = 0;
     setCurrentTime(0);
     setDuration(0);
     setCurrentTrack(null);
@@ -1240,8 +1284,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const safeTime = Math.min(upperBound, Math.max(0, time));
       markSeeking();
       audioRef.current.currentTime = safeTime;
-      setCurrentTime(safeTime);
-      writeStorage(`${LOCAL_STORAGE_PREFIX}timestamp`, String(safeTime));
+      flushCurrentTimeUi(safeTime, true);
+      persistPlaybackTimestamp(safeTime);
     }
   };
 

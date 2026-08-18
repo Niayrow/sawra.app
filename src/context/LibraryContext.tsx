@@ -569,9 +569,17 @@ export const LibraryProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [creditListenSeconds, flushListenToCloud, playbackStatus]);
 
   useEffect(() => {
-    if (playbackStatus !== 'playing' && playbackStatus !== 'paused') return;
+    if (playbackStatus !== 'playing') return;
     snapshotProgress(false);
-  }, [currentTime, playbackStatus, snapshotProgress]);
+    const timer = window.setInterval(() => snapshotProgress(false), PROGRESS_FLUSH_MS);
+    return () => window.clearInterval(timer);
+  }, [playbackStatus, snapshotProgress]);
+
+  useEffect(() => {
+    if (playbackStatus === 'paused') {
+      snapshotProgress(true);
+    }
+  }, [playbackStatus, snapshotProgress]);
 
   useEffect(() => {
     const flush = () => {

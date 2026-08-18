@@ -45,7 +45,7 @@ export const SurahList: React.FC<SurahListProps> = ({ onChooseReciter }) => {
     batchDownload,
     deleteSurah,
   } = useAudio();
-  const { getProgress } = useLibrary();
+  const { getProgress, progress: libraryProgress } = useLibrary();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
@@ -260,6 +260,21 @@ export const SurahList: React.FC<SurahListProps> = ({ onChooseReciter }) => {
       return cachedUrls.has(getAudioUrl(activeMoshaf, surah)) ? count + 1 : count;
     }, 0);
   }, [activeMoshaf, availableSurahs, cachedUrls, checkedIds]);
+
+  const resumeBySurahId = useMemo(() => {
+    if (!activeReciter || !activeMoshaf) return new Map<number, ReturnType<typeof getProgress>>();
+    const map = new Map<number, NonNullable<ReturnType<typeof getProgress>>>();
+    for (const row of libraryProgress) {
+      if (
+        row.reciterId === activeReciter.id &&
+        row.moshafId === activeMoshaf.id &&
+        row.positionSeconds >= 5
+      ) {
+        map.set(row.surahId, row);
+      }
+    }
+    return map;
+  }, [libraryProgress, activeReciter?.id, activeMoshaf?.id]);
 
   const touchStartYRef = useRef<number | null>(null);
   const swipeStartRef = useRef<{
@@ -934,8 +949,8 @@ export const SurahList: React.FC<SurahListProps> = ({ onChooseReciter }) => {
                     </p>
                     {(() => {
                       if (selectMode || !activeReciter || !activeMoshaf) return null;
-                      const resume = getProgress(activeReciter.id, activeMoshaf.id, surah.id);
-                      if (!resume || resume.positionSeconds < 5) return null;
+                      const resume = resumeBySurahId.get(surah.id);
+                      if (!resume) return null;
                       return (
                         <button
                           type="button"
